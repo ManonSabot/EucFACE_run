@@ -1,0 +1,15 @@
+plots/plots/*
+plots/*.pdf
+cable
+__pycache__/*
+logs/*
+namelists/*
+outputs/*
+restart_files/*
+met/*
+new_sumbal
+*.o
+*.nc
+*.pdf
+*.png
+*.jpg

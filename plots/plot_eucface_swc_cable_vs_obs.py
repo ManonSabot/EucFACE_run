@@ -76,7 +76,7 @@ def main(fobs, fcable):
 
     #neo_mean = np.transpose(neo_mean)
 
-    vars = ele_mean
+    vars = amb_mean
 # ___________________ From Pandas to Numpy __________________________
     date_start = pd.datetime(2013,1,1) - pd.datetime(2011,12,31)
     date_end   = pd.datetime(2019,5,11) - pd.datetime(2011,12,31)
@@ -143,7 +143,8 @@ def main(fobs, fcable):
     ######
     #img = ax1.imshow(grid_data, cmap=cmap, vmin=0, vmax=40, origin="upper", interpolation='nearest')
     #'spline16')#'nearest')
-    img = ax1.contourf(grid_data, cmap=cmap, vmin=0, vmax=40, origin="upper", levels=8)
+    levels = [0,5,10,15,20,25,30,35,40,45,50]
+    img = ax1.contourf(grid_data, cmap=cmap, origin="upper", levels=levels)
     cbar = fig.colorbar(img, orientation="vertical", pad=0.1, shrink=.6) #"horizontal"
     cbar.set_label('VWC Obs (%)')#('Volumetric soil water content (%)')
     tick_locator = ticker.MaxNLocator(nbins=5)
@@ -185,6 +186,9 @@ def main(fobs, fcable):
 
     Time = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
     SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns=[1.,4.5,10.,19.5,41,71,101,131,161,191,221,273.5,386])
+    #columns =[17.69,53.07,88.45,\
+    #            123.83,159.21,194.59,229.97,265.35,300.73,336.11,371.49,406.87,442.25])
+     #columns=[1.,4.5,10.,19.5,41,71,101,131,161,191,221,273.5,386])
     SoilMoist['dates'] = Time
     SoilMoist = SoilMoist.set_index('dates')
     SoilMoist = SoilMoist.resample("D").agg('mean')
@@ -226,7 +230,7 @@ def main(fobs, fcable):
 
     #img2 = ax2.imshow(grid_cable, cmap=cmap, vmin=0, vmax=40, origin="upper", interpolation='nearest')
     #'spline16')#'nearest')
-    img2 = ax2.contourf(grid_cable, cmap=cmap, vmin=0, vmax=40, origin="upper", levels=8)
+    img2 = ax2.contourf(grid_cable, cmap=cmap, origin="upper", levels=levels)
     cbar2 = fig.colorbar(img2, orientation="vertical", pad=0.1, shrink=.6)
     cbar2.set_label('VWC CABLE (%)')#('Volumetric soil water content (%)')
     tick_locator2 = ticker.MaxNLocator(nbins=5)
@@ -265,7 +269,8 @@ def main(fobs, fcable):
 
     #img3 = ax3.imshow(difference, cmap=cmap, vmin=-30, vmax=30, origin="upper", interpolation='nearest')
     #'spline16')#'nearest')
-    img3 = ax3.contourf(difference, cmap=cmap, vmin=-30, vmax=30, origin="upper", levels=8)
+    levels = [-30,-25,-20,-15,-10,-5,0,5,10,15,20,25,30]
+    img3 = ax3.contourf(difference, cmap=cmap, origin="upper", levels=levels)
     cbar3 = fig.colorbar(img3, orientation="vertical", pad=0.1, shrink=.6)
     cbar3.set_label('CABLE - Obs (%)')
     tick_locator3 = ticker.MaxNLocator(nbins=6)
@@ -289,10 +294,10 @@ def main(fobs, fcable):
     ax3.set_ylabel("Depth (cm)")
     ax3.axis('tight')
 
-    fig.savefig("EucFACE_SW_ele_contour.pdf", bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("EucFACE_SW_amb_contour_13uneqlayers.pdf", bbox_inches='tight', pad_inches=0.1)
 
 if __name__ == "__main__":
 
     fobs = "/short/w35/mm3972/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
-    fcable = "/short/w35/mm3972/cable/runs/EucFACE/EucFACE_run/outputs/EucFACE_ele_out.nc"
+    fcable = "/short/w35/mm3972/cable/runs/EucFACE/EucFACE_run/outputs/type_elev_para_ununi/13layers/unequal/gw_on_or_off/EucFACE_amb_out.nc"
     main(fobs, fcable)

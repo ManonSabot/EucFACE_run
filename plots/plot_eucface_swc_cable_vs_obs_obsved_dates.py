@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
 """
-Plot EucFACE soil moisture
+Plot EucFACE soil moisture at observated dates
 
 That's all folks.
 """
 
 __author__ = "MU Mengyuan"
-__version__ = "2019-7-18"
-
+__version__ = "2019-7-30"
+__changefrom__ = 'plot_eucface_swc_cable_vs_obs.py'
 
 import os
 import sys
@@ -77,6 +77,7 @@ def main(fobs, fcable):
     #neo_mean = np.transpose(neo_mean)
 
     vars = amb_mean
+
 # ___________________ From Pandas to Numpy __________________________
     date_start = pd.datetime(2013,1,1) - pd.datetime(2011,12,31)
     date_end   = pd.datetime(2017,1,1) - pd.datetime(2011,12,31)
@@ -96,9 +97,9 @@ def main(fobs, fcable):
     # get_level_values(1) : Return an Index of values for requested level.
     # add Depth = 0 and Depth = 460
 
-
+    print(vars[(25)].index.values)
     # add the 12 depths to 0
-    X     = np.arange(date_start,date_end,1) # 2012-4-30 to 2019-5-11
+    X     = vars[(25)].index.values #np.arange(date_start,date_end,1) # 2012-4-30 to 2019-5-11
     Y     = np.arange(0,465,5)
 
     grid_X, grid_Y = np.meshgrid(X,Y)
@@ -141,9 +142,11 @@ def main(fobs, fcable):
     #plt.imshow(amb_mean, cmap=cmap, vmin=0, vmax=40, origin="upper", interpolation='nearest')
     #plt.show()
     ######
-    img = ax1.imshow(grid_data, cmap=cmap, vmin=0, vmax=40, origin="upper", interpolation='nearest')
+    # img = ax1.imshow(grid_data, cmap=cmap, vmin=0, vmax=40, origin="upper", interpolation='nearest')
     #'spline16')#'nearest')
-    #img = ax.contourf(grid_z0, cmap=cmap, origin="upper", levels=8)
+
+    levels = [0.,5.,10.,15.,20.,25.,30.,35.,40.]
+    img = ax1.contourf(grid_data, cmap=cmap, origin="upper", levels=levels) # vmin=0, vmax=40,
     cbar = fig.colorbar(img, orientation="vertical", pad=0.1, shrink=.6) #"horizontal"
     cbar.set_label('VWC Obs (%)')#('Volumetric soil water content (%)')
     tick_locator = ticker.MaxNLocator(nbins=5)
@@ -152,7 +155,7 @@ def main(fobs, fcable):
 
     # every second tick
     ax1.set_yticks(np.arange(len(Y))[::10])
-    Y_labels = Y #np.flipud(Y)
+    Y_labels = np.flipud(Y) #Y #np.flipud(Y)
     ax1.set_yticklabels(Y_labels[::10])
     plt.setp(ax1.get_xticklabels(), visible=False)
 
@@ -185,6 +188,7 @@ def main(fobs, fcable):
 
     Time = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
     SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns=[1.1, 5.1, 15.7, 43.85, 118.55, 316.4])
+    #[1.,4.5,10.,19.5,41,71,101,131,161,191,221,273.5,386])
     SoilMoist['dates'] = Time
     SoilMoist = SoilMoist.set_index('dates')
     SoilMoist = SoilMoist.resample("D").agg('mean')
@@ -205,7 +209,7 @@ def main(fobs, fcable):
 
     ntimes      = len(np.unique(SoilMoist['dates']))
     dates       = np.unique(SoilMoist['dates'].values)
-
+    print(dates)
     x_cable     = np.concatenate(( dates, SoilMoist['dates'].values,dates)) # Time
     y_cable     = np.concatenate(([0]*ntimes,SoilMoist['Depth'].values,[460]*ntimes))# Depth
     value_cable = np.concatenate(( SoilMoist.iloc[:ntimes,2].values, \
@@ -213,19 +217,21 @@ def main(fobs, fcable):
                                    SoilMoist.iloc[-(ntimes):,2].values ))
     value_cable = value_cable*100.
     # add the 12 depths to 0
-    X_cable     = np.arange(date_start_cable,date_end_cable,1) # 2013-1-1 to 2016-12-31
+    X_cable     = X #np.arange(date_start_cable,date_end_cable,1) # 2013-1-1 to 2016-12-31
     Y_cable     = np.arange(0,465,5)
     grid_X_cable, grid_Y_cable = np.meshgrid(X_cable,Y_cable)
 
     # interpolate
     grid_cable = griddata((x_cable, y_cable) , value_cable, (grid_X_cable, grid_Y_cable),\
-                 method='cubic') 
+                 method='cubic')
                  #'cubic')#'linear')#'nearest')
 
     ax2 = fig.add_subplot(312)#, sharey = ax1)#(nrows=2, ncols=2, index=2, sharey=ax1)
 
-    img2 = ax2.imshow(grid_cable, cmap=cmap, vmin=0, vmax=40, origin="upper", interpolation='nearest')
+    #img2 = ax2.imshow(grid_cable, cmap=cmap, vmin=0, vmax=40, origin="upper", interpolation='nearest')
     #'spline16')#'nearest')
+
+    img2 = ax2.contourf(grid_cable, cmap=cmap, origin="upper", levels=levels) #vmin=0, vmax=40,
     cbar2 = fig.colorbar(img2, orientation="vertical", pad=0.1, shrink=.6)
     cbar2.set_label('VWC CABLE (%)')#('Volumetric soil water content (%)')
     tick_locator2 = ticker.MaxNLocator(nbins=5)
@@ -234,7 +240,7 @@ def main(fobs, fcable):
 
     # every second tick
     ax2.set_yticks(np.arange(len(Y_cable))[::10])
-    Y_labels2 = Y_cable #np.flipud(Y)
+    Y_labels2 = np.flipud(Y) #Y #np.flipud(Y_cable)
     ax2.set_yticklabels(Y_labels2[::10])
     plt.setp(ax2.get_xticklabels(), visible=False)
 
@@ -262,8 +268,10 @@ def main(fobs, fcable):
 
     cmap = plt.cm.BrBG
 
-    img3 = ax3.imshow(difference, cmap=cmap, vmin=-30, vmax=30, origin="upper", interpolation='nearest')
+    #img3 = ax3.imshow(difference, cmap=cmap, vmin=-30, vmax=30, origin="upper", interpolation='nearest')
     #'spline16')#'nearest')
+    levels = [-25.,-20.,-15.,-10.,-5.,0.,5.,10.,15,20,25]
+    img3 = ax3.contourf(difference, cmap=cmap, origin="upper", levels=levels)
     cbar3 = fig.colorbar(img3, orientation="vertical", pad=0.1, shrink=.6)
     cbar3.set_label('CABLE - Obs (%)')
     tick_locator3 = ticker.MaxNLocator(nbins=6)
@@ -272,22 +280,22 @@ def main(fobs, fcable):
 
     # every second tick
     ax3.set_yticks(np.arange(len(Y_cable))[::10])
-    Y_labels3 = Y_cable #np.flipud(Y)
+    Y_labels3 = np.flipud(Y_cable) #Y #np.flipud(Y_cable)
     ax3.set_yticklabels(Y_labels3[::10])
 
     ax3.set_xticks(np.arange(len(X_cable)))
     cleaner_dates3 = X_cable
     ax3.set_xticklabels(cleaner_dates3)
 
-    cleaner_dates3 = ["2014","2015","2016",]
+    cleaner_dates3 = ["2014","2015","2016","2017","2018","2019"]
                   # ["2013-01","2014-01","2015-01","2016-01",]
-    xtickslocs3 = [365,730,1095]
+    xtickslocs3 = [365,730,1095,1461,1826,2191]
 
     ax3.set(xticks=xtickslocs3, xticklabels=cleaner_dates3)
     ax3.set_ylabel("Depth (cm)")
     ax3.axis('tight')
 
-    fig.savefig("EucFACE_SW_amb.pdf", bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("EucFACE_SW_amb_obsved_dates_contour.png", bbox_inches='tight', pad_inches=0.1)
 
 if __name__ == "__main__":
 

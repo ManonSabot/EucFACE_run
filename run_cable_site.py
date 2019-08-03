@@ -33,10 +33,11 @@ class RunCable(object):
                  nml_fname="cable.nml",
                  veg_fname="def_veg_params_zr_clitt_albedo_fix.txt",
                  soil_fname="def_soil_params.txt",
+                 #grid_fname="gridinfo_mmy_MD_elev_orig_std_avg-sand_mask.nc",
                  grid_fname="gridinfo_CSIRO_1x1.nc",
                  phen_fname="modis_phenology_csiro.txt",
                  cnpbiome_fname="pftlookup_csiro_v16_17tiles.csv",
-                 elev_fname="GSWP3_gwmodel_parameters.nc",
+                 #elev_fname="GSWP3_gwmodel_parameters.nc",
                  lai_dir=None, fixed_lai=None,
                  met_subset=[], cable_src=None, cable_exe="cable", mpi=True,
                  num_cores=None, verbose=True):
@@ -56,7 +57,7 @@ class RunCable(object):
         self.grid_fname = os.path.join(self.grid_dir, grid_fname)
         self.phen_fname = os.path.join(self.biogeochem_dir, phen_fname)
         self.cnpbiome_fname = os.path.join(self.biogeochem_dir, cnpbiome_fname)
-        self.elev_fname = elev_fname
+        #self.elev_fname = os.path.join(self.grid_dir, elev_fname)
         self.met_subset = met_subset
         self.cable_src = cable_src
         self.cable_exe = os.path.join(cable_src, "offline/%s" % (cable_exe))
@@ -117,6 +118,7 @@ class RunCable(object):
                             "filename%log": "'%s'" % (out_log_fname),
                             "filename%restart_out": "' '",
                             "filename%type": "'%s'" % (self.grid_fname),
+                            #"filename%gw_elev": "'%s'" % (self.elev_fname)
                             "filename%veg": "'%s'" % (self.veg_fname),
                             "filename%soil": "'%s'" % (self.soil_fname),
                             "output%restart": ".FALSE.",
@@ -124,9 +126,9 @@ class RunCable(object):
                             "casafile%cnpbiome": "'%s'" % (self.cnpbiome_fname),
                             "cable_user%FWSOIL_SWITCH": "'Haverd2013'",
                             "cable_user%GS_SWITCH": "'medlyn'",
-                            "cable_user%GW_MODEL": ".FALSE.",
+                            "cable_user%GW_MODEL": ".TRUE.",
                             "cable_user%or_evap": ".FALSE.",
-                            #"elev_fname": "'%s'" % (self.elev_fname),
+                            "cable_user%MetType": "site",
             }
             adjust_nml_file(nml_fname, replace_dict)
 
@@ -201,20 +203,18 @@ class RunCable(object):
 if __name__ == "__main__":
 
     #------------- Change stuff ------------- #
-    #met_dir = "../../met_data/plumber_met"
     met_dir = "met"
     log_dir = "logs"
     output_dir = "outputs"
     restart_dir = "restart_files"
     namelist_dir = "namelists"
-    aux_dir = "../../src/CMIP6-MOSRS_HIE/CABLE-AUX/"
-    cable_src = "../../src/CMIP6-MOSRS_HIE/CMIP6-MOSRS_HIE/"
+    aux_dir = "/short/w35/mm3972/cable/src/CABLE-AUX/"
+    cable_src = "/short/w35/mm3972/cable/src/Marks_latest_branch_with_fixes_gw_for_EucFace_debug/"
+    #cable_src = "/short/w35/mm3972/cable/src/Marks_latest_branch_with_fixes_gw_for_EucFace/"
     mpi = False
     num_cores = 4 # set to a number, if None it will use all cores...!
     # if empty...run all the files in the met_dir
-    #met_subset = ['TumbaFluxnet.1.4_met.nc']
     met_subset = []
-
     # ------------------------------------------- #
 
     C = RunCable(met_dir=met_dir, log_dir=log_dir, output_dir=output_dir,

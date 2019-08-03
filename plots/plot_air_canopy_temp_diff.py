@@ -108,7 +108,7 @@ def resample_to_seasonal_cycle(df, OBS=False):
 
 if __name__ == "__main__":
 
-    amb_fname = "outputs/EucFACE_amb_out.nc"
-    ele_fname = "outputs/EucFACE_ele_out.nc"
-    met_fname = "met/EucFACE_met_amb.nc"
+    amb_fname = "/short/w35/mm3972/cable/runs/EucFACE/EucFACE_run/outputs/gw_on/EucFACE_amb_out.nc"
+    ele_fname = "/short/w35/mm3972/cable/runs/EucFACE/EucFACE_run/outputs/gw_on/EucFACE_ele_out.nc"
+    met_fname = "/short/w35/mm3972/cable/runs/EucFACE/EucFACE_run/met/EucFACE_met_amb.nc"
     main(amb_fname, ele_fname, met_fname)

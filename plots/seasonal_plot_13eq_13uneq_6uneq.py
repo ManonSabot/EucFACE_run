@@ -18,12 +18,14 @@ import numpy as np
 from matplotlib.ticker import FixedLocator
 import os
 
-def main(amb_fname, ele_fname):
+def main(uneq13_fname, eq13_fname,uneq6_fname):
 
-    df_a = read_cable_file(amb_fname)
+    df_a = read_cable_file(uneq13_fname)
     df_a = resample_to_seasonal_cycle(df_a)
-    df_e = read_cable_file(ele_fname)
+    df_e = read_cable_file(eq13_fname)
     df_e = resample_to_seasonal_cycle(df_e)
+    df_s = read_cable_file(uneq6_fname)
+    df_s = resample_to_seasonal_cycle(df_s)
 
     fig = plt.figure(figsize=(8,6))
     fig.subplots_adjust(hspace=0.3)
@@ -47,9 +49,9 @@ def main(amb_fname, ele_fname):
     axes = [ax1, ax2, ax3, ax4, ax5, ax6]
     vars = ["GPP", "CO2air", "Qle", "LAI", "TVeg", "ESoil"]
     for a, v in zip(axes, vars):
-        a.plot(df_a.month, df_a[v], c="blue", lw=2.0, ls="-", label="AMB")
-        a.plot(df_e.month, df_e[v], c="red", lw=2.0, ls="-",
-               label="ELE")
+        a.plot(df_a.month, df_a[v], c="blue", lw=2.0, ls="-", label="uneq13")
+        a.plot(df_e.month, df_e[v], c="red", lw=2.0, ls="-", label="eq13")
+        a.plot(df_s.month, df_s[v], c="green", lw=2.0, ls="-", label="uneq6")
 
     labels = ["GPP (g C m$^{-2}$ d$^{-1}$)", \
               "CO$_2$ ($\mathrm{\mu}$mol mol$^{-1}$)",\
@@ -70,7 +72,7 @@ def main(amb_fname, ele_fname):
     ax1.legend(numpoints=1, loc="best")
 
 
-    plot_fname = "seasonal_plot_gw_off_amb_vs_ele_standard_para.png"
+    plot_fname = "seasonal_plot_gw_on_uneq-eq-13-6.png"
     plot_dir = "plots"
     if not os.path.exists(plot_dir):
         os.makedirs(plot_dir)
@@ -118,6 +120,7 @@ def resample_to_seasonal_cycle(df, OBS=False):
 
 if __name__ == "__main__":
 
-    amb_fname = "/short/w35/mm3972/cable/runs/EucFACE/EucFACE_run/outputs/EucFACE_amb_out.nc"
-    ele_fname = "/short/w35/mm3972/cable/runs/EucFACE/EucFACE_run/outputs/EucFACE_ele_out.nc"
-    main(amb_fname, ele_fname)
+    uneq13_fname = "/short/w35/mm3972/cable/runs/EucFACE/EucFACE_run/outputs/type_elev_para_ununi/13layers/unequal/gw_on_or_off/EucFACE_amb_out.nc"
+    eq13_fname = "/short/w35/mm3972/cable/runs/EucFACE/EucFACE_run/outputs/type_elev_para_ununi/13layers/equal/gw_on_or_off/EucFACE_amb_out.nc"
+    uneq6_fname = "/short/w35/mm3972/cable/runs/EucFACE/EucFACE_run/outputs/type_elev_para_ununi/6layers/using_type_elev_para_writen_in_met/gw_on_or_off/EucFACE_amb_out.nc"
+    main(uneq13_fname, eq13_fname,uneq6_fname)

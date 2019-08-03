@@ -5,7 +5,7 @@ Plot EucFACE soil moisture
 
 That's all folks.
 """
-
+   
 __author__ = "Martin De Kauwe"
 __version__ = "1.0 (24.10.2018)"
 __email__ = "mdekauwe@gmail.com"
