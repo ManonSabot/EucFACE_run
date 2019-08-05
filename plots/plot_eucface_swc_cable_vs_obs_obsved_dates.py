@@ -145,7 +145,7 @@ def main(fobs, fcable):
     # img = ax1.imshow(grid_data, cmap=cmap, vmin=0, vmax=40, origin="upper", interpolation='nearest')
     #'spline16')#'nearest')
 
-    levels = [0.,5.,10.,15.,20.,25.,30.,35.,40.]
+    levels = [0.,5.,10.,15.,20.,25.,30.,35.,40.,45.,50.]
     img = ax1.contourf(grid_data, cmap=cmap, origin="upper", levels=levels) # vmin=0, vmax=40,
     cbar = fig.colorbar(img, orientation="vertical", pad=0.1, shrink=.6) #"horizontal"
     cbar.set_label('VWC Obs (%)')#('Volumetric soil water content (%)')
@@ -187,8 +187,9 @@ def main(fobs, fcable):
     cable = nc.Dataset(fcable, 'r')
 
     Time = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
-    SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns=[1.1, 5.1, 15.7, 43.85, 118.55, 316.4])
-    #[1.,4.5,10.,19.5,41,71,101,131,161,191,221,273.5,386])
+    SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns=[1.,4.5,10.,19.5,41,71,101,131,161,191,221,273.5,386])
+    #columns=[1.1, 5.1, 15.7, 43.85, 118.55, 316.4])
+    #
     SoilMoist['dates'] = Time
     SoilMoist = SoilMoist.set_index('dates')
     SoilMoist = SoilMoist.resample("D").agg('mean')
@@ -270,7 +271,7 @@ def main(fobs, fcable):
 
     #img3 = ax3.imshow(difference, cmap=cmap, vmin=-30, vmax=30, origin="upper", interpolation='nearest')
     #'spline16')#'nearest')
-    levels = [-25.,-20.,-15.,-10.,-5.,0.,5.,10.,15,20,25]
+    levels = [-35,-30,-25.,-20.,-15.,-10.,-5.,0.,5.,10.,15,20,25,30,35]
     img3 = ax3.contourf(difference, cmap=cmap, origin="upper", levels=levels)
     cbar3 = fig.colorbar(img3, orientation="vertical", pad=0.1, shrink=.6)
     cbar3.set_label('CABLE - Obs (%)')
@@ -295,10 +296,10 @@ def main(fobs, fcable):
     ax3.set_ylabel("Depth (cm)")
     ax3.axis('tight')
 
-    fig.savefig("EucFACE_SW_amb_obsved_dates_contour.png", bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("EucFACE_SW_amb_obsved_dates_contour_depth_varied_para_gw_on_or_off.png", bbox_inches='tight', pad_inches=0.1)
 
 if __name__ == "__main__":
 
     fobs = "/short/w35/mm3972/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
-    fcable = "/short/w35/mm3972/cable/runs/EucFACE/EucFACE_jim_dushan/outputs/EucFACE_amb_out.nc"
+    fcable = "/g/data1a/w35/mm3972/cable/EucFACE/EucFACE_run/outputs/calculated_para_gridinfo_ununi_gw_on_or_off/after_changing_cable_input_as_abs_sucs_vec_1000/depth_varied_para_gw_on_or_off/EucFACE_amb_out.nc"
     main(fobs, fcable)

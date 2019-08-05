@@ -33,8 +33,8 @@ class RunCable(object):
                  nml_fname="cable.nml",
                  veg_fname="def_veg_params_zr_clitt_albedo_fix.txt",
                  soil_fname="def_soil_params.txt",
-                 #grid_fname="gridinfo_mmy_MD_elev_orig_std_avg-sand_mask.nc",
-                 grid_fname="gridinfo_CSIRO_1x1.nc",
+                 grid_fname="gridinfo_mmy_MD_elev_orig_std_avg-sand_mask.nc",
+                 #grid_fname="gridinfo_CSIRO_1x1.nc",
                  phen_fname="modis_phenology_csiro.txt",
                  cnpbiome_fname="pftlookup_csiro_v16_17tiles.csv",
                  #elev_fname="GSWP3_gwmodel_parameters.nc",
@@ -122,7 +122,8 @@ class RunCable(object):
                             "filename%veg": "'%s'" % (self.veg_fname),
                             "filename%soil": "'%s'" % (self.soil_fname),
                             "output%restart": ".FALSE.",
-                            "casafile%phen": "'%s'" % (self.phen_fname),
+                            #"output%gsc": ".TRUE.",
+			    "casafile%phen": "'%s'" % (self.phen_fname),
                             "casafile%cnpbiome": "'%s'" % (self.cnpbiome_fname),
                             "cable_user%FWSOIL_SWITCH": "'Haverd2013'",
                             "cable_user%GS_SWITCH": "'medlyn'",
@@ -209,7 +210,7 @@ if __name__ == "__main__":
     restart_dir = "restart_files"
     namelist_dir = "namelists"
     aux_dir = "/short/w35/mm3972/cable/src/CABLE-AUX/"
-    cable_src = "/short/w35/mm3972/cable/src/Marks_latest_branch_with_fixes_gw_for_EucFace_debug/"
+    cable_src = "/short/w35/mm3972/cable/src/Marks_latest_branch_with_fixes_gw_for_EucFace_debug_para_sensitivity_test/"
     #cable_src = "/short/w35/mm3972/cable/src/Marks_latest_branch_with_fixes_gw_for_EucFace/"
     mpi = False
     num_cores = 4 # set to a number, if None it will use all cores...!

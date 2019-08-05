@@ -1,5 +1,7 @@
 plots/plots/*
 plots/*.pdf
+plots/*.png
+plots/*.csv
 cable
 __pycache__/*
 logs/*
