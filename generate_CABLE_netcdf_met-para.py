@@ -362,75 +362,75 @@ def main(met_fname, lai_fname, obs_fname, out_fname, co2_conc):
     sfc_vec[:,0,0]  = np.zeros(nsoil)
     css_vec[:,0,0]  = np.zeros(nsoil)
     cnsd_vec[:,0,0] = np.zeros(nsoil)
+
     """
-    sfc[:,0]   = 0.2734839
-    swilt[:,0] = 0.1191662
-    css[:,0]   = 826.4359
-    cnsd[:,0]  = 0.2710492
-    rhosoil[:,0]=1283.24
-    hyds[:,0]  = 0.00001157125
-    sucs[:,0]  = 0.1650989
-    ssat[:,0]  = 0.4533334
-    bch[:,0]   = 5.807387
-    sand[:,0]  = 0.5579049
-    clay[:,0]  = 0.2388505
-    silt[:,0]  = 0.2034479
+    sand[:,0]  = 0.588829 #0.5579049
+    clay[:,0]  = 0.283427
+    silt[:,0]  = 0.127744
+    rhosoil[:,0]= 1873.122 # 1283.24
+    css[:,0]   = 795.7938  # 826.4359
+    hyds[:,0]  = 0.000006869 # 0.00001157125 # m/s
+    bch[:,0]   = 7.277074  #5.807387
+    ssat[:,0]  = 0.411418 #0.4533334
+    sfc[:,0]   = 0.25815 # 0.2734839
+    cnsd[:,0]  = 0.271049 # 0.2710492
+    sucs[:,0]  = -0.12118 # 0.1650989
+    swilt[:,0] = 0.121959 # 0.1191662
 
     for i in np.arange(0,nsoil,1):
-        sfc_vec[i]   = 0.2734839
-        swilt_vec[i] = 0.1191662
-        css_vec[i]   = 826.4359
-        cnsd_vec[i]  = 0.2710492 #
-        rhosoil_vec[i]=1283.24
-        hyds_vec[i]  = 0.01157125
-        sucs_vec[i]  = 0.1650989
-        ssat_vec[i]  = 0.4533334
-        bch_vec[i]   = 5.807387
-        sand_vec[i]  = 0.5579049
-        clay_vec[i]  = 0.2388505
-        silt_vec[i]  = 0.1191662
-        org_vec[i]   = 0.0025   #
-        watr[i]      = 0.023916 #
+        sand_vec[i]  = 0.588829
+        clay_vec[i]  = 0.283427
+        silt_vec[i]  = 0.127744
+        org_vec[i]   = 0.002717 #0.0025   #
+        rhosoil_vec[i]=1873.122
+        css_vec[i]   = 795.7938
+        hyds_vec[i]  = 0.006869 # mm/s
+        bch_vec[i]   = 7.277074
+        watr[i]      = 0.025442 #0.023916 #
+        ssat_vec[i]  = 0.411418
+        sfc_vec[i]   = 0.25815
+        cnsd_vec[i]  = 0.271049
+        sucs_vec[i]  = -0.12118
+        swilt_vec[i] = 0.121959
     """
 
     psi_tmp  = 2550000.0
-
     for i in np.arange(0,13,1):
-
+        css_vec[i]   = (1.0-org_vec[i]) * ( 850*(1.0 - sand_vec[i] - clay_vec[i]) + \
+                        865.0*clay_vec[i] + 750.0*sand_vec[i] ) + org_vec[i]*950.0
         hyds_vec[i] = (1.0-org_vec[i]) * 0.00706 * ( 10.0 ** (-0.60 + 1.26*sand_vec[i] - 0.64*clay_vec[i]) )\
                       + org_vec[i]*10**(-4)
         bch_vec[i]  = (1.0-org_vec[i]) * ( 3.1 + 15.4*clay_vec[i] - 0.3*sand_vec[i]) + org_vec[i]*3.0
-        sucs_vec[i] = (1.0-org_vec[i]) * 10.0 * 10.0**( 1.54 - 0.95*sand_vec[i] + 0.63*silt_vec[i] ) \
-                      + org_vec[i]*10.3
+        watr[i]     = (1.0-org_vec[i]) * ( 0.02 + 0.018*clay_vec[i] ) + org_vec[i]*0.15
         ssat_vec[i] = (1.0-org_vec[i]) * ( 0.505 - 0.142*sand_vec[i] - 0.037*clay_vec[i]) \
                       + org_vec[i]*0.6
-        watr[i]     = (1.0-org_vec[i]) * ( 0.02 + 0.018*clay_vec[i] ) + org_vec[i]*0.15
+        sfc_vec[i]   = (ssat_vec[i] - watr[i]) * ( 1.157407 * 10**(-6) / hyds_vec[i])** \
+                      (1.0 / (2.0*bch_vec[i] + 3.0) ) + watr[i]
         sst_tmp  = 1.0 - max(min(ssat_vec[i], 0.85), 0.15)
+        cnsd_vec[i]  = (1.0-org_vec[i]) * ( 0.135*sst_tmp + 0.0239/sst_tmp )  /  \
+                        (1.0 - 0.947*sst_tmp) + org_vec[i]*0.05
+        sucs_vec[i] = (1.0-org_vec[i]) * 10.0 * 10.0**( 1.54 - 0.95*sand_vec[i] + 0.63*silt_vec[i] ) \
+                        + org_vec[i]*10.3
         swilt_vec[i] = (ssat_vec[i] - watr[i]) * ( (psi_tmp/sucs_vec[i]) ** (-1.0/bch_vec[i]) ) \
                        + watr[i]
-        sfc_vec[i]   = (ssat_vec[i] - watr[i]) * ( 1.157407 * 10**(-6) / hyds_vec[i])** \
-                       (1.0 / (2.0*bch_vec[i] + 3.0) ) + watr[i]
+        sucs_vec[i] = sucs_vec[i]/1000. # cannot put it before swilt_vec calculation, it will cause error
+                                        # comment out *(-1.0) then waterbal can be closed, because CABLE expect the positive sucs_vec input,
+                                        # for global sucs_vec in cable is soil%sucs_vec  = 1000._r_2 * ( abs('sucs_vec') / abs(insucs) ),
+                                        # thus the negetive value in surface forcing data is transfer into positve value...
 
-        css_vec[i]   = (1.0-org_vec[i]) * ( 850*(1.0 - sand_vec[i] - clay_vec[i]) + \
-                        865.0*clay_vec[i] + 750.0*sand_vec[i] ) + org_vec[i]*950.0
-
-        cnsd_vec[i]  = (1.0-org_vec[i]) * ( 0.135*sst_tmp + 0.0239/sst_tmp )  /  \
-                       (1.0 - 0.947*sst_tmp) + org_vec[i]*0.05
-        sucs_vec[i] = sucs_vec[i]*(-1.0)/1000. # cannot put it before swilt_vec calculation, it will cause error
-
-    bch[:,0]  = thickness_weighted_average(bch_vec)
-    hyds[:,0] = thickness_weighted_average(hyds_vec)
-    hyds[:,0] = hyds[:,0]/1000.
     sand[:,0] = thickness_weighted_average(sand_vec)
     silt[:,0] = thickness_weighted_average(silt_vec)
     clay[:,0] = thickness_weighted_average(clay_vec)
-    sfc[:,0] = thickness_weighted_average(sfc_vec)
-    swilt[:,0] = thickness_weighted_average(swilt_vec)
-    sucs[:,0] = thickness_weighted_average(sucs_vec)
-    ssat[:,0] = thickness_weighted_average(ssat_vec)
-    cnsd[:,0] = thickness_weighted_average(cnsd_vec)
-    css[:,0] = thickness_weighted_average(css_vec)
     rhosoil[:,0] = thickness_weighted_average(rhosoil_vec)
+    css[:,0] = thickness_weighted_average(css_vec)
+    hyds[:,0] = thickness_weighted_average(hyds_vec)
+    hyds[:,0] = hyds[:,0]/1000.
+    bch[:,0]  = thickness_weighted_average(bch_vec)
+    ssat[:,0] = thickness_weighted_average(ssat_vec)
+    sfc[:,0] = thickness_weighted_average(sfc_vec)
+    cnsd[:,0] = thickness_weighted_average(cnsd_vec)
+    sucs[:,0] = thickness_weighted_average(sucs_vec)
+    swilt[:,0] = thickness_weighted_average(swilt_vec)
 
     f.close()
 
