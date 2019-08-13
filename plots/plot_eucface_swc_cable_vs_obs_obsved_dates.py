@@ -30,6 +30,10 @@ def main(fobs, fcable):
     neo['Date'] = pd.to_datetime(neo['Date'],format="%d/%m/%y",infer_datetime_format=False)
     #  unit='D', origin=pd.Timestamp('2012-01-01')
 
+    datemark   = neo['Date'].unique()
+    datemark   = np.sort(datemark)
+    print(datemark)
+
     # turn datetime64[ns] into timedelta64[ns] since 2011-12-31, e.g. 2012-1-1 as 1 days
     neo['Date'] = neo['Date'] - pd.datetime(2011,12,31)
 
@@ -166,18 +170,18 @@ def main(fobs, fcable):
     #datemark = np.arange(np.datetime64('2013-01-01','D'), np.datetime64('2017-01-01','D'))
     #xtickslocs = ax1.get_xticks()
 
-    #for i in range(len(datemark)):
-    #    print(xtickslocs[i], datemark[i])
+    for i in range(len(datemark)):
+        print(i, datemark[i]) # xtickslocs[i]
 
     #cleaner_dates = ["2014","2015","2016",]
     #xtickslocs    = [365,730,1095]
 
-    #cleaner_dates = ["2012","2013","2014","2015","2016","2017","2018","2019"]
+    cleaner_dates = ["2012","2013","2014","2015","2016","2017","2018","2019"]
                     #["2012-04","2013-01","2014-01","2015-01","2016-01",\
                     # "2017-03","2018-01","2019-01",]
-    #xtickslocs = [0,246,611,976,1341,1707,2072,2437]
+    xtickslocs = [1,20,39,57,72,86,94,106]
 
-    #ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
+    ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
     ax1.set_ylabel("Depth (cm)")
     ax1.axis('tight')
 
@@ -259,7 +263,7 @@ def main(fobs, fcable):
                   # ["2013-01","2014-01","2015-01","2016-01",]
     #xtickslocs2 = [365,730,1095]
 
-    #ax2.set(xticks=xtickslocs2, xticklabels=cleaner_dates2)
+    ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates)
     ax2.set_ylabel("Depth (cm)")
     ax2.axis('tight')
 
@@ -288,11 +292,11 @@ def main(fobs, fcable):
     cleaner_dates3 = X_cable
     ax3.set_xticklabels(cleaner_dates3)
 
-    cleaner_dates3 = ["2014","2015","2016","2017","2018","2019"]
+    #cleaner_dates3 = ["2014","2015","2016","2017","2018","2019"]
                   # ["2013-01","2014-01","2015-01","2016-01",]
-    xtickslocs3 = [365,730,1095,1461,1826,2191]
+    #xtickslocs3 = [365,730,1095,1461,1826,2191]
 
-    ax3.set(xticks=xtickslocs3, xticklabels=cleaner_dates3)
+    ax3.set(xticks=xtickslocs, xticklabels=cleaner_dates)
     ax3.set_ylabel("Depth (cm)")
     ax3.axis('tight')
 
@@ -301,5 +305,5 @@ def main(fobs, fcable):
 if __name__ == "__main__":
 
     fobs = "/short/w35/mm3972/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
-    fcable = "/g/data1a/w35/mm3972/cable/EucFACE/EucFACE_run/outputs/calculated_para_gridinfo_ununi_gw_on_or_off/after_changing_cable_input_as_abs_sucs_vec_1000/depth_varied_para_gw_on_or_off/EucFACE_amb_out.nc"
+    fcable = "/g/data1a/w35/mm3972/cable/EucFACE/EucFACE_run/outputs/old_run/depth_varied_para_gw_on_or_off/EucFACE_amb_out.nc"
     main(fobs, fcable)

@@ -105,7 +105,7 @@ class RunCable(object):
             nml_fname = "cable_%s.nml" % (site)
             shutil.copy(base_nml_fn, nml_fname)
 
-            (out_fname, out_log_fname) = self.clean_up_old_files(site, co2_conc)
+            (out_fname, out_log_fname, out_restart_fname) = self.clean_up_old_files(site, co2_conc)
 
             # Add LAI to met file?
             if self.fixed_lai is not None or self.lai_dir is not None:
@@ -116,19 +116,21 @@ class RunCable(object):
                             "filename%met": "'%s'" % (fname),
                             "filename%out": "'%s'" % (out_fname),
                             "filename%log": "'%s'" % (out_log_fname),
-                            "filename%restart_out": "' '",
+                            "spinup": ".FALSE.",
+                            "filename%restart_in": "'%s'" % (out_restart_fname),
+                            "filename%restart_out": "'%s'" % (out_restart_fname),
                             "filename%type": "'%s'" % (self.grid_fname),
                             #"filename%gw_elev": "'%s'" % (self.elev_fname)
                             "filename%veg": "'%s'" % (self.veg_fname),
                             "filename%soil": "'%s'" % (self.soil_fname),
-                            "output%restart": ".FALSE.",
+                            "output%restart": ".TRUE.",
                             #"output%gsc": ".TRUE.",
 			    "casafile%phen": "'%s'" % (self.phen_fname),
                             "casafile%cnpbiome": "'%s'" % (self.cnpbiome_fname),
                             "cable_user%FWSOIL_SWITCH": "'Haverd2013'",
                             "cable_user%GS_SWITCH": "'medlyn'",
                             "cable_user%GW_MODEL": ".TRUE.",
-                            "cable_user%or_evap": ".FALSE.",
+                            "cable_user%or_evap": ".TRUE.",
                             "cable_user%MetType": "site",
             }
             adjust_nml_file(nml_fname, replace_dict)
@@ -184,7 +186,12 @@ class RunCable(object):
         if os.path.isfile(out_log_fname):
             os.remove(out_log_fname)
 
-        return (out_fname, out_log_fname)
+        out_restart_fname = os.path.join(self.restart_dir,
+                                     "%s_%s_restart.nc" % (site, co2_conc))
+        #if os.path.isfile(out_restart_fname):
+        #    os.remove(out_restart_fname)
+
+        return (out_fname, out_log_fname, out_restart_fname)
 
     def run_me(self, nml_fname):
         # run the model
@@ -207,11 +214,11 @@ if __name__ == "__main__":
     met_dir = "met"
     log_dir = "logs"
     output_dir = "outputs"
-    restart_dir = "restart_files"
+    restart_dir = "./restart_files"
     namelist_dir = "namelists"
     aux_dir = "/short/w35/mm3972/cable/src/CABLE-AUX/"
-    cable_src = "/short/w35/mm3972/cable/src/Marks_latest_branch_with_fixes_gw_for_EucFace_debug_para_sensitivity_test/"
-    #cable_src = "/short/w35/mm3972/cable/src/Marks_latest_branch_with_fixes_gw_for_EucFace/"
+    #cable_src = "/short/w35/mm3972/cable/src/Marks_latest_branch_with_fixes_gw_for_EucFace_debug_para_sensitivity_test/"
+    cable_src = "/short/w35/mm3972/cable/src/Marks_latest_branch_with_fixes_gw_for_EucFace_debug/"
     mpi = False
     num_cores = 4 # set to a number, if None it will use all cores...!
     # if empty...run all the files in the met_dir
