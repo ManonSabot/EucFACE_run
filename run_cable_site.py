@@ -117,7 +117,7 @@ class RunCable(object):
                             "filename%out": "'%s'" % (out_fname),
                             "filename%log": "'%s'" % (out_log_fname),
                             "spinup": ".FALSE.",
-                            "filename%restart_in": "'%s'" % (out_restart_fname),
+                            #"filename%restart_in": "'%s'" % (out_restart_fname),
                             "filename%restart_out": "'%s'" % (out_restart_fname),
                             "filename%type": "'%s'" % (self.grid_fname),
                             #"filename%gw_elev": "'%s'" % (self.elev_fname)
@@ -127,8 +127,9 @@ class RunCable(object):
                             #"output%gsc": ".TRUE.",
 			    "casafile%phen": "'%s'" % (self.phen_fname),
                             "casafile%cnpbiome": "'%s'" % (self.cnpbiome_fname),
-                            "cable_user%FWSOIL_SWITCH": "'Haverd2013'",
-                            "cable_user%GS_SWITCH": "'medlyn'",
+                            #"cable_user%FWSOIL_SWITCH": "'Haverd2013'",
+                            "cable_user%FWSOIL_SWITCH": "'standard'",
+			    "cable_user%GS_SWITCH": "'medlyn'",
                             "cable_user%GW_MODEL": ".TRUE.",
                             "cable_user%or_evap": ".TRUE.",
                             "cable_user%MetType": "site",
@@ -167,10 +168,10 @@ class RunCable(object):
         (url, rev) = get_svn_info(cwd, self.cable_src)
 
         # delete local executable, copy a local copy and use that
-        local_exe = "cable"
-        if os.path.isfile(local_exe):
+        local_exe = "cable" 
+        if os.path.isfile(local_exe): 
             os.remove(local_exe)
-        shutil.copy(self.cable_exe, local_exe)
+        shutil.copy(self.cable_exe, local_exe) 
         self.cable_exe = local_exe
 
         return (met_files, url, rev)

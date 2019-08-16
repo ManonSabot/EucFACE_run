@@ -149,7 +149,7 @@ def main(fobs, fcable):
     # img = ax1.imshow(grid_data, cmap=cmap, vmin=0, vmax=40, origin="upper", interpolation='nearest')
     #'spline16')#'nearest')
 
-    levels = [0.,5.,10.,15.,20.,25.,30.,35.,40.,45.,50.]
+    levels = np.arange(0.,52.,2.)
     img = ax1.contourf(grid_data, cmap=cmap, origin="upper", levels=levels) # vmin=0, vmax=40,
     cbar = fig.colorbar(img, orientation="vertical", pad=0.1, shrink=.6) #"horizontal"
     cbar.set_label('VWC Obs (%)')#('Volumetric soil water content (%)')
@@ -275,7 +275,7 @@ def main(fobs, fcable):
 
     #img3 = ax3.imshow(difference, cmap=cmap, vmin=-30, vmax=30, origin="upper", interpolation='nearest')
     #'spline16')#'nearest')
-    levels = [-35,-30,-25.,-20.,-15.,-10.,-5.,0.,5.,10.,15,20,25,30,35]
+    levels = np.arange(-30.,30.,2.)
     img3 = ax3.contourf(difference, cmap=cmap, origin="upper", levels=levels)
     cbar3 = fig.colorbar(img3, orientation="vertical", pad=0.1, shrink=.6)
     cbar3.set_label('CABLE - Obs (%)')
@@ -300,10 +300,10 @@ def main(fobs, fcable):
     ax3.set_ylabel("Depth (cm)")
     ax3.axis('tight')
 
-    fig.savefig("EucFACE_SW_amb_obsved_dates_contour_depth_varied_para_gw_on_or_off.png", bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("EucFACE_SW_amb_obsved_dates_contour_swilt2_gw_on_or_on.png", bbox_inches='tight', pad_inches=0.1)
 
 if __name__ == "__main__":
 
     fobs = "/short/w35/mm3972/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
-    fcable = "/g/data1a/w35/mm3972/cable/EucFACE/EucFACE_run/outputs/old_run/depth_varied_para_gw_on_or_off/EucFACE_amb_out.nc"
+    fcable = "/g/data/w35/mm3972/cable/EucFACE/EucFACE_run/outputs/sensitivity_test/swilt2/EucFACE_amb_out.nc"
     main(fobs, fcable)
