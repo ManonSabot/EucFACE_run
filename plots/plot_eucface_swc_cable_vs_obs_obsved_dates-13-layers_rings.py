@@ -21,7 +21,7 @@ import datetime as dt
 import netCDF4 as nc
 from scipy.interpolate import griddata
 
-def main(fobs, fcable):
+def main(fobs, fcable, case_name):
 
     neo = pd.read_csv(fobs, usecols = ['Ring','Depth','Date','VWC'])
     # usecols : read specific columns from CSV
@@ -43,44 +43,21 @@ def main(fobs, fcable):
     # sort by 'Date','Depth'
     neo = neo.sort_values(by=['Date','Depth'])
 
+    print(neo['Depth'].unique())
+
     # divide neo into groups
-    subset_amb = neo[neo['Ring'].isin(['R2','R3','R6'])]
-    subset_ele = neo[neo['Ring'].isin(['R1','R4','R5'])]
-    subset_R1  = neo[neo['Ring'].isin(['R1'])]
-    subset_R2  = neo[neo['Ring'].isin(['R2'])]
-    subset_R3  = neo[neo['Ring'].isin(['R3'])]
-    subset_R4  = neo[neo['Ring'].isin(['R4'])]
-    subset_R5  = neo[neo['Ring'].isin(['R5'])]
-    subset_R6  = neo[neo['Ring'].isin(['R6'])]
+    subset = neo[neo['Ring'].isin([case_name])]
 
     # calculate the mean of every group ( and unstack #.unstack(level=0)
-    neo_mean = neo.groupby(by=["Depth","Date"]).mean()
-    amb_mean = subset_amb.groupby(by=["Depth","Date"]).mean()
-    ele_mean = subset_ele.groupby(by=["Depth","Date"]).mean()
-    R1_mean  = subset_R1.groupby(by=["Depth","Date"]).mean()
-    R2_mean  = subset_R2.groupby(by=["Depth","Date"]).mean()
-    R3_mean  = subset_R3.groupby(by=["Depth","Date"]).mean()
-    R4_mean  = subset_R4.groupby(by=["Depth","Date"]).mean()
-    R5_mean  = subset_R5.groupby(by=["Depth","Date"]).mean()
-    R6_mean  = subset_R6.groupby(by=["Depth","Date"]).mean()
-
+    subset = subset.groupby(by=["Depth","Date"]).mean()
+    print(subset)
     # remove 'VWC'
-    neo_mean = neo_mean.xs('VWC', axis=1, drop_level=True)
-    amb_mean = amb_mean.xs('VWC', axis=1, drop_level=True)
-    ele_mean = ele_mean.xs('VWC', axis=1, drop_level=True)
-    R1_mean  = R1_mean.xs('VWC', axis=1, drop_level=True)
-    R2_mean  = R2_mean.xs('VWC', axis=1, drop_level=True)
-    R3_mean  = R3_mean.xs('VWC', axis=1, drop_level=True)
-    R4_mean  = R4_mean.xs('VWC', axis=1, drop_level=True)
-    R5_mean  = R5_mean.xs('VWC', axis=1, drop_level=True)
-    R6_mean  = R6_mean.xs('VWC', axis=1, drop_level=True)
+    subset = subset.xs('VWC', axis=1, drop_level=True)
     # 'VWC' : key on which to get cross section
     # axis=1 : get cross section of column
     # drop_level=True : returns cross section without the multilevel index
 
     #neo_mean = np.transpose(neo_mean)
-
-    vars = amb_mean
 
 # ___________________ From Pandas to Numpy __________________________
     date_start = pd.datetime(2013,1,1) - pd.datetime(2011,12,31)
@@ -91,19 +68,19 @@ def main(fobs, fcable):
     date_end   = date_end.days
 
     # Interpolate
-    x     = np.concatenate((vars[(25)].index.values,               \
-                            vars.index.get_level_values(1).values, \
-                            vars[(450)].index.values ))              # time
-    y     = np.concatenate(([0]*len(vars[(25)]),                   \
-                            vars.index.get_level_values(0).values, \
-                            [460]*len(vars[(25)])    ))
-    value = np.concatenate((vars[(25)].values, vars.values, vars[(450)].values))
+    x     = np.concatenate((subset[(25)].index.values,               \
+                            subset.index.get_level_values(1).values, \
+                            subset[(450)].index.values ))              # time
+    y     = np.concatenate(([0]*len(subset[(25)]),                   \
+                            subset.index.get_level_values(0).values, \
+                            [460]*len(subset[(25)])    ))
+    value = np.concatenate((subset[(25)].values, subset.values, subset[(450)].values))
     # get_level_values(1) : Return an Index of values for requested level.
     # add Depth = 0 and Depth = 460
 
-    print(vars[(25)].index.values)
+    print(subset[(25)].index.values)
     # add the 12 depths to 0
-    X     = vars[(25)].index.values #np.arange(date_start,date_end,1) # 2012-4-30 to 2019-5-11
+    X     = subset[(25)].index.values #np.arange(date_start,date_end,1) # 2012-4-30 to 2019-5-11
     Y     = np.arange(0,465,5)
 
     grid_X, grid_Y = np.meshgrid(X,Y)
@@ -300,10 +277,13 @@ def main(fobs, fcable):
     ax3.set_ylabel("Depth (cm)")
     ax3.axis('tight')
 
-    fig.savefig("EucFACE_SW_amb_obsved_dates_contour_swilt2_gw_on_or_on.png", bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("EucFACE_SW_amb_obsved_dates_contour_13layers_%s_gw_on_or_on.png" % (case_name), bbox_inches='tight', pad_inches=0.1)
 
 if __name__ == "__main__":
 
-    fobs = "/short/w35/mm3972/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
-    fcable = "/g/data/w35/mm3972/cable/EucFACE/EucFACE_run/outputs/sensitivity_test/swilt2/EucFACE_amb_out.nc"
-    main(fobs, fcable)
+    case = ["R1","R2","R3","R4","R5","R6"]
+    for case_name in case:
+        fobs = "/short/w35/mm3972/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
+        fcable ="/g/data/w35/mm3972/cable/EucFACE/EucFACE_run/outputs/ring_run/13layers/EucFACE_%s_out.nc" % (case_name)
+
+        main(fobs, fcable, case_name)

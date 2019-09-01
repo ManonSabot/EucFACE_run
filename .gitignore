@@ -1,3 +1,4 @@
+plots/csv_data/*
 plots/plots/*
 plots/*.pdf
 plots/*.png

@@ -127,11 +127,29 @@ class RunCable(object):
                             #"output%gsc": ".TRUE.",
 			    "casafile%phen": "'%s'" % (self.phen_fname),
                             "casafile%cnpbiome": "'%s'" % (self.cnpbiome_fname),
-                            #"cable_user%FWSOIL_SWITCH": "'Haverd2013'",
-                            "cable_user%FWSOIL_SWITCH": "'standard'",
+                            "cable_user%FWSOIL_SWITCH": "'Haverd2013'",
+                            #"cable_user%FWSOIL_SWITCH": "'standard'",
 			    "cable_user%GS_SWITCH": "'medlyn'",
                             "cable_user%GW_MODEL": ".TRUE.",
                             "cable_user%or_evap": ".TRUE.",
+                            #"cable_user%SSNOW_POTEV": "'HDM'", # Humidity Deficit Method
+                            #"cable_user%SSNOW_POTEV": "'P-M'",
+                            #"cable_user%soil_struc": "'default'",
+			    #"cable_user%litter": ".true.",
+                            #"cable_user%soil_thermal_fix": ".true.",
+                            #"gw_params%cosby_univariate": ".false.",
+                            #"gw_params%cosby_multivariate": ".false.",
+                            #"gw_params%MaxSatFraction": "1000.0",
+                            #  MaxSatFraction=2500.0,     & !parameter controll max sat fraction
+                            #"gw_params%MaxHorzDrainRate": "2e-5",
+                            # default MaxHorzDrainRate is 2e-4
+	                    #"gw_params%EfoldHorzDrainRate": "4.0",
+                            # EfoldHorzDrainRate=2.0, & !e fold rate of q_horz
+		            # "gw_params%hkrz": "2.5",
+                            # hkrz=0.5,               & !hyds_vec variation with z
+			    #"gw_params%zdepth": "0.5",
+			    # zdepth=1.5,             & !level where hyds_vec(z) = hyds_vec(no z)
+                            #"gw_params%ssgw_ice_switch": ".true.",
                             "cable_user%MetType": "site",
             }
             adjust_nml_file(nml_fname, replace_dict)
@@ -169,9 +187,9 @@ class RunCable(object):
 
         # delete local executable, copy a local copy and use that
         local_exe = "cable" 
-        if os.path.isfile(local_exe): 
-            os.remove(local_exe)
-        shutil.copy(self.cable_exe, local_exe) 
+        #if os.path.isfile(local_exe): 
+        #    os.remove(local_exe)
+        #shutil.copy(self.cable_exe, local_exe) 
         self.cable_exe = local_exe
 
         return (met_files, url, rev)
@@ -220,6 +238,7 @@ if __name__ == "__main__":
     aux_dir = "/short/w35/mm3972/cable/src/CABLE-AUX/"
     #cable_src = "/short/w35/mm3972/cable/src/Marks_latest_branch_with_fixes_gw_for_EucFace_debug_para_sensitivity_test/"
     cable_src = "/short/w35/mm3972/cable/src/Marks_latest_branch_with_fixes_gw_for_EucFace_debug/"
+    #cable_src = "/short/w35/mm3972/cable/src/Marks_latest_branch_with_fixes_gw_for_EucFace_debug_31-layers/"
     mpi = False
     num_cores = 4 # set to a number, if None it will use all cores...!
     # if empty...run all the files in the met_dir
