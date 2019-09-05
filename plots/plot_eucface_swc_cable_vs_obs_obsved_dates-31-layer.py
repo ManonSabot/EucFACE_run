@@ -187,7 +187,7 @@ def main(fobs, fcable, case_name):
     ax1.set_ylabel("Depth (cm)")
     ax1.axis('tight')
 
-    plt.show()
+    #plt.show()
 
 # _________________________ CABLE ___________________________
     cable = nc.Dataset(fcable, 'r')
@@ -313,8 +313,9 @@ def main(fobs, fcable, case_name):
 if __name__ == "__main__":
 
     #case = ["hyds0.01","hyds0.1","hyds","hyds10","hyds100"]
-    case = ["HC_SWC","cosby_multivariate","cosby_univariate","hyds"]
+    case = ["ssat=0.35_sfc=0.3_swilt=0.03","ssat=0.35_sfc=0.3_swilt=0.03_top5-layer"]
+    # ["ctl","froot_uniform","leafsize_ENF","swilt0.5","swilt0.5_ssat1.5_top5-layer"]
     for case_name in case:
         fobs = "/short/w35/mm3972/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
-        fcable ="/g/data/w35/mm3972/cable/EucFACE/EucFACE_run/outputs/PTF_test/31layers/%s/EucFACE_amb_out.nc" % (case_name)
+        fcable ="/g/data/w35/mm3972/cable/EucFACE/EucFACE_run/outputs/31-layer/sensitivity_test/31-layer_no_zdepth/%s/EucFACE_amb_out.nc" % (case_name)
         main(fobs, fcable, case_name)

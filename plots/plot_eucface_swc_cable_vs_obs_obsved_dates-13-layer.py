@@ -309,9 +309,11 @@ if __name__ == "__main__":
     #case = ["hyds0.01","hyds0.1","hyds","hyds10","hyds100"]
     case = ["bch1.5","cnsd2","css1.5","ctl","froot","froot_swilt0.5_ssat1.5_top5-layer_hyds10","hyds10",\
             "sfc0.5","sfc0.5_ssat0.5","sfc1.5_ssat1.5","sfc2","ssat0.5","ssat2","sucs2","swilt0.5","swilt0.5_ssat1.5",\
-            "swilt0.5_ssat1.5_top5-layer","swilt0.5_ssat1.5_top5-layer_hyds10","swilt2"]
+            "swilt0.5_ssat0.75_top5-layer","swilt0.5_ssat0.75_all-layer","swilt0.5_ssat1.5_top5-layer",\
+            "swilt0.5_ssat1.5_top5-layer_hyds10","swilt2"]
+
     for case_name in case:
         fobs = "/short/w35/mm3972/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
-        fcable ="/g/data/w35/mm3972/cable/EucFACE/EucFACE_run/outputs/swilt_test/13-layer/%s/EucFACE_amb_out.nc" % (case_name)
+        fcable ="/g/data/w35/mm3972/cable/EucFACE/EucFACE_run/outputs/13-layer/sensitivity_test/para_test/%s/EucFACE_amb_out.nc" % (case_name)
         #fcable ="/g/data/w35/mm3972/cable/EucFACE/EucFACE_run/outputs/hyds_test/13layer_hyds_test/%s/EucFACE_amb_out.nc" % (case_name)
         main(fobs, fcable, case_name)
