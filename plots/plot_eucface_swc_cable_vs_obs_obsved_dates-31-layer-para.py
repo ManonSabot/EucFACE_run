@@ -194,11 +194,12 @@ def main(fobs, fcable, case_name):
 
     Time = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
     SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns = \
-               [7.5,   22.5 , 37.5 , 52.5 , 67.5 , 82.5 , 97.5 , \
-                112.5, 127.5, 142.5, 157.5, 172.5, 187.5, 202.5, \
-                217.5, 232.5, 247.5, 262.5, 277.5, 292.5, 307.5, \
-                322.5, 337.5, 352.5, 367.5, 382.5, 397.5, 412.5, \
-                427.5, 442.5, 457.5 ])
+               [ 1.000014,  3.47101, 7.782496, 14.73158, 24.11537, 35.73098, \
+                 49.37551, 64.84607, 81.93976, 100.4537, 120.185 , 140.9308, \
+                 162.4881, 184.6541, 207.2259, 230.    , 252.7742, 275.346 , \
+                 297.512 , 319.0693, 339.8151, 359.5464, 378.0603, 395.154 , \
+                 410.6246, 424.2691, 435.8847, 445.2685, 452.2176, 456.5291, \
+                 459.0001 ])
     #columns=[1.,4.5,10.,19.5,41,71,101,131,161,191,221,273.5,386])
     #columns=[1.1, 5.1, 15.7, 43.85, 118.55, 316.4])
     #
@@ -312,26 +313,9 @@ def main(fobs, fcable, case_name):
 
 if __name__ == "__main__":
 
-    case = ['Cosby_univariate','Cosby_multivariate','HC_SWC']
-    '''
-    ["bch0.5","hyds0.1","sfc0.5","ssat=0.35_sfc=0.3_swilt=0.03_top1-layer",\
-            "ssat0.75","sucs0.5","swilt0.5","watr0.5","bch1.5","hyds10","sfc1.5",\
-            "ssat=0.35_sfc=0.3_swilt=0.03_top3-layer","ssat1.5","sucs1.5","swilt1.5",\
-            "watr1.5"]
+    case = ["31-layer_para"]
 
-    "ctl"
-    froot_shape : "froot_parabola","froot_triangle","froot_triangle_inverse"
-    leafsize    : "leafsize_eucalyptus"
-    dry_layers_exp : "wet_10l","wet_12l","wet_14l","wet_16l","wet_18l","wet_1l",\
-                     "wet_21l","wet_23l","wet_25l","wet_27l","wet_29l","wet_30l",\
-                     "wet_3l","wet_5l","wet_7l","wet_9l","wet_11l","wet_13l",\
-                     "wet_15l","wet_17l","wet_19l","wet_20l","wet_22l","wet_24l",\
-                     "wet_26l","wet_28l","wet_2l","wet_31l","wet_4l","wet_6l","wet_8l"
-
-    sensitivity_test:
-
-    '''
     for case_name in case:
-        fobs = "/srv/ccrc/data25/z5218916/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
-        fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/31-layer/PTF_met_test/%s/EucFACE_amb_out.nc" % (case_name)
+        fobs = "/short/w35/mm3972/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
+        fcable ="/g/data/w35/mm3972/cable/EucFACE/EucFACE_run/outputs/31-layer/%s/EucFACE_amb_out.nc" % (case_name)
         main(fobs, fcable, case_name)

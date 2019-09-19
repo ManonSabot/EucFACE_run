@@ -37,10 +37,14 @@ def main(fobs, fcable, case_name):
     cable = nc.Dataset(fcable, 'r')
     Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
     SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,0,0,0], columns=['SoilMoist'])
-    SoilMoist['SoilMoist'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.15 \
-                             + cable.variables['SoilMoist'][:,1,0,0]*0.15 \
-                             + cable.variables['SoilMoist'][:,2,0,0]*0.15 \
-                             + cable.variables['SoilMoist'][:,3,0,0]*0.05 )/0.5
+    SoilMoist['SoilMoist'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.020440 \
+                             + cable.variables['SoilMoist'][:,1,0,0]*0.001759 \
+                             + cable.variables['SoilMoist'][:,2,0,0]*0.003957 \
+                             + cable.variables['SoilMoist'][:,3,0,0]*0.007035 \
+                             + cable.variables['SoilMoist'][:,4,0,0]*0.010993 \
+                             + cable.variables['SoilMoist'][:,5,0,0]*0.015829 \
+                             + cable.variables['SoilMoist'][:,6,0,0]*(0.5-0.420714))/0.5
+
 
     SoilMoist['dates'] = Time
     SoilMoist = SoilMoist.set_index('dates')
@@ -127,14 +131,30 @@ def main(fobs, fcable, case_name):
     Fwsoil.index = Fwsoil.index.days
 
     swilt = np.zeros(len(Rainf))
-    swilt[:] =(cable.variables['swilt'][0]*0.15 + cable.variables['swilt'][1]*0.15 \
-             + cable.variables['swilt'][2]*0.15 + cable.variables['swilt'][3]*0.05 )/0.5
+    swilt[:] =( cable.variables['swilt'][0]*0.020440 \
+              + cable.variables['swilt'][1]*0.001759 \
+              + cable.variables['swilt'][2]*0.003957 \
+              + cable.variables['swilt'][3]*0.007035 \
+              + cable.variables['swilt'][4]*0.010993 \
+              + cable.variables['swilt'][5]*0.015829 \
+              + cable.variables['swilt'][6]*(0.5-0.420714))/0.5
+
     sfc = np.zeros(len(Rainf))
-    sfc[:] =(cable.variables['sfc'][0]*0.15 + cable.variables['sfc'][1]*0.15 \
-           + cable.variables['sfc'][2]*0.15 + cable.variables['sfc'][3]*0.05 )/0.5
+    sfc[:] =( cable.variables['sfc'][0]*0.020440 \
+             + cable.variables['sfc'][1]*0.001759 \
+             + cable.variables['sfc'][2]*0.003957 \
+             + cable.variables['sfc'][3]*0.007035 \
+             + cable.variables['sfc'][4]*0.010993 \
+             + cable.variables['sfc'][5]*0.015829 \
+             + cable.variables['sfc'][6]*(0.5-0.420714))/0.5
     ssat = np.zeros(len(Rainf))
-    ssat[:] =(cable.variables['ssat'][0]*0.15 + cable.variables['ssat'][1]*0.15 \
-            + cable.variables['ssat'][2]*0.15 + cable.variables['ssat'][3]*0.05 )/0.5
+    ssat[:] =( cable.variables['ssat'][0]*0.020440 \
+             + cable.variables['ssat'][1]*0.001759 \
+             + cable.variables['ssat'][2]*0.003957 \
+             + cable.variables['ssat'][3]*0.007035 \
+             + cable.variables['ssat'][4]*0.010993 \
+             + cable.variables['ssat'][5]*0.015829 \
+             + cable.variables['ssat'][6]*(0.5-0.420714))/0.5
 
 # ____________________ Plot obs _______________________
     fig = plt.figure(figsize=[15,10])#,constrained_layout=True)
@@ -264,26 +284,9 @@ def main(fobs, fcable, case_name):
 
 if __name__ == "__main__":
 
-    case = ['Cosby_univariate','Cosby_multivariate','HC_SWC']
-    '''
-      ["bch0.5","hyds0.1","sfc0.5","ssat=0.35_sfc=0.3_swilt=0.03_top1-layer",\
-            "ssat0.75","sucs0.5","swilt0.5","watr0.5","bch1.5","hyds10","sfc1.5",\
-            "ssat=0.35_sfc=0.3_swilt=0.03_top3-layer","ssat1.5","sucs1.5","swilt1.5",\
-            "watr1.5"]
-    
-        ,"froot_shape/froot_parabola","froot_shape/froot_triangle","froot_shape/froot_triangle_inverse", \
-                "layer_thickness/31-layer_exp", "layer_thickness/31-layer_para","leafsize/leafsize_eucalyptus"]
-dry_layers_exp/
-wet_10l  wet_12l  wet_14l  wet_16l  wet_18l  wet_1l   wet_21l  wet_23l	wet_25l  wet_27l  wet_29l  wet_30l  wet_3l  wet_5l  wet_7l  wet_9l
-wet_11l  wet_13l  wet_15l  wet_17l  wet_19l  wet_20l  wet_22l  wet_24l	wet_26l  wet_28l  wet_2l   wet_31l  wet_4l  wet_6l  wet_8l
-
-
-sensitivity_test/
-bch0.5	hyds0.1  sfc0.5  ssat=0.35_sfc=0.3_swilt=0.03_top1-layer  ssat0.75  sucs0.5  swilt0.5  watr0.5
-bch1.5	hyds10	 sfc1.5  ssat=0.35_sfc=0.3_swilt=0.03_top3-layer  ssat1.5   sucs1.5  swilt1.5  watr1.5
-    '''
+    case = ["31-layer_para"]
 
     for case_name in case:
-        fobs = "/srv/ccrc/data25/z5218916/data/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
-        fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/31-layer/PTF_met_test/%s/EucFACE_amb_out.nc" % (case_name)
+        fobs = "/short/w35/mm3972/data/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
+        fcable ="/g/data/w35/mm3972/cable/EucFACE/EucFACE_run/outputs/31-layer/%s/EucFACE_amb_out.nc" % (case_name)
         main(fobs, fcable, case_name)
