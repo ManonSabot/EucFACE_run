@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 """
-Turn the MAESPA input file into a CABLE netcdf file. Aim to swap MAESPA data
-for the raw data later when I have more time...
+Run CABLE for the EucFACE site and gather some specific outputs about direct
+and diffuse fracs and direct and diffuse GPP for Jim and Dushan
 
 That's all folks.
 """
@@ -12,10 +12,13 @@ modifications:
 1. add bulk density to calculate cnsd
 2. divide soil/buld density for amb and ele
 3. adding Cosby uni Cosby multi HC_SWC
+4. add option for single ring
+5. add soil fraction interpolation methods
+6. add option for soil layers - done
 '''
 
-__original_author__ = "Martin De Kauwe"
-__changed_by__      = "MU Mengyuan"
+__author__    = "Martin De Kauwe"
+__developer__ = "MU Mengyuan"
 
 import os
 import sys
@@ -27,7 +30,7 @@ import datetime
 from scipy.interpolate import interp1d
 from scipy.interpolate import griddata
 
-def main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, co2_conc):
+def main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, soil_frac, layer_num, ring=ring):
 
     DEG_2_KELVIN = 273.15
     SW_2_PAR = 2.3
@@ -37,7 +40,7 @@ def main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, co2_conc):
     df = pd.read_csv(met_fname)
 
     ndim = 1
-    nsoil= 31
+    nsoil= layer_num
     n_timesteps = len(df)
     times = []
     secs = 0.0
@@ -157,13 +160,10 @@ def main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, co2_conc):
     za.long_name = "level of lowest atmospheric model layer"
 
 ########## add hydrological parameters ###########
-# 2-Dimension variables
-
-    # isoil =
+    # 2-Dimension variables
     # slope = 0.004(maximum)
     # sfc   = 0.265 (m3/m3)
     # swilt = 0.115 (m3/m3)
-    #'''
     iveg = f.createVariable('iveg', 'f4', ('y', 'x',))
     iveg.long_name = "vegetation type"
     iveg.units = "-"
@@ -226,7 +226,7 @@ def main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, co2_conc):
     cnsd.long_name = "thermal conductivity of dry soil"
     cnsd.missing_value = -9999.0
 
-# 3-Dimension variables
+    # 3-Dimension variables
     sand_vec = f.createVariable('sand_vec', 'f4', ('soil_depth', 'y', 'x',))
     sand_vec.units = "-"
     sand_vec.missing_value = -1.0
@@ -338,16 +338,16 @@ def main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, co2_conc):
     PSurf[:,0,0] = df.PRESS.values.reshape(n_timesteps, ndim, ndim)
     lw = estimate_lwdown(df.TAIR.values + DEG_2_KELVIN, df.RH.values)
     LWdown[:,0,0] = lw.reshape(n_timesteps, ndim, ndim)
-    if co2_conc == "amb":
+    if ring in ["amb","R2","R3","R6"]:
         CO2[:,0,0] = df["Ca.A"].values.reshape(n_timesteps, ndim, ndim, ndim)
         vcmax[:] = 86.1425919e-6
         ejmax[:] = 138.4595736e-6
-    elif co2_conc == "ele":
+    elif ring in ["ele","R1","R4","R5"]:
         CO2[:,0,0] = df["Ca.E"].values.reshape(n_timesteps, ndim, ndim, ndim)
         vcmax[:] = 81.70591263e-6
         ejmax[:] = 135.8062907e-6
     elevation[:] = 23.0 # Ellsworth 2017, NCC
-    LAI[:,0,0] = interpolate_lai(lai_fname, co2_conc)
+    LAI[:,0,0] = interpolate_lai(lai_fname, ring)
 
     #df.lai.values.reshape(n_timesteps, ndim, ndim)
     g1[:] = 3.8
@@ -356,22 +356,42 @@ def main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, co2_conc):
 
 # read hydraulic parameters:
     iveg[:]       = 2
-    depth_mid     = [ 7.5,   22.5 , 37.5 , 52.5 , 67.5 , 82.5 , 97.5 , \
-                      112.5, 127.5, 142.5, 157.5, 172.5, 187.5, 202.5, \
-                      217.5, 232.5, 247.5, 262.5, 277.5, 292.5, 307.5, \
-                      322.5, 337.5, 352.5, 367.5, 382.5, 397.5, 412.5, \
-                      427.5, 442.5, 457.5 ]
-                     # 31 soil layers in CABLE
-    soil_depth[:] = [ 0.075, 0.225 , 0.375 , 0.525 , 0.675 , 0.825 , 0.975 , \
-                      1.125, 1.275, 1.425, 1.575, 1.725, 1.875, 2.025, \
-                      2.175, 2.325, 2.475, 2.625, 2.775, 2.925, 3.075, \
-                      3.225, 3.375, 3.525, 3.675, 3.825, 3.975, 4.125, \
-                      4.275, 4.425, 4.575 ]
+    if layer_num == "6":
+        depth_mid     = [ 1.1 ,   5.1,  15.7,  43.85, 118.55, 316.4]
+        soil_depth[:] = [0.011, 0.051, 0.157, 0.4385, 1.1855, 3.164]
+        zse_vec       = [0.022, 0.058, 0.154, 0.409, 1.085, 2.872]
+        org_vec[:,0,0]= [0.0102,0.0102,0.0025,0.0025, 0.0025,0.0025]
+    elif layer_num == "13":
+        depth_mid     = [1,4.5,10.,19.5,41,71,101,131,161,191,221,273.5,386]
+        soil_depth[:] = [0.01,0.045,0.10,0.195,0.41,0.71,1.01,1.31,1.61,1.91,2.21,2.735,3.86]
+        zse_vec       = [0.02, 0.05, 0.06, 0.13, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.75, 1.50]
+        org_vec[:,0,0]= [0.0102,0.0102,0.0102,0.0025,0.0025,0.0025,0.0025,0.0025,\
+                         0.0025,0.0025,0.0025,0.0025,0.0025]
+    elif layer_num == "31":
+        depth_mid     = [ 7.5,   22.5 , 37.5 , 52.5 , 67.5 , 82.5 , 97.5 , \
+                         112.5, 127.5, 142.5, 157.5, 172.5, 187.5, 202.5, \
+                         217.5, 232.5, 247.5, 262.5, 277.5, 292.5, 307.5, \
+                         322.5, 337.5, 352.5, 367.5, 382.5, 397.5, 412.5, \
+                         427.5, 442.5, 457.5 ]
+        soil_depth[:] = [ 0.075, 0.225 , 0.375 , 0.525 , 0.675 , 0.825 , 0.975 , \
+                          1.125, 1.275, 1.425, 1.575, 1.725, 1.875, 2.025, \
+                          2.175, 2.325, 2.475, 2.625, 2.775, 2.925, 3.075, \
+                          3.225, 3.375, 3.525, 3.675, 3.825, 3.975, 4.125, \
+                          4.275, 4.425, 4.575 ]
+        zse_vec       = [ 0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
+                          0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
+                          0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
+                          0.15 ]
+        org_vec[:,0,0]= [ 0.0102, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
+                          0.0025, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
+                          0.0025, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
+                          0.0025, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
+                          0.0025, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
+                          0.0025]
 
     sand_vec[:,0,0]   = np.zeros(nsoil)
     silt_vec[:,0,0]   = np.zeros(nsoil)
     clay_vec[:,0,0]   = np.zeros(nsoil)
-    org_vec[:,0,0]    = np.zeros(nsoil)
     rhosoil_vec[:,0,0]= np.zeros(nsoil)
     hyds_vec[:,0,0]   = np.zeros(nsoil)
     bch_vec[:,0,0]    = np.zeros(nsoil)
@@ -383,17 +403,11 @@ def main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, co2_conc):
     css_vec[:,0,0]    = np.zeros(nsoil)
     cnsd_vec[:,0,0]   = np.zeros(nsoil)
     SoilMoist[:,0,0]  = np.zeros(nsoil)
-    org_vec[:,0,0]    = [ 0.0102, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
-                          0.0025, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
-                          0.0025, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
-                          0.0025, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
-                          0.0025, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
-                          0.0025]
 
     bulk_density      = np.zeros(nsoil)
-    sand_vec[:,0,0],silt_vec[:,0,0],clay_vec[:,0,0] = calc_soil_frac(stx_fname, co2_conc, nsoil, depth_mid)
-    rhosoil_vec[:,0,0],bulk_density = estimate_rhosoil_vec(swc_fname, depth_mid, co2_conc)
-    SoilMoist[:,0,0]  = init_soil_moisture(swc_fname, depth_mid, co2_conc)
+    sand_vec[:,0,0],silt_vec[:,0,0],clay_vec[:,0,0] = calc_soil_frac(stx_fname, ring, nsoil, depth_mid, soil_frac)
+    rhosoil_vec[:,0,0],bulk_density = estimate_rhosoil_vec(swc_fname, depth_mid, ring, soil_frac)
+    SoilMoist[:,0,0]  = init_soil_moisture(swc_fname, depth_mid, ring, soil_frac)
     print(rhosoil_vec)
     print(bulk_density)
 
@@ -496,97 +510,81 @@ def main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, co2_conc):
 
     f.close()
 
-def calc_soil_frac(stx_fname, co2_conc, nsoil, depth_mid):
+def calc_soil_frac(stx_fname, ring, nsoil, depth_mid, soil_frac):
     """
     interpolate the observated sand,silt,clay to pointed depth
     """
     soil_texture = pd.read_csv(stx_fname, usecols = ['Ring','Depth_interval_cm','Sand_%','Silt_%','Clay_%'])
     soil_texture['Depth'] = np.zeros(len(soil_texture))
+    soil_texture['Depth_top'] = np.zeros(len(soil_texture))
+    soil_texture['Depth_bot'] = np.zeros(len(soil_texture))
 
     for i in np.arange(0,len(soil_texture),1):
         index = soil_texture['Depth_interval_cm'].values[i].index('-')
         soil_texture['Depth'].iloc[i] = (float(soil_texture['Depth_interval_cm'].values[i][:index]) \
                                         + float(soil_texture['Depth_interval_cm'].values[i][index+1:]))/2.
-    # print(soil_texture['Depth'].unique())
-    Sand   = np.zeros(nsoil)
-    Silt   = np.zeros(nsoil)
-    Clay   = np.zeros(nsoil)
+        soil_texture['Depth_top'].iloc[i] = float(soil_texture['Depth_interval_cm'].values[i][:index])
+        soil_texture['Depth_bot'].iloc[i] = float(soil_texture['Depth_interval_cm'].values[i][index+1:])
 
-    if co2_conc == 'amb':
-        rings = ['R2','R3','R6']
+    if ring == 'amb':
+        subset = soil_texture[soil_texture['Ring'].isin(['R2','R3','R6'])]
+    elif ring == 'ele':
+        subset = soil_texture[soil_texture['Ring'].isin(['R1','R4','R5'])]
     else:
-        rings = ['R1','R4','R5']
+        subset = soil_texture[soil_texture['Ring'].isin([ring])]
 
-    for r in rings:
-        subset = soil_texture[soil_texture['Ring'].isin([r])]
-        subset = subset.groupby(by=["Depth"]).mean()
+    subset = subset.groupby(by=["Depth"]).mean()
+    Sand_calu = interp1d(subset.index, subset['Sand_%'].values, kind = soil_frac, \
+                fill_value=(subset['Sand_%'].values[0],subset['Sand_%'].values[-1]), \
+                bounds_error=False)
+    sand_calu = Sand_calu(depth_mid)/100.
 
-        Sand_calu = interp1d(subset.index, subset['Sand_%'].values, kind = 'linear', \
-                    fill_value=(subset['Sand_%'].values[0],subset['Sand_%'].values[-1]), \
-                    bounds_error=False)
-        sand_calu = Sand_calu(depth_mid)/100.
+    Silt_calu = interp1d(subset.index, subset['Silt_%'].values, kind = soil_frac, \
+                fill_value=(subset['Silt_%'].values[0],subset['Silt_%'].values[-1]), \
+                bounds_error=False)
+    silt_calu = Silt_calu(depth_mid)/100.
 
-        Silt_calu = interp1d(subset.index, subset['Silt_%'].values, kind = 'linear', \
-                    fill_value=(subset['Silt_%'].values[0],subset['Silt_%'].values[-1]), \
-                    bounds_error=False)
-        silt_calu = Silt_calu(depth_mid)/100.
+    Clay_calu = interp1d(subset.index, subset['Clay_%'].values, kind = soil_frac, \
+                fill_value=(subset['Clay_%'].values[0],subset['Clay_%'].values[-1]), \
+                bounds_error=False)
+    clay_calu = Clay_calu(depth_mid)/100.
 
-        Clay_calu = interp1d(subset.index, subset['Clay_%'].values, kind = 'linear', \
-                    fill_value=(subset['Clay_%'].values[0],subset['Clay_%'].values[-1]), \
-                    bounds_error=False)
-        clay_calu = Clay_calu(depth_mid)/100.
+    return sand_calu, silt_calu, clay_calu;
 
-        Sand   = Sand + sand_calu
-        Silt   = Silt + silt_calu
-        Clay   = Clay + clay_calu
-
-    Sand   = Sand/3.
-    Silt   = Silt/3.
-    Clay   = Clay/3.
-
-    return Sand, Silt, Clay;
-
-def estimate_rhosoil_vec(swc_fname, depth_mid, co2_conc):
+def estimate_rhosoil_vec(swc_fname, depth_mid, ring, soil_frac):
     """
-    Using obs VWC & Bulk.den to calculate Soil density
+    get Bulk.den
     """
-    neo = pd.read_csv(swc_fname, usecols = ['Ring','Depth','Date','VWC','Bulk.den','GWC'])
-    neo['Soil.den'] = (100-neo['GWC'].values)/(100-neo['VWC'].values)*neo['Bulk.den'].values # Soil.den
-    if co2_conc == 'amb':
+    neo = pd.read_csv(swc_fname, usecols = ['Ring','Depth','Date','Bulk.den'])
+    if ring == 'amb':
         subset = neo[neo['Ring'].isin(['R2','R3','R6'])]
-    else:
+    elif ring == 'ele':
         subset = neo[neo['Ring'].isin(['R1','R4','R5'])]
-    soil_den = subset.groupby(by=['Depth']).mean()['Soil.den']
-    bulk_den = subset.groupby(by=['Depth']).mean()['Bulk.den']
-
-    if co2_conc == 'amb':
-        f = interp1d(soil_den.index, soil_den.values, kind = 'cubic', \
-                 fill_value=(1.652453,1.939138), bounds_error=False) # fill_value='extrapolate'
-        f2 = interp1d(bulk_den.index, bulk_den.values, kind = 'cubic', \
-                 fill_value=(1.569941,1.660371), bounds_error=False) # fill_value='extrapolate'
     else:
-        f = interp1d(soil_den.index, soil_den.values, kind = 'cubic', \
-                 fill_value=(1.669200,1.932358), bounds_error=False) # fill_value='extrapolate'
-        f2 = interp1d(bulk_den.index, bulk_den.values, kind = 'cubic', \
-                 fill_value=(1.583254,1.643730), bounds_error=False) # fill_value='extrapolate'
-    Soil_den = f(depth_mid)*1000. # units: kg m-3
-    Bulk_den = f2(depth_mid)      # units: g cm-3
-    return Soil_den, Bulk_den
+        subset = neo[neo['Ring'].isin([ring])]
+    bulk_den = subset.groupby(by=['Depth']).mean()['Bulk.den']
+    f = interp1d(bulk_den.index, bulk_den.values, kind = soil_frac, \
+             fill_value=(bulk_den.values[0],bulk_den.values[-1]), bounds_error=False) # fill_value='extrapolate'
+    Bulk_den_kg_m = f(depth_mid)*1000. # units: kg m-3
+    Bulk_den_g_cm = f(depth_mid)      # units: g cm-3
+    return Bulk_den_kg_m, Bulk_den_g_cm
 
-
-def init_soil_moisture(swc_fname, depth_mid, co2_conc):
+def init_soil_moisture(swc_fname, depth_mid, ring, soil_frac):
 
     neo = pd.read_csv(swc_fname, usecols = ['Ring','Depth','Date','VWC'])
     neo['Date'] = pd.to_datetime(neo['Date'],format="%d/%m/%y",infer_datetime_format=False)
     neo['Date'] = neo['Date'] - pd.datetime(2012,12,31)
     neo['Date'] = neo['Date'].dt.days
     neo = neo.sort_values(by=['Date','Depth'])
-    if co2_conc == 'amb':
-        subset = neo[neo['Ring'].isin(['R2','R3','R6'])]
-    else:
-        subset = neo[neo['Ring'].isin(['R1','R4','R5'])]
 
-    neo_mean = neo.groupby(by=["Depth","Date"]).mean()
+    if ring == 'amb':
+        subset = neo[neo['Ring'].isin(['R2','R3','R6'])]
+    elif ring == 'ele':
+        subset = neo[neo['Ring'].isin(['R1','R4','R5'])]
+    else:
+        subset = neo[neo['Ring'].isin([ring])]
+
+    neo_mean = subset.groupby(by=["Depth","Date"]).mean()
     neo_mean = neo_mean.xs('VWC', axis=1, drop_level=True)
     date_start = pd.datetime(2012,12,1) - pd.datetime(2012,12,31)
     date_end   = pd.datetime(2013,1,31) - pd.datetime(2012,12,31)
@@ -604,7 +602,7 @@ def init_soil_moisture(swc_fname, depth_mid, co2_conc):
     grid_X, grid_Y = np.meshgrid(X,Y)
     print(grid_X.shape)
     # interpolate
-    grid_data = griddata((x, y) , value, (grid_X, grid_Y), method='linear')
+    grid_data = griddata((x, y) , value, (grid_X, grid_Y), method=soil_frac)
 
     return grid_data[:,30]/100.
 
@@ -670,14 +668,16 @@ def estimate_lwdown(tairK, rh):
 
     return lw_down
 
-def interpolate_lai(lai_fname, co2_conc):
+def interpolate_lai(lai_fname, ring):
     """
     """
     df_lai = pd.read_csv(lai_fname, usecols = ['ring','Date','LAIsmooth']) # daily data
-    if co2_conc == "amb":
+    if ring == "amb":
         subset = df_lai[df_lai['ring'].isin(['2','3','6'])]
-    elif co2_conc == "ele":
+    elif ring == "ele":
         subset = df_lai[df_lai['ring'].isin(['1','4','5'])]
+    else:
+        subset = df_lai[df_lai['ring'].isin([ring[-1]])] #???
     subset = subset.groupby(by=["Date"])['LAIsmooth'].mean()
 
     tmp = pd.DataFrame(subset.values, columns=['LAI'])
@@ -714,13 +714,9 @@ def interpolate_lai(lai_fname, co2_conc):
 
     return LAI_interp
 
-def thickness_weighted_average(var):
-    zse_vec = [ 0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
-                0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
-                0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
-                0.15 ]
+def thickness_weighted_average(var, layer_num, zse_vec):
     VAR     = 0.0
-    for i in np.arange(0,31,1):
+    for i in np.arange(0,layer_num,1):
         VAR += var[i]*zse_vec[i]
     VAR = VAR/sum(zse_vec)
 
@@ -732,7 +728,11 @@ if __name__ == "__main__":
     lai_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/met_July2019/eucLAI.csv"
     swc_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
     stx_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/soil_texture/FACE_P0018_RA_SOILTEXT_L2_20120501.csv"
+
     PTF = "Campbell_Cosby_multivariate"
-    for co2_conc in ["amb", "ele"]:
-        out_fname = "EucFACE_met_%s.nc" % (co2_conc)
-        main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, co2_conc=co2_conc)
+    soil_frac = "nearest" # "linear"
+    layer_num = "6":
+
+    for ring in ["R1","R2","R3","R4","R5","R6","amb", "ele"]:
+        out_fname = "EucFACE_met_%s.nc" % (ring)
+        main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, soil_frac, layer_num, ring=ring)

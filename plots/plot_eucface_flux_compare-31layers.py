@@ -169,7 +169,7 @@ def main(fcable, case_name):
     var[12] = np.mean(Wind['Wind'][1766:2070])
     var[13] = np.mean(Rnet['Rnet'][1766:2070])
     var[14] = np.mean(Fwsoil['Fwsoil'][1766:2070])
-    
+
     #var.to_csv("EucFACE_amb_31-layer_.csv" %(layers, case_name))
     print(case_name)
     print(var[:])
@@ -186,5 +186,5 @@ if __name__ == "__main__":
 
 
     for case_name in case:
-        fcable ="/g/data/w35/mm3972/cable/EucFACE/EucFACE_run/outputs/31-layer/%s/EucFACE_amb_out.nc" % (case_name)
+        fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/31-layer/%s/EucFACE_amb_out.nc" % (case_name)
         main(fcable, case_name)

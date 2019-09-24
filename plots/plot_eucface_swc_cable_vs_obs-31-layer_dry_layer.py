@@ -46,47 +46,70 @@ def main(fobs, fcable, case_name):
     print(neo['Depth'].unique())
 
     # divide neo into groups
-    subset = neo[neo['Ring'].isin([case_name])]
+    subset_amb = neo[neo['Ring'].isin(['R2','R3','R6'])]
+    subset_ele = neo[neo['Ring'].isin(['R1','R4','R5'])]
+    subset_R1  = neo[neo['Ring'].isin(['R1'])]
+    subset_R2  = neo[neo['Ring'].isin(['R2'])]
+    subset_R3  = neo[neo['Ring'].isin(['R3'])]
+    subset_R4  = neo[neo['Ring'].isin(['R4'])]
+    subset_R5  = neo[neo['Ring'].isin(['R5'])]
+    subset_R6  = neo[neo['Ring'].isin(['R6'])]
 
     # calculate the mean of every group ( and unstack #.unstack(level=0)
-    subset = subset.groupby(by=["Depth","Date"]).mean()
-    print(subset)
+    neo_mean = neo.groupby(by=["Depth","Date"]).mean()
+    amb_mean = subset_amb.groupby(by=["Depth","Date"]).mean()
+    ele_mean = subset_ele.groupby(by=["Depth","Date"]).mean()
+    R1_mean  = subset_R1.groupby(by=["Depth","Date"]).mean()
+    R2_mean  = subset_R2.groupby(by=["Depth","Date"]).mean()
+    R3_mean  = subset_R3.groupby(by=["Depth","Date"]).mean()
+    R4_mean  = subset_R4.groupby(by=["Depth","Date"]).mean()
+    R5_mean  = subset_R5.groupby(by=["Depth","Date"]).mean()
+    R6_mean  = subset_R6.groupby(by=["Depth","Date"]).mean()
+
     # remove 'VWC'
-    subset = subset.xs('VWC', axis=1, drop_level=True)
+    neo_mean = neo_mean.xs('VWC', axis=1, drop_level=True)
+    amb_mean = amb_mean.xs('VWC', axis=1, drop_level=True)
+    ele_mean = ele_mean.xs('VWC', axis=1, drop_level=True)
+    R1_mean  = R1_mean.xs('VWC', axis=1, drop_level=True)
+    R2_mean  = R2_mean.xs('VWC', axis=1, drop_level=True)
+    R3_mean  = R3_mean.xs('VWC', axis=1, drop_level=True)
+    R4_mean  = R4_mean.xs('VWC', axis=1, drop_level=True)
+    R5_mean  = R5_mean.xs('VWC', axis=1, drop_level=True)
+    R6_mean  = R6_mean.xs('VWC', axis=1, drop_level=True)
     # 'VWC' : key on which to get cross section
     # axis=1 : get cross section of column
     # drop_level=True : returns cross section without the multilevel index
 
     #neo_mean = np.transpose(neo_mean)
 
+    vars = amb_mean
+
 # ___________________ From Pandas to Numpy __________________________
     date_start = pd.datetime(2013,1,1) - pd.datetime(2011,12,31)
-    date_end   = pd.datetime(2017,1,1) - pd.datetime(2011,12,31)
-#    date_start = pd.datetime(2012,4,30) - pd.datetime(2011,12,31)
-#    date_end   = pd.datetime(2019,5,11) - pd.datetime(2011,12,31)
+    date_end   = pd.datetime(2013,2,1) - pd.datetime(2011,12,31)
     date_start = date_start.days
     date_end   = date_end.days
 
     # Interpolate
-    x     = np.concatenate((subset[(25)].index.values,               \
-                            subset.index.get_level_values(1).values, \
-                            subset[(450)].index.values ))              # time
-    y     = np.concatenate(([0]*len(subset[(25)]),                   \
-                            subset.index.get_level_values(0).values, \
-                            [460]*len(subset[(25)])    ))
-    value = np.concatenate((subset[(25)].values, subset.values, subset[(450)].values))
+    x     = np.concatenate((vars[(25)].index.values,               \
+                            vars.index.get_level_values(1).values, \
+                            vars[(450)].index.values ))              # time
+    y     = np.concatenate(([0]*len(vars[(25)]),                   \
+                            vars.index.get_level_values(0).values, \
+                            [460]*len(vars[(25)])    ))
+    value = np.concatenate((vars[(25)].values, vars.values, vars[(450)].values))
     # get_level_values(1) : Return an Index of values for requested level.
     # add Depth = 0 and Depth = 460
 
-    print(subset[(25)].index.values)
+    print(vars[(25)].index.values)
     # add the 12 depths to 0
-    X     = subset[(25)].index.values #np.arange(date_start,date_end,1) # 2012-4-30 to 2019-5-11
+    X     = np.arange(date_start,date_end,1) #vars[(25)].index.values #np.arange(date_start,date_end,1) # 2012-4-30 to 2019-5-11
     Y     = np.arange(0,465,5)
 
     grid_X, grid_Y = np.meshgrid(X,Y)
     print(grid_X.shape)
     # interpolate
-    grid_data = griddata((x, y) , value, (grid_X, grid_Y), method='cubic')
+    grid_data = griddata((x, y) , value, (grid_X, grid_Y), method='nearest')
     #'cubic')#'linear')#'nearest')
     print(grid_data.shape)
 
@@ -123,11 +146,11 @@ def main(fobs, fcable, case_name):
     #plt.imshow(amb_mean, cmap=cmap, vmin=0, vmax=40, origin="upper", interpolation='nearest')
     #plt.show()
     ######
-    # img = ax1.imshow(grid_data, cmap=cmap, vmin=0, vmax=40, origin="upper", interpolation='nearest')
+    img = ax1.imshow(grid_data, cmap=cmap, vmin=0, vmax=40, origin="upper", interpolation='nearest')
     #'spline16')#'nearest')
 
     levels = np.arange(0.,52.,2.)
-    img = ax1.contourf(grid_data, cmap=cmap, origin="upper", levels=levels) # vmin=0, vmax=40,
+    #img = ax1.contourf(grid_data, cmap=cmap, origin="upper", levels=levels) # vmin=0, vmax=40,
     cbar = fig.colorbar(img, orientation="vertical", pad=0.1, shrink=.6) #"horizontal"
     cbar.set_label('VWC Obs (%)')#('Volumetric soil water content (%)')
     tick_locator = ticker.MaxNLocator(nbins=5)
@@ -135,9 +158,9 @@ def main(fobs, fcable, case_name):
     cbar.update_ticks()
 
     # every second tick
-    ax1.set_yticks(np.arange(len(Y))[::10])
-    Y_labels = np.flipud(Y) #Y #np.flipud(Y)
-    ax1.set_yticklabels(Y_labels[::10])
+    ax1.set_yticks(np.arange(len(Y))[::3])
+    Y_labels = Y #np.flipud(Y) #Y #np.flipud(Y)
+    ax1.set_yticklabels(Y_labels[::3])
     plt.setp(ax1.get_xticklabels(), visible=False)
 
     #ax1.set_xticks(np.arange(len(X)))
@@ -162,16 +185,21 @@ def main(fobs, fcable, case_name):
     ax1.set_ylabel("Depth (cm)")
     ax1.axis('tight')
 
+    #plt.show()
+
 # _________________________ CABLE ___________________________
     cable = nc.Dataset(fcable, 'r')
 
     Time = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
-    SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns=\
-                             [7.5,   22.5 , 37.5 , 52.5 , 67.5 , 82.5 , 97.5 , \
-                              112.5, 127.5, 142.5, 157.5, 172.5, 187.5, 202.5, \
-                              217.5, 232.5, 247.5, 262.5, 277.5, 292.5, 307.5, \
-                              322.5, 337.5, 352.5, 367.5, 382.5, 397.5, 412.5, \
-                              427.5, 442.5, 457.5 ])
+    SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns = \
+               [7.5,   22.5 , 37.5 , 52.5 , 67.5 , 82.5 , 97.5 , \
+                112.5, 127.5, 142.5, 157.5, 172.5, 187.5, 202.5, \
+                217.5, 232.5, 247.5, 262.5, 277.5, 292.5, 307.5, \
+                322.5, 337.5, 352.5, 367.5, 382.5, 397.5, 412.5, \
+                427.5, 442.5, 457.5 ])
+    #columns=[1.,4.5,10.,19.5,41,71,101,131,161,191,221,273.5,386])
+    #columns=[1.1, 5.1, 15.7, 43.85, 118.55, 316.4])
+    #
     SoilMoist['dates'] = Time
     SoilMoist = SoilMoist.set_index('dates')
     SoilMoist = SoilMoist.resample("D").agg('mean')
@@ -206,15 +234,15 @@ def main(fobs, fcable, case_name):
 
     # interpolate
     grid_cable = griddata((x_cable, y_cable) , value_cable, (grid_X_cable, grid_Y_cable),\
-                 method='cubic')
+                 method='nearest')
                  #'cubic')#'linear')#'nearest')
 
     ax2 = fig.add_subplot(312)#, sharey = ax1)#(nrows=2, ncols=2, index=2, sharey=ax1)
 
-    #img2 = ax2.imshow(grid_cable, cmap=cmap, vmin=0, vmax=40, origin="upper", interpolation='nearest')
+    img2 = ax2.imshow(grid_cable, cmap=cmap, vmin=0, vmax=40, origin="upper", interpolation='nearest')
     #'spline16')#'nearest')
 
-    img2 = ax2.contourf(grid_cable, cmap=cmap, origin="upper", levels=levels) #vmin=0, vmax=40,
+    #img2 = ax2.contourf(grid_cable, cmap=cmap, origin="upper", levels=levels) #vmin=0, vmax=40,
     cbar2 = fig.colorbar(img2, orientation="vertical", pad=0.1, shrink=.6)
     cbar2.set_label('VWC CABLE (%)')#('Volumetric soil water content (%)')
     tick_locator2 = ticker.MaxNLocator(nbins=5)
@@ -222,9 +250,9 @@ def main(fobs, fcable, case_name):
     cbar2.update_ticks()
 
     # every second tick
-    ax2.set_yticks(np.arange(len(Y_cable))[::10])
-    Y_labels2 = np.flipud(Y) #Y #np.flipud(Y_cable)
-    ax2.set_yticklabels(Y_labels2[::10])
+    ax2.set_yticks(np.arange(len(Y_cable))[::3])
+    Y_labels2 = Y #np.flipud(Y) #Y #np.flipud(Y_cable)
+    ax2.set_yticklabels(Y_labels2[::3])
     plt.setp(ax2.get_xticklabels(), visible=False)
 
     #ax2.set_xticks(np.arange(len(X_cable)))
@@ -251,10 +279,10 @@ def main(fobs, fcable, case_name):
 
     cmap = plt.cm.BrBG
 
-    #img3 = ax3.imshow(difference, cmap=cmap, vmin=-30, vmax=30, origin="upper", interpolation='nearest')
+    img3 = ax3.imshow(difference, cmap=cmap, vmin=-30, vmax=30, origin="upper", interpolation='nearest')
     #'spline16')#'nearest')
     levels = np.arange(-30.,30.,2.)
-    img3 = ax3.contourf(difference, cmap=cmap, origin="upper", levels=levels)
+    #img3 = ax3.contourf(difference, cmap=cmap, origin="upper", levels=levels)
     cbar3 = fig.colorbar(img3, orientation="vertical", pad=0.1, shrink=.6)
     cbar3.set_label('CABLE - Obs (%)')
     tick_locator3 = ticker.MaxNLocator(nbins=6)
@@ -262,9 +290,9 @@ def main(fobs, fcable, case_name):
     cbar3.update_ticks()
 
     # every second tick
-    ax3.set_yticks(np.arange(len(Y_cable))[::10])
-    Y_labels3 = np.flipud(Y_cable) #Y #np.flipud(Y_cable)
-    ax3.set_yticklabels(Y_labels3[::10])
+    ax3.set_yticks(np.arange(len(Y_cable))[::3])
+    Y_labels3 = Y #np.flipud(Y_cable) #Y #np.flipud(Y_cable)
+    ax3.set_yticklabels(Y_labels3[::3])
 
     ax3.set_xticks(np.arange(len(X_cable)))
     cleaner_dates3 = X_cable
@@ -278,13 +306,36 @@ def main(fobs, fcable, case_name):
     ax3.set_ylabel("Depth (cm)")
     ax3.axis('tight')
 
-    fig.savefig("EucFACE_SW_obsved_dates_contour_GW_Or_Hvrd_31l_%s.png" % (case_name), bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("EucFACE_SW_GW_Or_Hvrd_31l_amb_%s.png" % (case_name), bbox_inches='tight', pad_inches=0.1)
 
 if __name__ == "__main__":
 
-    case = ["R1","R2","R3","R4","R5","R6"]
+    case = ["wet_10l","wet_12l","wet_14l","wet_16l","wet_18l","wet_1l",\
+            "wet_21l","wet_23l","wet_25l","wet_27l","wet_29l","wet_30l",\
+            "wet_3l","wet_5l","wet_7l","wet_9l","wet_11l","wet_13l",\
+            "wet_15l","wet_17l","wet_19l","wet_20l","wet_22l","wet_24l",\
+            "wet_26l","wet_28l","wet_2l","wet_31l","wet_4l","wet_6l","wet_8l"]
+    '''
+    ['Cosby_univariate','Cosby_multivariate','HC_SWC']
+    ["bch0.5","hyds0.1","sfc0.5","ssat=0.35_sfc=0.3_swilt=0.03_top1-layer",\
+            "ssat0.75","sucs0.5","swilt0.5","watr0.5","bch1.5","hyds10","sfc1.5",\
+            "ssat=0.35_sfc=0.3_swilt=0.03_top3-layer","ssat1.5","sucs1.5","swilt1.5",\
+            "watr1.5"]
+
+    "ctl"
+    froot_shape : "froot_parabola","froot_triangle","froot_triangle_inverse"
+    leafsize    : "leafsize_eucalyptus"
+    dry_layers_exp : "wet_10l","wet_12l","wet_14l","wet_16l","wet_18l","wet_1l",\
+                     "wet_21l","wet_23l","wet_25l","wet_27l","wet_29l","wet_30l",\
+                     "wet_3l","wet_5l","wet_7l","wet_9l","wet_11l","wet_13l",\
+                     "wet_15l","wet_17l","wet_19l","wet_20l","wet_22l","wet_24l",\
+                     "wet_26l","wet_28l","wet_2l","wet_31l","wet_4l","wet_6l","wet_8l"
+
+    sensitivity_test:
+
+    '''
     for case_name in case:
         fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
-        fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/31-layer/rings/ctl_hvrd/EucFACE_%s_out.nc" % (case_name)
-
+        fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/31-layer/dry_layers_exp/%s/EucFACE_amb_out.nc" % (case_name)
+        #fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/31-layer/PTF_met_test/%s/EucFACE_amb_out.nc" % (case_name)
         main(fobs, fcable, case_name)

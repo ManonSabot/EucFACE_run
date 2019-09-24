@@ -239,7 +239,7 @@ if __name__ == "__main__":
             "ssat=0.35_sfc=0.3_swilt=0.03_top3-layer","ssat1.5","sucs1.5","swilt1.5",\
             "watr1.5"]
 
-   
+
         ,"froot_shape/froot_parabola","froot_shape/froot_triangle","froot_shape/froot_triangle_inverse", \
                 "layer_thickness/31-layer_exp", "layer_thickness/31-layer_para","leafsize/leafsize_eucalyptus"]
 dry_layers_exp/
@@ -252,6 +252,6 @@ bch0.5	hyds0.1  sfc0.5  ssat=0.35_sfc=0.3_swilt=0.03_top1-layer  ssat0.75  sucs0
 bch1.5	hyds10	 sfc1.5  ssat=0.35_sfc=0.3_swilt=0.03_top3-layer  ssat1.5   sucs1.5  swilt1.5  watr1.5
     '''
     for case_name in case:
-        fobs = "/srv/ccrc/data25/z5218916/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
+        fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
         fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/31-layer/PTF_met_test/%s/EucFACE_amb_out.nc" % (case_name)
         main(fobs, fcable, case_name)

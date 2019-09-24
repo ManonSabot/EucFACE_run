@@ -91,7 +91,7 @@ def main(fobs, fcable, case_name):
 #    date_end   = pd.datetime(2019,5,11) - pd.datetime(2011,12,31)
     date_start = date_start.days
     date_end   = date_end.days
-
+ 
     # Interpolate
     x     = np.concatenate((vars[(25)].index.values,               \
                             vars.index.get_level_values(1).values, \
@@ -312,8 +312,13 @@ def main(fobs, fcable, case_name):
 
 if __name__ == "__main__":
 
-    case = ['Cosby_univariate','Cosby_multivariate','HC_SWC']
+    case = ["wet_10l","wet_12l","wet_14l","wet_16l","wet_18l","wet_1l",\
+            "wet_21l","wet_23l","wet_25l","wet_27l","wet_29l","wet_30l",\
+            "wet_3l","wet_5l","wet_7l","wet_9l","wet_11l","wet_13l",\
+            "wet_15l","wet_17l","wet_19l","wet_20l","wet_22l","wet_24l",\
+            "wet_26l","wet_28l","wet_2l","wet_31l","wet_4l","wet_6l","wet_8l"]
     '''
+    ['Cosby_univariate','Cosby_multivariate','HC_SWC']
     ["bch0.5","hyds0.1","sfc0.5","ssat=0.35_sfc=0.3_swilt=0.03_top1-layer",\
             "ssat0.75","sucs0.5","swilt0.5","watr0.5","bch1.5","hyds10","sfc1.5",\
             "ssat=0.35_sfc=0.3_swilt=0.03_top3-layer","ssat1.5","sucs1.5","swilt1.5",\
@@ -332,6 +337,7 @@ if __name__ == "__main__":
 
     '''
     for case_name in case:
-        fobs = "/srv/ccrc/data25/z5218916/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
-        fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/31-layer/PTF_met_test/%s/EucFACE_amb_out.nc" % (case_name)
+        fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
+        fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/31-layer/dry_layers_exp/%s/EucFACE_amb_out.nc" % (case_name)
+        #fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/31-layer/PTF_met_test/%s/EucFACE_amb_out.nc" % (case_name)
         main(fobs, fcable, case_name)

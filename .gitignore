@@ -1,5 +1,7 @@
 plots/csv_data/*
+plots/csv_data_raijin/*
 plots/plots/*
+plots/plots_raijin/*
 plots/*.pdf
 plots/*.png
 plots/*.csv
