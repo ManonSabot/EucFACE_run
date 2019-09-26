@@ -649,7 +649,7 @@ def init_soil_moisture(swc_fname, nsoil, ring, soil_frac, boundary):
                            [460]*len(neo_mean[(25)])    ))
     value = np.concatenate((neo_mean[(25)].values, neo_mean.values, neo_mean[(450)].values))
     X     = np.arange(date_start,date_end,1) # 2012-4-30 to 2019-5-11
-    Y     = np.arange(2.5,465,5)
+    Y     = np.arange(0.5,465,1)
     grid_X, grid_Y = np.meshgrid(X,Y)
 
     # interpolate
