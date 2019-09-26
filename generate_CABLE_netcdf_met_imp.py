@@ -602,7 +602,7 @@ def estimate_rhosoil_vec(swc_fname, nsoil, ring, soil_frac, boundary):
     bulk_den = subset.groupby(by=['Depth']).mean()['Bulk.den']
     f = interp1d(bulk_den.index, bulk_den.values, kind = soil_frac, \
              fill_value=(bulk_den.values[0],bulk_den.values[-1]), bounds_error=False) # fill_value='extrapolate'
-    grid_value = np.arange(0.5,465,5)
+    grid_value = np.arange(0.5,465,1)
     Bulk_grid  = f(grid_value)
     Bulk_den_g_cm = np.zeros(nsoil)
 
@@ -657,7 +657,7 @@ def init_soil_moisture(swc_fname, nsoil, ring, soil_frac, boundary):
     SoilMoist_grid = grid_data[:,30]/100.
 
     SoilM     = np.zeros(nsoil)
-    grid_value = np.arange(0.5,465,5)
+    grid_value = np.arange(0.5,465,1)
     for j in np.arange(0,nsoil,1):
         if (j == 0 and grid_value[0] > boundary[1]):
             SoilM[0] = SoilMoist_grid[0]
