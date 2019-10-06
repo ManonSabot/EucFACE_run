@@ -7,7 +7,7 @@ That's all folks.
 """
 
 __author__ = "MU Mengyuan"
-__version__ = "2019-7-30"
+__version__ = "2019-10-5"
 __changefrom__ = 'plot_eucface_swc_cable_vs_obs.py'
 
 import os
@@ -21,7 +21,7 @@ import datetime as dt
 import netCDF4 as nc
 from scipy.interpolate import griddata
 
-def main(fobs, fcable, case_name):
+def main(fobs, fcable, case_name, ring, contour, layer):
 
     neo = pd.read_csv(fobs, usecols = ['Ring','Depth','Date','VWC'])
     # usecols : read specific columns from CSV
@@ -46,72 +46,54 @@ def main(fobs, fcable, case_name):
     print(neo['Depth'].unique())
 
     # divide neo into groups
-    subset_amb = neo[neo['Ring'].isin(['R2','R3','R6'])]
-    subset_ele = neo[neo['Ring'].isin(['R1','R4','R5'])]
-    subset_R1  = neo[neo['Ring'].isin(['R1'])]
-    subset_R2  = neo[neo['Ring'].isin(['R2'])]
-    subset_R3  = neo[neo['Ring'].isin(['R3'])]
-    subset_R4  = neo[neo['Ring'].isin(['R4'])]
-    subset_R5  = neo[neo['Ring'].isin(['R5'])]
-    subset_R6  = neo[neo['Ring'].isin(['R6'])]
+    if ring == 'amb':
+        subset = neo[neo['Ring'].isin(['R2','R3','R6'])]
+    elif ring == 'ele':
+        subset = neo[neo['Ring'].isin(['R1','R4','R5'])]
+    else:
+        subset = neo[neo['Ring'].isin([ring])]
 
     # calculate the mean of every group ( and unstack #.unstack(level=0)
-    neo_mean = neo.groupby(by=["Depth","Date"]).mean()
-    amb_mean = subset_amb.groupby(by=["Depth","Date"]).mean()
-    ele_mean = subset_ele.groupby(by=["Depth","Date"]).mean()
-    R1_mean  = subset_R1.groupby(by=["Depth","Date"]).mean()
-    R2_mean  = subset_R2.groupby(by=["Depth","Date"]).mean()
-    R3_mean  = subset_R3.groupby(by=["Depth","Date"]).mean()
-    R4_mean  = subset_R4.groupby(by=["Depth","Date"]).mean()
-    R5_mean  = subset_R5.groupby(by=["Depth","Date"]).mean()
-    R6_mean  = subset_R6.groupby(by=["Depth","Date"]).mean()
-
+    subset = subset.groupby(by=["Depth","Date"]).mean()
+    print(subset)
     # remove 'VWC'
-    neo_mean = neo_mean.xs('VWC', axis=1, drop_level=True)
-    amb_mean = amb_mean.xs('VWC', axis=1, drop_level=True)
-    ele_mean = ele_mean.xs('VWC', axis=1, drop_level=True)
-    R1_mean  = R1_mean.xs('VWC', axis=1, drop_level=True)
-    R2_mean  = R2_mean.xs('VWC', axis=1, drop_level=True)
-    R3_mean  = R3_mean.xs('VWC', axis=1, drop_level=True)
-    R4_mean  = R4_mean.xs('VWC', axis=1, drop_level=True)
-    R5_mean  = R5_mean.xs('VWC', axis=1, drop_level=True)
-    R6_mean  = R6_mean.xs('VWC', axis=1, drop_level=True)
+    subset = subset.xs('VWC', axis=1, drop_level=True)
     # 'VWC' : key on which to get cross section
     # axis=1 : get cross section of column
     # drop_level=True : returns cross section without the multilevel index
 
     #neo_mean = np.transpose(neo_mean)
 
-    vars = amb_mean
-
 # ___________________ From Pandas to Numpy __________________________
-    date_start = pd.datetime(2013,1,1) - pd.datetime(2011,12,31)
-    date_end   = pd.datetime(2017,1,1) - pd.datetime(2011,12,31)
+#    date_start = pd.datetime(2013,1,1) - pd.datetime(2011,12,31)
+#    date_end   = pd.datetime(2017,1,1) - pd.datetime(2011,12,31)
 #    date_start = pd.datetime(2012,4,30) - pd.datetime(2011,12,31)
 #    date_end   = pd.datetime(2019,5,11) - pd.datetime(2011,12,31)
-    date_start = date_start.days
-    date_end   = date_end.days
+#    date_start = date_start.days
+#    date_end   = date_end.days
 
     # Interpolate
-    x     = np.concatenate((vars[(25)].index.values,               \
-                            vars.index.get_level_values(1).values, \
-                            vars[(450)].index.values ))              # time
-    y     = np.concatenate(([0]*len(vars[(25)]),                   \
-                            vars.index.get_level_values(0).values, \
-                            [460]*len(vars[(25)])    ))
-    value = np.concatenate((vars[(25)].values, vars.values, vars[(450)].values))
+    x     = subset.index.get_level_values(1).values #, \
+            #                np.concatenate((subset[(25)].index.values,               \
+            #                subset[(450)].index.values ))              # time
+    y     = subset.index.get_level_values(0).values#, \
+            #                np.concatenate(([0]*len(subset[(25)]),                   \
+            #                [460]*len(subset[(25)])    ))
+    value = subset.values
+            #                np.concatenate((subset[(25)].values,
+            #                , subset[(450)].values))
     # get_level_values(1) : Return an Index of values for requested level.
     # add Depth = 0 and Depth = 460
 
-    print(vars[(25)].index.values)
+    print(subset[(25)].index.values)
     # add the 12 depths to 0
-    X     = vars[(25)].index.values #np.arange(date_start,date_end,1) # 2012-4-30 to 2019-5-11
+    X     = subset[(25)].index.values[20:] #np.arange(date_start,date_end,1) # 2012-4-30 to 2019-5-11
     Y     = np.arange(0,465,5)
 
     grid_X, grid_Y = np.meshgrid(X,Y)
     print(grid_X.shape)
     # interpolate
-    grid_data = griddata((x, y) , value, (grid_X, grid_Y), method='cubic')
+    grid_data = griddata((x, y) , value, (grid_X, grid_Y), method='nearest')
     #'cubic')#'linear')#'nearest')
     print(grid_data.shape)
 
@@ -144,15 +126,15 @@ def main(fobs, fcable, case_name):
     ax1 = fig.add_subplot(311) #(nrows=2, ncols=2, index=1)
 
     cmap = plt.cm.viridis_r
-    #######
-    #plt.imshow(amb_mean, cmap=cmap, vmin=0, vmax=40, origin="upper", interpolation='nearest')
-    #plt.show()
-    ######
-    #img = ax1.imshow(grid_data, cmap=cmap, vmin=0, vmax=50, origin="upper", interpolation='nearest')
-    #'spline16')#'nearest')
 
-    levels = np.arange(0.,52.,2.)
-    img = ax1.contourf(grid_data, cmap=cmap, origin="upper", levels=levels) # vmin=0, vmax=40,
+    if contour:
+        levels = np.arange(0.,52.,2.)
+        img = ax1.contourf(grid_data, cmap=cmap, origin="upper", levels=levels)
+        Y_labels = np.flipud(Y)
+    else:
+        img = ax1.imshow(grid_data, cmap=cmap, vmin=0, vmax=52, origin="upper", interpolation='nearest')
+        Y_labels = Y
+
     cbar = fig.colorbar(img, orientation="vertical", pad=0.1, shrink=.6) #"horizontal"
     cbar.set_label('VWC Obs (%)')#('Volumetric soil water content (%)')
     tick_locator = ticker.MaxNLocator(nbins=5)
@@ -161,7 +143,6 @@ def main(fobs, fcable, case_name):
 
     # every second tick
     ax1.set_yticks(np.arange(len(Y))[::10])
-    Y_labels = np.flipud(Y) #Y #np.flipud(Y)
     ax1.set_yticklabels(Y_labels[::10])
     plt.setp(ax1.get_xticklabels(), visible=False)
 
@@ -175,27 +156,35 @@ def main(fobs, fcable, case_name):
     for i in range(len(datemark)):
         print(i, datemark[i]) # xtickslocs[i]
 
-    #cleaner_dates = ["2014","2015","2016",]
-    #xtickslocs    = [365,730,1095]
-
-    cleaner_dates = ["2012","2013","2014","2015","2016","2017","2018","2019"]
+    cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"]
+                    #["2012","2013","2014","2015","2016","2017","2018","2019"]
                     #["2012-04","2013-01","2014-01","2015-01","2016-01",\
                     # "2017-03","2018-01","2019-01",]
-    xtickslocs = [1,20,39,57,72,86,94,106]
+    xtickslocs = [0,19,37,52,66,74,86]
+                 #[1,20,39,57,72,86,94,106]
 
-    ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
+    ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates)
     ax1.set_ylabel("Depth (cm)")
     ax1.axis('tight')
 
-    #plt.show()
+#    plt.show()
 
 # _________________________ CABLE ___________________________
     cable = nc.Dataset(fcable, 'r')
 
     Time = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
-    SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns=[1.,4.5,10.,19.5,41,71,101,131,161,191,221,273.5,386])
-    #columns=[1.1, 5.1, 15.7, 43.85, 118.55, 316.4])
-    #
+    if layer == 6:
+        SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns=[1.1, 5.1, 15.7, 43.85, 118.55, 316.4])
+    elif layer == 13:
+        SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns = \
+                    [1.,4.5,10.,19.5,41,71,101,131,161,191,221,273.5,386])
+    elif layer == 31:
+        SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns = \
+                   [7.5,   22.5 , 37.5 , 52.5 , 67.5 , 82.5 , 97.5 , \
+                    112.5, 127.5, 142.5, 157.5, 172.5, 187.5, 202.5, \
+                    217.5, 232.5, 247.5, 262.5, 277.5, 292.5, 307.5, \
+                    322.5, 337.5, 352.5, 367.5, 382.5, 397.5, 412.5, \
+                    427.5, 442.5, 457.5 ])
     SoilMoist['dates'] = Time
     SoilMoist = SoilMoist.set_index('dates')
     SoilMoist = SoilMoist.resample("D").agg('mean')
@@ -209,19 +198,23 @@ def main(fobs, fcable, case_name):
     #SoilMoist = SoilMoist.set_index('Depth')
 
     # Interpolate
-    date_start_cable = pd.datetime(2013,1,1) - pd.datetime(2011,12,31)
-    date_end_cable   = pd.datetime(2017,1,1) - pd.datetime(2011,12,31)
-    date_start_cable = date_start_cable.days
-    date_end_cable   = date_end_cable.days
+#    date_start_cable = pd.datetime(2013,1,1) - pd.datetime(2011,12,31)
+#    date_end_cable   = pd.datetime(2017,1,1) - pd.datetime(2011,12,31)
+#    date_start_cable = date_start_cable.days
+#    date_end_cable   = date_end_cable.days
 
     ntimes      = len(np.unique(SoilMoist['dates']))
     dates       = np.unique(SoilMoist['dates'].values)
     print(dates)
-    x_cable     = np.concatenate(( dates, SoilMoist['dates'].values,dates)) # Time
-    y_cable     = np.concatenate(([0]*ntimes,SoilMoist['Depth'].values,[460]*ntimes))# Depth
-    value_cable = np.concatenate(( SoilMoist.iloc[:ntimes,2].values, \
-                                   SoilMoist.iloc[:,2].values,         \
-                                   SoilMoist.iloc[-(ntimes):,2].values ))
+    x_cable     = SoilMoist['dates'].values
+                  #np.concatenate(( dates,
+                  #,dates)) # Time
+    y_cable     = SoilMoist['Depth'].values
+                  #np.concatenate(([0]*ntimes,
+                  #,[460]*ntimes))# Depth
+    value_cable = SoilMoist.iloc[:,2].values#,         \
+                  #np.concatenate(( SoilMoist.iloc[:ntimes,2].values, \
+                  #SoilMoist.iloc[-(ntimes):,2].values ))
     value_cable = value_cable*100.
     # add the 12 depths to 0
     X_cable     = X #np.arange(date_start_cable,date_end_cable,1) # 2013-1-1 to 2016-12-31
@@ -230,15 +223,18 @@ def main(fobs, fcable, case_name):
 
     # interpolate
     grid_cable = griddata((x_cable, y_cable) , value_cable, (grid_X_cable, grid_Y_cable),\
-                 method='cubic')
+                 method='nearest')
                  #'cubic')#'linear')#'nearest')
 
     ax2 = fig.add_subplot(312)#, sharey = ax1)#(nrows=2, ncols=2, index=2, sharey=ax1)
 
-    #img2 = ax2.imshow(grid_cable, cmap=cmap, vmin=0, vmax=50, origin="upper", interpolation='nearest')
-    #'spline16')#'nearest')
+    if contour:
+        img2 = ax2.contourf(grid_cable, cmap=cmap, origin="upper", levels=levels)
+        Y_labels2 = np.flipud(Y)
+    else:
+        img2 = ax2.imshow(grid_cable, cmap=cmap, vmin=0, vmax=52, origin="upper", interpolation='nearest')
+        Y_labels2 = Y
 
-    img2 = ax2.contourf(grid_cable, cmap=cmap, origin="upper", levels=levels) #vmin=0, vmax=40,
     cbar2 = fig.colorbar(img2, orientation="vertical", pad=0.1, shrink=.6)
     cbar2.set_label('VWC CABLE (%)')#('Volumetric soil water content (%)')
     tick_locator2 = ticker.MaxNLocator(nbins=5)
@@ -247,23 +243,8 @@ def main(fobs, fcable, case_name):
 
     # every second tick
     ax2.set_yticks(np.arange(len(Y_cable))[::10])
-    Y_labels2 = np.flipud(Y) #Y #np.flipud(Y_cable)
     ax2.set_yticklabels(Y_labels2[::10])
     plt.setp(ax2.get_xticklabels(), visible=False)
-
-    #ax2.set_xticks(np.arange(len(X_cable)))
-    #cleaner_dates2 = X_cable
-    #ax2.set_xticklabels(cleaner_dates2)
-
-    #datemark2 = np.arange(np.datetime64('2013-01-01','D'), np.datetime64('2017-01-01','D'))
-
-    #xtickslocs2 = ax2.get_xticks()
-    #for i in range(len(datemark2)):
-    #    print(xtickslocs2[i], datemark2[i])
-
-    #cleaner_dates2 = ["2014","2015","2016",]
-                  # ["2013-01","2014-01","2015-01","2016-01",]
-    #xtickslocs2 = [365,730,1095]
 
     ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates)
     ax2.set_ylabel("Depth (cm)")
@@ -275,10 +256,16 @@ def main(fobs, fcable, case_name):
 
     cmap = plt.cm.BrBG
 
-    #img3 = ax3.imshow(difference, cmap=cmap, vmin=-30, vmax=30, origin="upper", interpolation='nearest')
-    #'spline16')#'nearest')
-    levels = np.arange(-30.,30.,2.)
-    img3 = ax3.contourf(difference, cmap=cmap, origin="upper", levels=levels)
+    if contour:
+        levels = np.arange(-30.,30.,2.)
+        img3 = ax3.contourf(difference, cmap=cmap, origin="upper", levels=levels)
+        Y_labels3 = np.flipud(Y)
+    else:
+        img3 = ax3.imshow(difference, cmap=cmap, vmin=-30, vmax=30, origin="upper", interpolation='nearest')
+        #'spline16')#'nearest')
+        Y_labels3 = Y
+
+
     cbar3 = fig.colorbar(img3, orientation="vertical", pad=0.1, shrink=.6)
     cbar3.set_label('CABLE - Obs (%)')
     tick_locator3 = ticker.MaxNLocator(nbins=6)
@@ -287,33 +274,33 @@ def main(fobs, fcable, case_name):
 
     # every second tick
     ax3.set_yticks(np.arange(len(Y_cable))[::10])
-    Y_labels3 = np.flipud(Y_cable) #Y #np.flipud(Y_cable)
     ax3.set_yticklabels(Y_labels3[::10])
 
     ax3.set_xticks(np.arange(len(X_cable)))
     cleaner_dates3 = X_cable
     ax3.set_xticklabels(cleaner_dates3)
 
-    #cleaner_dates3 = ["2014","2015","2016","2017","2018","2019"]
-                  # ["2013-01","2014-01","2015-01","2016-01",]
-    #xtickslocs3 = [365,730,1095,1461,1826,2191]
 
     ax3.set(xticks=xtickslocs, xticklabels=cleaner_dates)
     ax3.set_ylabel("Depth (cm)")
     ax3.axis('tight')
-
-    fig.savefig("EucFACE_SW_amb_obsved_dates_contour_13layers_%s_gw_on_or_on.png" % (case_name), bbox_inches='tight', pad_inches=0.1)
+    if contour == True:
+        fig.savefig("EucFACE_SW_obsved_dates_contour_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
+    else:
+        fig.savefig("EucFACE_SW_obsved_dates_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
 
 if __name__ == "__main__":
-    
-    #case = ["hyds0.01","hyds0.1","hyds","hyds10","hyds100"]
-    case = ["bch1.5","cnsd2","css1.5","ctl","froot","froot_swilt0.5_ssat1.5_top5-layer_hyds10","hyds10",\
-            "sfc0.5","sfc0.5_ssat0.5","sfc1.5_ssat1.5","sfc2","ssat0.5","ssat2","sucs2","swilt0.5","swilt0.5_ssat1.5",\
-            "swilt0.5_ssat0.75_top5-layer","swilt0.5_ssat0.75_all-layer","swilt0.5_ssat1.5_top5-layer",\
-            "swilt0.5_ssat1.5_top5-layer_hyds10","swilt2"]
+    contour = False
+    #  True for contour
+    #  False for raster
+    layer = 31
 
-    for case_name in case:
-        fobs = "/short/w35/mm3972/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
-        fcable ="/g/data/w35/mm3972/cable/EucFACE/EucFACE_run/outputs/13-layer/sensitivity_test/para_test/%s/EucFACE_amb_out.nc" % (case_name)
-        #fcable ="/g/data/w35/mm3972/cable/EucFACE/EucFACE_run/outputs/hyds_test/13layer_hyds_test/%s/EucFACE_amb_out.nc" % (case_name)
-        main(fobs, fcable, case_name)
+    cases = ["ctl_met_LAI_vrt_SM_31uni"]
+    # ["ctl_met_LAI_vrt_SM_31uni","ctl_met_LAI_vrt_SM_31uni"] # 31 layer
+    # ["ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM", "default-met_only"] # 6 layer
+    rings = ["R1","R2","R3","R4","R5","R6","amb","ele"]
+    for case_name in cases:
+        for ring in rings:
+            fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
+            fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" % (case_name, ring)
+            main(fobs, fcable, case_name, ring, contour, layer)

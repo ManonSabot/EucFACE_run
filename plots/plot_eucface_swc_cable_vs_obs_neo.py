@@ -7,7 +7,7 @@ That's all folks.
 """
 
 __author__ = "MU Mengyuan"
-__version__ = "2019-9-2"
+__version__ = "2019-10-06"
 __changefrom__ = 'plot_eucface_swc_cable_vs_obs_obsved_dates-13-layer.py'
 
 import os
@@ -21,7 +21,7 @@ import datetime as dt
 import netCDF4 as nc
 from scipy.interpolate import griddata
 
-def main(fobs, fcable, case_name):
+def main(fobs, fcable, case_name, ring, layer):
 
     neo = pd.read_csv(fobs, usecols = ['Ring','Depth','Date','VWC'])
     neo['Date'] = pd.to_datetime(neo['Date'],format="%d/%m/%y",infer_datetime_format=False)
@@ -30,24 +30,51 @@ def main(fobs, fcable, case_name):
     neo = neo.sort_values(by=['Date','Depth'])
 
     print(neo['Depth'].unique())
-    subset = neo[neo['Ring'].isin(['R2','R3','R6'])] # isin(['R1','R4','R5'])]
+
+    if ring == 'amb':
+        subset = neo[neo['Ring'].isin(['R2','R3','R6'])]
+    elif ring == 'ele':
+        subset = neo[neo['Ring'].isin(['R1','R4','R5'])]
+    else:
+        subset = neo[neo['Ring'].isin([ring])]
+
     subset = subset.groupby(by=["Depth","Date"]).mean()
     subset = subset.xs('VWC', axis=1, drop_level=True)
     subset[:] = subset[:]/100.
-    date  = subset[(25)].index.values
+    #date  = subset[(25)].index.values
 
 # _________________________ CABLE ___________________________
     cable = nc.Dataset(fcable, 'r')
 
     Time = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
-    SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], \
-                columns=[7.5,   22.5 , 37.5 , 52.5 , 67.5 , 82.5 , 97.5 , \
-                         112.5, 127.5, 142.5, 157.5, 172.5, 187.5, 202.5, \
-                         217.5, 232.5, 247.5, 262.5, 277.5, 292.5, 307.5, \
-                         322.5, 337.5, 352.5, 367.5, 382.5, 397.5, 412.5, \
-                         427.5, 442.5, 457.5 ])
-    #columns=[1.,4.5,10.,19.5,41,71,101,131,161,191,221,273.5,386])
-
+    if layer == "6":
+        SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns=[1.1, 5.1, 15.7, 43.85, 118.55, 316.4])
+    elif layer == "13":
+        SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns = \
+                    [1.,4.5,10.,19.5,41,71,101,131,161,191,221,273.5,386])
+    elif layer == "31uni":
+        SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns = \
+                   [7.5,   22.5 , 37.5 , 52.5 , 67.5 , 82.5 , 97.5 , \
+                    112.5, 127.5, 142.5, 157.5, 172.5, 187.5, 202.5, \
+                    217.5, 232.5, 247.5, 262.5, 277.5, 292.5, 307.5, \
+                    322.5, 337.5, 352.5, 367.5, 382.5, 397.5, 412.5, \
+                    427.5, 442.5, 457.5 ])
+    elif layer == "31exp":
+        SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns=\
+                  [ 1.021985, 2.131912, 2.417723, 2.967358, 3.868759, 5.209868,\
+                    7.078627, 9.562978, 12.75086, 16.73022, 21.58899, 27.41512,\
+                    34.29655, 42.32122, 51.57708, 62.15205, 74.1341 , 87.61115,\
+                    102.6711, 119.402 , 137.8918, 158.2283, 180.4995, 204.7933,\
+                    231.1978, 259.8008, 290.6903, 323.9542, 359.6805, 397.9571,\
+                    438.8719 ])
+    elif layer == "31para":
+        SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns=\
+                    [ 1.000014,  3.47101, 7.782496, 14.73158, 24.11537, 35.73098, \
+                      49.37551, 64.84607, 81.93976, 100.4537, 120.185 , 140.9308, \
+                      162.4881, 184.6541, 207.2259, 230.    , 252.7742, 275.346 , \
+                      297.512 , 319.0693, 339.8151, 359.5464, 378.0603, 395.154 , \
+                      410.6246, 424.2691, 435.8847, 445.2685, 452.2176, 456.5291, \
+                      459.0001 ])
     SoilMoist['dates'] = Time
     SoilMoist = SoilMoist.set_index('dates')
     SoilMoist = SoilMoist.resample("D").agg('mean')
@@ -65,11 +92,17 @@ def main(fobs, fcable, case_name):
 
     ntimes      = len(np.unique(SoilMoist['dates']))
     dates       = np.unique(SoilMoist['dates'].values)
+    x_cable     = SoilMoist['dates'].values
+    y_cable     = SoilMoist['Depth'].values
+    value_cable = SoilMoist.iloc[:,2].values
+
+    '''
     x_cable     = np.concatenate(( dates, SoilMoist['dates'].values,dates)) # Time
     y_cable     = np.concatenate(([0]*ntimes,SoilMoist['Depth'].values,[460]*ntimes))# Depth
     value_cable = np.concatenate(( SoilMoist.iloc[:ntimes,2].values, \
                                    SoilMoist.iloc[:,2].values,         \
                                    SoilMoist.iloc[-(ntimes):,2].values ))
+    '''
     # add the 12 depths to 0
     X_cable     = np.arange(date_start_cable,date_end_cable,1) # 2013-1-1 to 2019-6-30
     Y_cable     = [25,50,75,100,125,150,200,250,300,350,400,450]
@@ -77,7 +110,7 @@ def main(fobs, fcable, case_name):
 
     # interpolate
     grid_cable = griddata((x_cable, y_cable) , value_cable, (grid_X_cable, grid_Y_cable),\
-                 method='linear') #'cubic')#'linear')#'nearest')
+                 method='nearest') #'cubic')#'linear')#'nearest')
     print(grid_cable.shape)
 
 # ____________________ Plot obs _______________________
@@ -127,18 +160,18 @@ def main(fobs, fcable, case_name):
     ax11.plot(X_cable, grid_cable[10,:],c="green", lw=1.0, ls="-", label="CABLE")
     ax12.plot(X_cable, grid_cable[11,:],c="green", lw=1.0, ls="-", label="CABLE")
 
-    ax1.scatter(date, subset[(25)].values, marker='.', label="obs")
-    ax2.scatter(date, subset[(50)].values, marker='.', label="obs")
-    ax3.scatter(date, subset[(75)].values, marker='.', label="obs")
-    ax4.scatter(date, subset[(100)].values, marker='.', label="obs")
-    ax5.scatter(date, subset[(125)].values, marker='.', label="obs")
-    ax6.scatter(date, subset[(150)].values, marker='.', label="obs")
-    ax7.scatter(date, subset[(200)].values, marker='.', label="obs")
-    ax8.scatter(date, subset[(250)].values, marker='.', label="obs")
-    ax9.scatter(date, subset[(300)].values, marker='.', label="obs")
-    ax10.scatter(date,subset[(350)].values, marker='.', label="obs")
-    ax11.scatter(date,subset[(400)].values, marker='.', label="obs")
-    ax12.scatter(date,subset[(450)].values, marker='.', label="obs")
+    ax1.scatter(subset[(25)].index.values, subset[(25)].values, marker='.', label="obs")
+    ax2.scatter(subset[(50)].index.values, subset[(50)].values, marker='.', label="obs")
+    ax3.scatter(subset[(75)].index.values, subset[(75)].values, marker='.', label="obs")
+    ax4.scatter(subset[(100)].index.values, subset[(100)].values, marker='.', label="obs")
+    ax5.scatter(subset[(125)].index.values, subset[(125)].values, marker='.', label="obs")
+    ax6.scatter(subset[(150)].index.values, subset[(150)].values, marker='.', label="obs")
+    ax7.scatter(subset[(200)].index.values, subset[(200)].values, marker='.', label="obs")
+    ax8.scatter(subset[(250)].index.values, subset[(250)].values, marker='.', label="obs")
+    ax9.scatter(subset[(300)].index.values, subset[(300)].values, marker='.', label="obs")
+    ax10.scatter(subset[(350)].index.values,subset[(350)].values, marker='.', label="obs")
+    ax11.scatter(subset[(400)].index.values,subset[(400)].values, marker='.', label="obs")
+    ax12.scatter(subset[(450)].index.values,subset[(450)].values, marker='.', label="obs")
 
     cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"]
     xtickslocs    = [1,365,730,1095,1461,1826,2191]
@@ -181,29 +214,29 @@ def main(fobs, fcable, case_name):
     ax12.axis('tight')
 
     ax1.set_xlim([0,2374])
-    ax1.set_ylim([0.0,0.4])
+    ax1.set_ylim([0.0,0.5])
     ax2.set_xlim([0,2374])
-    ax2.set_ylim([0.0,0.4])
+    ax2.set_ylim([0.0,0.5])
     ax3.set_xlim([0,2374])
-    ax3.set_ylim([0.0,0.4])
+    ax3.set_ylim([0.0,0.5])
     ax4.set_xlim([0,2374])
-    ax4.set_ylim([0.0,0.4])
+    ax4.set_ylim([0.0,0.5])
     ax5.set_xlim([0,2374])
-    ax5.set_ylim([0.0,0.4])
+    ax5.set_ylim([0.0,0.5])
     ax6.set_xlim([0,2374])
-    ax6.set_ylim([0.0,0.4])
+    ax6.set_ylim([0.0,0.5])
     ax7.set_xlim([0,2374])
-    ax7.set_ylim([0.0,0.4])
+    ax7.set_ylim([0.0,0.5])
     ax8.set_xlim([0,2374])
-    ax8.set_ylim([0.0,0.4])
+    ax8.set_ylim([0.0,0.5])
     ax9.set_xlim([0,2374])
-    ax9.set_ylim([0.0,0.4])
+    ax9.set_ylim([0.0,0.5])
     ax10.set_xlim([0,2374])
-    ax10.set_ylim([0.0,0.4])
+    ax10.set_ylim([0.0,0.5])
     ax11.set_xlim([0,2374])
-    ax11.set_ylim([0.0,0.4])
+    ax11.set_ylim([0.0,0.5])
     ax12.set_xlim([0,2374])
-    ax12.set_ylim([0.0,0.4])
+    ax12.set_ylim([0.0,0.5])
 
     ax1.legend()
 
@@ -227,31 +260,19 @@ def main(fobs, fcable, case_name):
     plt.setp(ax12.get_yticklabels(), visible=False)
 
     plt.suptitle('Volumetric Water Content - %s (m3/m3)' %(case_name))
-    fig.savefig("EucFACE_Prcp-SW_neo_GW_Or_Hvrd_31l_amb_%s.png" % (case_name), bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("EucFACE_SM_neo_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
 
 if __name__ == "__main__":
 
-    case = ['Cosby_univariate','Cosby_multivariate','HC_SWC']
+    layer = "6"
+    #"31uni"
 
-    '''
-    ["bch0.5","hyds0.1","sfc0.5","ssat=0.35_sfc=0.3_swilt=0.03_top1-layer",\
-            "ssat0.75","sucs0.5","swilt0.5","watr0.5","bch1.5","hyds10","sfc1.5",\
-            "ssat=0.35_sfc=0.3_swilt=0.03_top3-layer","ssat1.5","sucs1.5","swilt1.5",\
-            "watr1.5"]
-
-
-        ,"froot_shape/froot_parabola","froot_shape/froot_triangle","froot_shape/froot_triangle_inverse", \
-                "layer_thickness/31-layer_exp", "layer_thickness/31-layer_para","leafsize/leafsize_eucalyptus"]
-dry_layers_exp/
-wet_10l  wet_12l  wet_14l  wet_16l  wet_18l  wet_1l   wet_21l  wet_23l	wet_25l  wet_27l  wet_29l  wet_30l  wet_3l  wet_5l  wet_7l  wet_9l
-wet_11l  wet_13l  wet_15l  wet_17l  wet_19l  wet_20l  wet_22l  wet_24l	wet_26l  wet_28l  wet_2l   wet_31l  wet_4l  wet_6l  wet_8l
-
-
-sensitivity_test/
-bch0.5	hyds0.1  sfc0.5  ssat=0.35_sfc=0.3_swilt=0.03_top1-layer  ssat0.75  sucs0.5  swilt0.5  watr0.5
-bch1.5	hyds10	 sfc1.5  ssat=0.35_sfc=0.3_swilt=0.03_top3-layer  ssat1.5   sucs1.5  swilt1.5  watr1.5
-    '''
-    for case_name in case:
-        fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
-        fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/31-layer/PTF_met_test/%s/EucFACE_amb_out.nc" % (case_name)
-        main(fobs, fcable, case_name)
+    cases = ["ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM", "default-met_only"]
+    # ["ctl_met_LAI_vrt_SM_31uni"] # 31 layer
+    # ["ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM", "default-met_only"] # 6 layer
+    rings = ["R1","R2","R3","R4","R5","R6","amb","ele"]
+    for case_name in cases:
+        for ring in rings:
+            fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
+            fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" % (case_name, ring)
+            main(fobs, fcable, case_name, ring, layer)
