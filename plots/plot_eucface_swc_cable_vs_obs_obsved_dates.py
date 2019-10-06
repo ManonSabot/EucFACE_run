@@ -173,18 +173,34 @@ def main(fobs, fcable, case_name, ring, contour, layer):
     cable = nc.Dataset(fcable, 'r')
 
     Time = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
-    if layer == 6:
+    if layer == "6":
         SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns=[1.1, 5.1, 15.7, 43.85, 118.55, 316.4])
-    elif layer == 13:
+    elif layer == "13":
         SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns = \
                     [1.,4.5,10.,19.5,41,71,101,131,161,191,221,273.5,386])
-    elif layer == 31:
+    elif layer == "31uni":
         SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns = \
                    [7.5,   22.5 , 37.5 , 52.5 , 67.5 , 82.5 , 97.5 , \
                     112.5, 127.5, 142.5, 157.5, 172.5, 187.5, 202.5, \
                     217.5, 232.5, 247.5, 262.5, 277.5, 292.5, 307.5, \
                     322.5, 337.5, 352.5, 367.5, 382.5, 397.5, 412.5, \
                     427.5, 442.5, 457.5 ])
+    elif layer == "31exp":
+        SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns = \
+                    [ 1.021985, 2.131912, 2.417723, 2.967358, 3.868759, 5.209868,\
+                    7.078627, 9.562978, 12.75086, 16.73022, 21.58899, 27.41512,\
+                    34.29655, 42.32122, 51.57708, 62.15205, 74.1341 , 87.61115,\
+                    102.6711, 119.402 , 137.8918, 158.2283, 180.4995, 204.7933,\
+                    231.1978, 259.8008, 290.6903, 323.9542, 359.6805, 397.9571,\
+                    438.8719 ])
+    elif layer == "31para":
+        SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns = \
+                   [ 1.000014,  3.47101, 7.782496, 14.73158, 24.11537, 35.73098, \
+                     49.37551, 64.84607, 81.93976, 100.4537, 120.185 , 140.9308, \
+                     162.4881, 184.6541, 207.2259, 230.    , 252.7742, 275.346 , \
+                     297.512 , 319.0693, 339.8151, 359.5464, 378.0603, 395.154 , \
+                     410.6246, 424.2691, 435.8847, 445.2685, 452.2176, 456.5291, \
+                     459.0001 ])
     SoilMoist['dates'] = Time
     SoilMoist = SoilMoist.set_index('dates')
     SoilMoist = SoilMoist.resample("D").agg('mean')
@@ -293,7 +309,7 @@ if __name__ == "__main__":
     contour = False
     #  True for contour
     #  False for raster
-    layer = 31
+    layer = "31uni"
 
     cases = ["ctl_met_LAI_vrt_SM_31uni"]
     # ["ctl_met_LAI_vrt_SM_31uni","ctl_met_LAI_vrt_SM_31uni"] # 31 layer
