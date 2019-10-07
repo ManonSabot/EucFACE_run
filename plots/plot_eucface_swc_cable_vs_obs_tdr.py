@@ -270,14 +270,14 @@ def main(fobs, fcable, case_name, ring, layer):
     plt.rcParams['axes.edgecolor'] = almost_black
     plt.rcParams['axes.labelcolor'] = almost_black
 
-    ax1 = fig.add_subplot(421)
-    ax2 = fig.add_subplot(422)
-    ax3 = fig.add_subplot(423)
-    ax4 = fig.add_subplot(424)
-    ax5 = fig.add_subplot(425)
-    ax6 = fig.add_subplot(426)
-    ax7 = fig.add_subplot(427)
-    ax8 = fig.add_subplot(428)
+    ax1 = fig.add_subplot(311)
+    #ax2 = fig.add_subplot(422)
+    ax3 = fig.add_subplot(312)
+    #ax4 = fig.add_subplot(424)
+    ax5 = fig.add_subplot(313)
+    #ax6 = fig.add_subplot(426)
+    #ax7 = fig.add_subplot(427)
+    #ax8 = fig.add_subplot(428)
 
     width = 1.
     x = Rainf.index
@@ -293,13 +293,13 @@ def main(fobs, fcable, case_name, ring, layer):
     ax3.plot(x, Fwsoil.values,   c="forestgreen", lw=1.0, ls="-", label="Fwsoil")
     ax5.plot(x, TVeg['TVeg'].rolling(window=7).mean(),     c="green", lw=1.0, ls="-", label="TVeg")
     ax5.plot(x, ESoil['ESoil'].rolling(window=7).mean(),    c="orange", lw=1.0, ls="-", label="ESoil")
-    ax7.plot(x, Tair['Tair'].rolling(window=7).mean(),     c="red",    lw=1.0, ls="-", label="Tair")
-    ax7.plot(x, VegT['VegT'].rolling(window=7).mean(),     c="orange", lw=1.0, ls="-", label="VegT")
+    #ax7.plot(x, Tair['Tair'].rolling(window=7).mean(),     c="red",    lw=1.0, ls="-", label="Tair")
+    #ax7.plot(x, VegT['VegT'].rolling(window=7).mean(),     c="orange", lw=1.0, ls="-", label="VegT")
 
-    rects2 = ax2.bar(x, Rainf['Rainf'], width, color='royalblue', label='Obs')
-    ax4.plot(x, Qair['Qair'].rolling(window=7).mean(),     c="royalblue", lw=1.0, ls="-", label="Qair")
-    ax6.plot(x, Wind['Wind'].rolling(window=7).mean(),     c="darkgoldenrod", lw=1.0, ls="-", label="Wind")
-    ax8.plot(x, Rnet['Rnet'].rolling(window=7).mean(),     c="crimson", lw=1.0, ls="-", label="Rnet")
+    #rects2 = ax2.bar(x, Rainf['Rainf'], width, color='royalblue', label='Obs')
+    #ax4.plot(x, Qair['Qair'].rolling(window=7).mean(),     c="royalblue", lw=1.0, ls="-", label="Qair")
+    #ax6.plot(x, Wind['Wind'].rolling(window=7).mean(),     c="darkgoldenrod", lw=1.0, ls="-", label="Wind")
+    #ax8.plot(x, Rnet['Rnet'].rolling(window=7).mean(),     c="crimson", lw=1.0, ls="-", label="Rnet")
 
     cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"]
     xtickslocs    = [367,732,1097,1462,1828,2193,2558]
@@ -325,14 +325,14 @@ def main(fobs, fcable, case_name, ring, layer):
     ax3.set_ylim(0.,1.2)
     ax3.set_xlim(367,2739)
 
-    plt.setp(ax5.get_xticklabels(), visible=False)
+    #plt.setp(ax5.get_xticklabels(), visible=False)
     ax5.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
     ax5.set_ylabel("TVeg, ESoil (mm/day)")
     ax5.axis('tight')
     ax5.set_ylim(0.,4.)
     ax5.set_xlim(367,2739)
     ax5.legend()
-
+    '''
     ax7.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
     ax7.set_ylabel("Tair, VegT (°C)")
     ax7.axis('tight')
@@ -374,15 +374,15 @@ def main(fobs, fcable, case_name, ring, layer):
     ax8.axis('tight')
     ax8.set_ylim(-20.,160.)
     ax8.set_xlim(367,2739)
-
+    '''
     fig.savefig("EucFACE_tdr_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
 
 if __name__ == "__main__":
 
-    layer = "6"
+    layer = "31uni"
     #"31uni"
 
-    cases = ["ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM", "default-met_only"]
+    cases = ["ctl_met_LAI_vrt_SM_31uni"]
     # ["ctl_met_LAI_vrt_SM_31uni"] # 31 layer
     # ["ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM", "default-met_only"] # 6 layer
     rings = ["R1","R2","R3","R4","R5","R6","amb","ele"]

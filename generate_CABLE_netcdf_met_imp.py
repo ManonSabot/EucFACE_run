@@ -30,7 +30,7 @@ import datetime
 from scipy.interpolate import interp1d
 from scipy.interpolate import griddata
 
-def main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, soil_frac, layer_num, ring):
+def main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, soil_frac, layer_num, swilt_neo, ring):
 
     DEG_2_KELVIN = 273.15
     SW_2_PAR = 2.3
@@ -39,8 +39,15 @@ def main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, soil_frac, 
 
     df = pd.read_csv(met_fname)
 
+    if layer_num == "6":
+        nsoil = 6
+    elif layer_num == "13":
+        nsoil = 13
+    elif layer_num in ["31uni","31exp","31para"]:
+        nsoil = 31
+
     ndim = 1
-    nsoil= layer_num
+    nsoil= nsoil
     n_timesteps = len(df)
     times = []
     secs = 0.0
@@ -356,18 +363,18 @@ def main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, soil_frac, 
 
 # read hydraulic parameters:
     iveg[:]       = 2
-    if layer_num == 6:
+    if layer_num == "6":
         soil_depth[:] = [0.011, 0.051, 0.157, 0.4385, 1.1855, 3.164]
         zse_vec       = [0.022, 0.058, 0.154, 0.409, 1.085, 2.872]
         boundary      = [0, 2.2, 8., 23.4, 64.3, 172.8, 460.]
         org_vec[:,0,0]= [0.0102,0.0102,0.0025,0.0025, 0.0025,0.0025]
-    elif layer_num == 13:
+    elif layer_num == "13":
         soil_depth[:] = [0.01,0.045,0.10,0.195,0.41,0.71,1.01,1.31,1.61,1.91,2.21,2.735,3.86]
         zse_vec       = [0.02, 0.05, 0.06, 0.13, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.75, 1.50]
         boundary      = [0, 2., 7., 13., 26., 56., 86., 116., 146., 176., 206., 236., 311., 461.]
         org_vec[:,0,0]= [0.0102,0.0102,0.0102,0.0025,0.0025,0.0025,0.0025,0.0025,\
                          0.0025,0.0025,0.0025,0.0025,0.0025]
-    elif layer_num == 31:
+    elif layer_num == "31uni":
         soil_depth[:] = [ 0.075, 0.225 , 0.375 , 0.525 , 0.675 , 0.825 , 0.975 , \
                           1.125, 1.275, 1.425, 1.575, 1.725, 1.875, 2.025, \
                           2.175, 2.325, 2.475, 2.625, 2.775, 2.925, 3.075, \
@@ -380,6 +387,53 @@ def main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, soil_frac, 
         boundary      = [   0.,  15.,  30.,  45.,  60.,  75.,  90., 105., 120., 135., 150., \
                           165., 180., 195., 210., 225., 240., 255., 270., 285., 300., 315., \
                           330., 345., 360., 375., 390., 405., 420., 435., 450., 465.]
+        org_vec[:,0,0]= [ 0.0102, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
+                          0.0025, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
+                          0.0025, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
+                          0.0025, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
+                          0.0025, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
+                          0.0025]
+    elif layer_num == "31exp":
+        soil_depth[:] = [ 0.01021985, 0.02131912, 0.02417723, 0.02967358, 0.03868759, 0.05209868,\
+                          0.07078627, 0.09562978, 0.1275086, 0.1673022, 0.2158899, 0.2741512,\
+                          0.3429655, 0.4232122, 0.5157708, 0.6215205, 0.741341 , 0.8761115,\
+                          1.026711, 1.19402 , 1.378918, 1.582283, 1.804995, 2.047933,\
+                          2.311978, 2.598008, 2.906903, 3.239542, 3.596805, 3.979571,\
+                          4.388719 ]
+        zse_vec       = [ 0.020440, 0.001759, 0.003957, 0.007035, 0.010993, 0.015829,\
+                        0.021546, 0.028141, 0.035616, 0.043971, 0.053205, 0.063318,\
+                        0.074311, 0.086183, 0.098934, 0.112565, 0.127076, 0.142465,\
+                        0.158735, 0.175883, 0.193911, 0.212819, 0.232606, 0.253272,\
+                        0.274818, 0.297243, 0.320547, 0.344731, 0.369794, 0.395737,\
+                        0.422559 ]
+        boundary      = [      0.,    2.044,   2.2199,   2.6156,   3.3191,   4.4184,   6.0013,   8.1559,\
+                           10.97,  14.5316,  18.9287,  24.2492,   30.581,  38.0121,  46.6304,  56.5238,\
+                         67.7803,  80.4879,  94.7344, 110.6079, 128.1962, 147.5873, 168.8692, 192.1298,\
+                         217.457, 244.9388, 274.6631, 306.7178, 341.1909, 378.1703, 417.744 , 460.    ]
+        org_vec[:,0,0]= [ 0.0102, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
+                          0.0025, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
+                          0.0025, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
+                          0.0025, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
+                          0.0025, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
+                          0.0025]
+    elif layer_num == "31para":
+        soil_depth[:] = [ 0.01000014,  0.0347101, 0.07782496, 0.1473158, 0.2411537, 0.3573098, \
+                          0.4937551, 0.6484607, 0.8193976, 1.004537, 1.20185 , 1.409308, \
+                          1.624881, 1.846541, 2.072259, 2.30    , 2.527742, 2.75346 , \
+                          2.97512 , 3.190693, 3.398151, 3.595464, 3.780603, 3.95154 , \
+                          4.106246, 4.242691, 4.358847, 4.452685, 4.522176, 4.565291, \
+                          4.590001 ]
+        zse_vec       = [ 0.020000, 0.029420, 0.056810, 0.082172, 0.105504, 0.126808,\
+                        0.146083, 0.163328, 0.178545, 0.191733, 0.202892, 0.212023,\
+                        0.219124, 0.224196, 0.227240, 0.228244, 0.227240, 0.224196,\
+                        0.219124, 0.212023, 0.202892, 0.191733, 0.178545, 0.163328,\
+                        0.146083, 0.126808, 0.105504, 0.082172, 0.056810, 0.029420,\
+                        0.020000 ]
+        boundary      =[     0.,      2.,     4.942,    10.623,   18.8402,   29.3906,  42.0714,\
+                        56.6797,  73.0125,   90.867,  110.0403,  130.3295,  151.5318, 173.4442,\
+                        195.8638, 218.5878, 241.4122,  264.1362,  286.5558,  308.4682, 329.6705,\
+                        349.9597,  369.133, 386.9875,  403.3203,  417.9286,  430.6094, 441.1598,\
+                        449.377,   455.058,     458.,      460. ]
         org_vec[:,0,0]= [ 0.0102, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
                           0.0025, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
                           0.0025, 0.0025, 0.0025, 0.0025, 0.0025, 0.0025,\
@@ -491,19 +545,25 @@ def main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, soil_frac, 
                            + org_vec[i]*4000.0
             sucs_vec[i] = sucs_vec[i]/1000.
     print("all are good")
-    sand[:,0] = thickness_weighted_average(sand_vec, layer_num, zse_vec)
-    silt[:,0] = thickness_weighted_average(silt_vec, layer_num, zse_vec)
-    clay[:,0] = thickness_weighted_average(clay_vec, layer_num, zse_vec)
-    rhosoil[:,0] = thickness_weighted_average(rhosoil_vec, layer_num, zse_vec)
-    css[:,0] = thickness_weighted_average(css_vec, layer_num, zse_vec)
-    hyds[:,0] = thickness_weighted_average(hyds_vec, layer_num, zse_vec)
+
+
+
+    if swilt_neo:
+        swilt_vec[:,0,0],watr[:]  = min_neo_swilt(swc_fname, nsoil, ring, swilt_vec[:,0,0], watr[:], soil_frac, boundary)
+
+    sand[:,0] = thickness_weighted_average(sand_vec, nsoil, zse_vec)
+    silt[:,0] = thickness_weighted_average(silt_vec, nsoil, zse_vec)
+    clay[:,0] = thickness_weighted_average(clay_vec, nsoil, zse_vec)
+    rhosoil[:,0] = thickness_weighted_average(rhosoil_vec, nsoil, zse_vec)
+    css[:,0] = thickness_weighted_average(css_vec, nsoil, zse_vec)
+    hyds[:,0] = thickness_weighted_average(hyds_vec, nsoil, zse_vec)
     hyds[:,0] = hyds[:,0]/1000.
-    bch[:,0]  = thickness_weighted_average(bch_vec, layer_num, zse_vec)
-    ssat[:,0] = thickness_weighted_average(ssat_vec, layer_num, zse_vec)
-    sfc[:,0] = thickness_weighted_average(sfc_vec, layer_num, zse_vec)
-    cnsd[:,0] = thickness_weighted_average(cnsd_vec, layer_num, zse_vec)
-    sucs[:,0] = thickness_weighted_average(sucs_vec, layer_num, zse_vec)
-    swilt[:,0] = thickness_weighted_average(swilt_vec, layer_num, zse_vec)
+    bch[:,0]  = thickness_weighted_average(bch_vec, nsoil, zse_vec)
+    ssat[:,0] = thickness_weighted_average(ssat_vec, nsoil, zse_vec)
+    sfc[:,0] = thickness_weighted_average(sfc_vec, nsoil, zse_vec)
+    cnsd[:,0] = thickness_weighted_average(cnsd_vec, nsoil, zse_vec)
+    sucs[:,0] = thickness_weighted_average(sucs_vec, nsoil, zse_vec)
+    swilt[:,0] = thickness_weighted_average(swilt_vec, nsoil, zse_vec)
 
     f.close()
 
@@ -671,6 +731,74 @@ def init_soil_moisture(swc_fname, nsoil, ring, soil_frac, boundary):
     print(SoilM)
     return SoilM
 
+def min_neo_swilt(swc_fname, nsoil, ring, swilt_input, watr_input, soil_frac, boundary):
+
+    neo = pd.read_csv(swc_fname, usecols = ['Ring','Depth','VWC'])
+    neo = neo.sort_values(by=['Depth'])
+
+    if ring == 'amb':
+        subset = neo[neo['Ring'].isin(['R2','R3','R6'])]
+    elif ring == 'ele':
+        subset = neo[neo['Ring'].isin(['R1','R4','R5'])]
+    else:
+        subset = neo[neo['Ring'].isin([ring])]
+    subset['VWC'] = subset['VWC'].clip(lower=0.)
+    subset['VWC'] = subset['VWC'].replace(0., float('nan'))
+
+    neo_min = np.zeros(12)
+    neo_min[0] = subset[subset['Depth'] == 25]['VWC'].nsmallest(5).mean()/100.
+    neo_min[1] = subset[subset['Depth'] == 50]['VWC'].nsmallest(5).mean()/100.
+    neo_min[2] = subset[subset['Depth'] == 75]['VWC'].nsmallest(5).mean()/100.
+    neo_min[3] = subset[subset['Depth'] == 100]['VWC'].nsmallest(5).mean()/100.
+    neo_min[4] = subset[subset['Depth'] == 125]['VWC'].nsmallest(5).mean()/100.
+    neo_min[5] = subset[subset['Depth'] == 150]['VWC'].nsmallest(5).mean()/100.
+    neo_min[6] = subset[subset['Depth'] == 200]['VWC'].nsmallest(5).mean()/100.
+    neo_min[7] = subset[subset['Depth'] == 250]['VWC'].nsmallest(5).mean()/100.
+    neo_min[8] = subset[subset['Depth'] == 300]['VWC'].nsmallest(5).mean()/100.
+    neo_min[9] = subset[subset['Depth'] == 350]['VWC'].nsmallest(5).mean()/100.
+    neo_min[10] = subset[subset['Depth'] == 400]['VWC'].nsmallest(5).mean()/100.
+    neo_min[11] = subset[subset['Depth'] == 450]['VWC'].nsmallest(5).mean()/100.
+    print(neo_min)
+    neo_min_index = [ 25.,  50.,  75., 100., 125., 150., 200., 250.,\
+                     300., 350., 400., 450. ]
+    f = interp1d(neo_min_index, neo_min, kind = soil_frac, \
+             fill_value=(neo_min[0],neo_min[-1]), bounds_error=False) # fill_value='extrapolate'
+
+    grid_value = np.arange(0.5,465,1)
+    swilt_neo  = f(grid_value)
+
+    swilt_output = np.zeros(nsoil)
+    watr_output  = np.zeros(nsoil)
+
+    for j in np.arange(0,nsoil,1):
+        if (j == 0 and grid_value[0] > boundary[1]):
+            swilt_output[0] = min(swilt_neo[0],swilt_input[0])
+            if swilt_output[0] <= watr_input[0]:
+                watr_output[0] = swilt_output[0]
+                swilt_output[0]= watr_output[0]+0.0001
+            else:
+                watr_output[0] = watr_input[0]
+        else:
+            counter = 0.
+            for i in np.arange(0,len(grid_value),1):
+                if ((grid_value[i] >= boundary[j]) and (grid_value[i] <= boundary[j+1])):
+                    swilt_output[j] = swilt_output[j] + swilt_neo[i]
+                    counter += 1.
+            swilt_output[j] = swilt_output[j]/counter
+            swilt_output[j] = min(swilt_output[j],swilt_input[j])
+            if swilt_output[j] <= watr_input[j]:
+                watr_output[j] = swilt_output[j]
+                swilt_output[j]= watr_output[j]+0.0001
+            else:
+                watr_output[j] = watr_input[j]
+    print("---------------------------")
+    print(swilt_input)
+    print(swilt_output)
+    print(watr_input)
+    print(watr_output)
+    print("---------------------------")
+    return swilt_output, watr_output;
+
 def convert_rh_to_qair(rh, tair, press):
     """
     Converts relative humidity to specific humidity (kg/kg)
@@ -779,9 +907,9 @@ def interpolate_lai(lai_fname, ring):
 
     return LAI_interp
 
-def thickness_weighted_average(var, layer_num, zse_vec):
+def thickness_weighted_average(var, nsoil, zse_vec):
     VAR     = 0.0
-    for i in np.arange(0,layer_num,1):
+    for i in np.arange(0,nsoil,1):
         VAR += var[i]*zse_vec[i]
     VAR = VAR/sum(zse_vec)
 
@@ -794,14 +922,14 @@ if __name__ == "__main__":
     swc_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
     stx_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/soil_texture/FACE_P0018_RA_SOILTEXT_L2_20120501.csv"
 
-    PTF = "Campbell_Cosby_multi_Python"
+    PTF = "Campbell_Cosby_multivariate"
     # "Campbell_Cosby_multi_Python"
     # "Campbell_Cosby_univariate"
     # "Campbell_Cosby_multivariate"
     # "Campbell_HC_SWC"
     soil_frac = "nearest" # "linear"
-    layer_num = 31
-    #
+    layer_num = "6"
+    swilt_neo = True
     for ring in ["R1","R2","R3","R4","R5","R6","amb", "ele"]:
         out_fname = "EucFACE_met_%s.nc" % (ring)
-        main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, soil_frac, layer_num, ring=ring)
+        main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, soil_frac, layer_num, swilt_neo, ring=ring)

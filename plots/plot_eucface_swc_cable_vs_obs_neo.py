@@ -260,14 +260,14 @@ def main(fobs, fcable, case_name, ring, layer):
     plt.setp(ax12.get_yticklabels(), visible=False)
 
     plt.suptitle('Volumetric Water Content - %s (m3/m3)' %(case_name))
-    fig.savefig("EucFACE_SM_neo_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("EucFACE_neo_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
 
 if __name__ == "__main__":
 
-    layer = "6"
+    layer = "31uni"
     #"31uni"
 
-    cases = ["ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM", "default-met_only"]
+    cases = ["ctl_met_LAI_vrt_SM_31uni"]
     # ["ctl_met_LAI_vrt_SM_31uni"] # 31 layer
     # ["ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM", "default-met_only"] # 6 layer
     rings = ["R1","R2","R3","R4","R5","R6","amb","ele"]
