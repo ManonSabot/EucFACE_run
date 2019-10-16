@@ -20,6 +20,8 @@ from matplotlib import ticker
 import datetime as dt
 import netCDF4 as nc
 from scipy.interpolate import griddata
+import scipy.stats as stats
+from sklearn.metrics import mean_squared_error
 
 def main(fobs, fcable, case_name, ring, layer):
 
@@ -176,41 +178,56 @@ def main(fobs, fcable, case_name, ring, layer):
     cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"]
     xtickslocs    = [1,365,730,1095,1461,1826,2191]
 
+    dd = [25,50,75,100,125,150,200,250,300,350,400,450]
+    cor_neo = np.zeros(12)
+    mse_neo = np.zeros(12)
+
+    for i,d in enumerate(dd):
+        tmp1 = grid_cable[i,np.isin(X_cable,subset[(d)].index)]
+        tmp2 = subset[(d)][np.isin(subset[(d)].index,X_cable)]
+        mask = tmp2 > 0.0
+        tmp1 = tmp1[mask]
+        tmp2 = tmp2[mask]
+        cor_neo[i]= stats.pearsonr(tmp1,tmp2)[0]
+        mse_neo[i]= mean_squared_error(tmp1, tmp2)
+        print(cor_neo[i])
+        print(mse_neo[i])
+
     ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax1.set_title("25cm")
+    ax1.set_title("25cm, r=% 6.4f, MSE=% 6.2f" %(cor_neo[0], mse_neo[0]))
     ax1.axis('tight')
     ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax2.set_title("50cm")
+    ax2.set_title("50cm, r=% 6.4f, MSE=% 6.2f" %(cor_neo[1], mse_neo[1]))
     ax2.axis('tight')
     ax3.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax3.set_title("75cm")
+    ax3.set_title("75cm, r=% 6.4f, MSE=% 6.2f" %(cor_neo[2], mse_neo[2]))
     ax3.axis('tight')
     ax4.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax4.set_title("100cm")
+    ax4.set_title("100cm, r=% 6.4f, MSE=% 6.2f" %(cor_neo[3], mse_neo[3]))
     ax4.axis('tight')
     ax5.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax5.set_title("125cm")
+    ax5.set_title("125cm, r=% 6.4f, MSE=% 6.2f" %(cor_neo[4], mse_neo[4]))
     ax5.axis('tight')
     ax6.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax6.set_title("150cm")
+    ax6.set_title("150cm, r= % 6.4f, MSE=% 6.2f" %(cor_neo[5], mse_neo[5]))
     ax6.axis('tight')
     ax7.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax7.set_title("200cm")
+    ax7.set_title("200cm, r= % 6.4f, MSE=% 6.2f" %(cor_neo[6], mse_neo[6]))
     ax7.axis('tight')
     ax8.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax8.set_title("250cm")
+    ax8.set_title("250cm, r= % 6.4f, MSE=% 6.2f" %(cor_neo[7], mse_neo[7]))
     ax8.axis('tight')
     ax9.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax9.set_title("300cm")
+    ax9.set_title("300cm, r= % 6.4f, MSE=% 6.2f" %(cor_neo[8], mse_neo[8]))
     ax9.axis('tight')
     ax10.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax10.set_title("350cm")
+    ax10.set_title("350cm, r= % 6.4f, MSE=% 6.2f" %(cor_neo[9], mse_neo[9]))
     ax10.axis('tight')
     ax11.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax11.set_title("400cm")
+    ax11.set_title("400cm, r= % 6.4f, MSE=% 6.2f" %(cor_neo[10], mse_neo[10]))
     ax11.axis('tight')
     ax12.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax12.set_title("450cm")
+    ax12.set_title("450cm, r= % 6.4f, MSE=% 6.2f" %(cor_neo[11], mse_neo[11]))
     ax12.axis('tight')
 
     ax1.set_xlim([0,2374])
@@ -264,12 +281,25 @@ def main(fobs, fcable, case_name, ring, layer):
 
 if __name__ == "__main__":
 
-    layer = "31uni"
-    #"31uni"
+    layer =  "6"
 
-    cases = ["ctl_met_LAI_vrt_SM_31uni"]
-    # ["ctl_met_LAI_vrt_SM_31uni"] # 31 layer
-    # ["ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM", "default-met_only"] # 6 layer
+    cases = ["met_LAI_sand","met_LAI_clay","met_LAI_silt"\
+             "ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM",\
+             "ctl_met_LAI_vrt_SM_swilt-watr", "ctl_met_LAI_vrt_SM_swilt-watr_Hvrd",\
+             "ctl_met_LAI_vrt_SM_swilt-watr_Or-Off","default-met_only"]
+    # 6
+    # ["met_LAI_sand","met_LAI_clay","met_LAI_silt"\
+    #  "ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM",\
+    #  "ctl_met_LAI_vrt_SM_swilt-watr", "ctl_met_LAI_vrt_SM_swilt-watr_Hvrd",\
+    #  "ctl_met_LAI_vrt_SM_swilt-watr_Or-Off","default-met_only"]
+    # 31para
+    #["ctl_met_LAI_vrt_SM_swilt-watr_31para"]
+    # 31exp
+    #["ctl_met_LAI_vrt_SM_swilt-watr_31exp"]
+    # 31uni
+    #  ["ctl_met_LAI_vrt_SM_31uni","ctl_met_LAI_vrt_SM_swilt-watr_31uni",\
+    #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-uni",\
+    #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-log10"]
     rings = ["R1","R2","R3","R4","R5","R6","amb","ele"]
     for case_name in cases:
         for ring in rings:

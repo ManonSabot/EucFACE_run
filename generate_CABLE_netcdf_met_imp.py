@@ -462,7 +462,7 @@ def main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, soil_frac, 
     SoilMoist[:,0,0]  = init_soil_moisture(swc_fname, nsoil, ring, soil_frac, boundary)
 
 
-    psi_tmp  = 2550000.0
+    psi_tmp  = 2550000.0 # water potential at wilting point for iveg=2 in CABLE
     print("good")
     if PTF == 'Campbell_Cosby_multi_Python':
         for i in np.arange(0,nsoil,1):

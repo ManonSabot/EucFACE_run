@@ -40,7 +40,11 @@ def main(fobs, fcable, case_name, ring, layer):
 
     subset = subset.groupby(by=["Date"]).mean()/100.
     subset = subset.xs('swc.tdr', axis=1, drop_level=True)
-    #print(subset)
+    print(subset)
+
+
+'''
+
 # _________________________ CABLE ___________________________
     cable = nc.Dataset(fcable, 'r')
     Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
@@ -348,7 +352,7 @@ def main(fobs, fcable, case_name, ring, layer):
     ax5.set_ylim(0.,4.)
     ax5.set_xlim(367,2739)
     ax5.legend()
-    '''
+
     ax7.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
     ax7.set_ylabel("Tair, VegT (°C)")
     ax7.axis('tight')
@@ -390,9 +394,9 @@ def main(fobs, fcable, case_name, ring, layer):
     ax8.axis('tight')
     ax8.set_ylim(-20.,160.)
     ax8.set_xlim(367,2739)
-    '''
+    
     fig.savefig("EucFACE_tdr_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
-
+'''
 if __name__ == "__main__":
 
     layer =  "6"
