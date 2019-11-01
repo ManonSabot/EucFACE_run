@@ -299,10 +299,10 @@ def main(fobs, fcable, case_name, ring, layer):
     #print(np.isnan(tmp1).values.any())
     #print(np.isnan(tmp2).values.any())
     cor_tdr = stats.pearsonr(tmp1,tmp2)
-    mse_tdr = mean_squared_error(y_true, y_pred)
-    ax1.set_title("r = % 6.4f , MSE = % 6.2f" %(cor_tdr[0], mse_tdr))
+    mse_tdr = mean_squared_error(tmp2, tmp1)
+    ax1.set_title("r = % 6.4f , MSE = % 10.8f" %(cor_tdr[0], mse_tdr))
     print("-----------------------------------------------")
-    print(cor_tdr)
+    print(mse_tdr)
     ax1.plot(x, swilt,           c="black", lw=1.0, ls="-", label="swilt")
     ax1.plot(x, sfc,             c="black", lw=1.0, ls="-.", label="sfc")
     ax1.plot(x, ssat,            c="black", lw=1.0, ls=":", label="ssat")
@@ -397,10 +397,19 @@ if __name__ == "__main__":
 
     layer =  "6"
 
-    cases = ["met_LAI_sand","met_LAI_clay","met_LAI_silt"\
-             "ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM",\
-             "ctl_met_LAI_vrt_SM_swilt-watr", "ctl_met_LAI_vrt_SM_swilt-watr_Hvrd",\
-             "ctl_met_LAI_vrt_SM_swilt-watr_Or-Off","default-met_only"]
+    cases = ["met_only_or_test_rsv-bch=2"]
+            #["met_only_or_test_rsv-top50wb"]
+            #["met_only_or_test_rsv-lm0.0001","met_only_or_test_rsv-lm0.01"]
+            #["met_only_or_test_rm-rg","met_only_or_test_rm-rsv","met_only_or_test_rm-rBL"]
+            #["met_only_or_test_CABLE-2.2.3_pore_scale_model"]
+            #["met_only_or_test_l_new_roughness_soil-on"]
+            #["met_only_or_test"]
+	    #["ctl_met_LAI_vrt_SM_swilt-watr_hyds100",\
+            #"ctl_met_LAI_vrt_SM_swilt-watr_hyds0.01"]
+            #["met_LAI_sand","met_LAI_clay","met_LAI_silt"\
+            # "ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM",\
+            # "ctl_met_LAI_vrt_SM_swilt-watr", "ctl_met_LAI_vrt_SM_swilt-watr_Hvrd",\
+            # "ctl_met_LAI_vrt_SM_swilt-watr_Or-Off","default-met_only"]
     # 6
     # ["met_LAI_sand","met_LAI_clay","met_LAI_silt"\
     #  "ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM",\
@@ -415,7 +424,7 @@ if __name__ == "__main__":
     #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-uni",\
     #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-log10"]
 
-    rings = ["R1","R2","R3","R4","R5","R6","amb","ele"]
+    rings = ["amb"] #["R1","R2","R3","R4","R5","R6","amb","ele"]
     for case_name in cases:
         for ring in rings:
             fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
