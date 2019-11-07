@@ -187,7 +187,8 @@ if __name__ == "__main__":
 
     layer =  "6"
 
-    cases = ["met_only_or_test_CABLE-2.2.3_pore_scale_model_l_new_roughness_soil-off"]
+    cases = ["or_scheme_test_CABLE-2.2.3_pore_scale_model_dq_dq2_rsv_rBL"]
+          #["met_only_or_test_CABLE-2.2.3_pore_scale_model_l_new_roughness_soil-off"]
           # ["default-met_only"]
     cable_version =  "pore_scale_model"
         # "Mark_latest","pore_scale_model"

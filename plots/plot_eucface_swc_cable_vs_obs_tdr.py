@@ -23,7 +23,28 @@ from scipy.interpolate import griddata
 import scipy.stats as stats
 from sklearn.metrics import mean_squared_error
 
-def main(fobs, fcable, case_name, ring, layer):
+#def main(fobs, fcable, case_name, hk, b, ring, layer):
+def main(fobs_Esoil, fobs, fcable, case_name, ring, layer):
+
+    est_esoil = pd.read_csv(fobs_Esoil, usecols = ['Ring','Date','wuTP','EfloorPred'])
+    est_esoil['Date'] = pd.to_datetime(est_esoil['Date'],format="%d/%m/%Y",infer_datetime_format=False)
+    est_esoil['Date'] = est_esoil['Date'] - pd.datetime(2011,12,31)
+    est_esoil['Date'] = est_esoil['Date'].dt.days
+    est_esoil = est_esoil.sort_values(by=['Date'])
+    # divide neo into groups
+    if ring == 'amb':
+        subs = est_esoil[(est_esoil['Ring'].isin(['R2','R3','R6'])) & (est_esoil.Date > 366)]
+    elif ring == 'ele':
+        subs = est_esoil[(est_esoil['Ring'].isin(['R1','R4','R5'])) & (est_esoil.Date > 366)]
+    else:
+        subs = est_esoil[(est_esoil['Ring'].isin([ring]))  & (est_esoil.Date > 366)]
+
+    subs = subs.groupby(by=["Date"]).mean()
+    subs['wuTP']   = subs['wuTP'].clip(lower=0.)
+    subs['wuTP']   = subs['wuTP'].replace(0., float('nan'))
+    subs['EfloorPred'] = subs['EfloorPred'].clip(lower=0.)
+    subs['EfloorPred'] = subs['EfloorPred'].replace(0., float('nan'))
+
 
     tdr = pd.read_csv(fobs, usecols = ['Ring','Date','swc.tdr'])
     tdr['Date'] = pd.to_datetime(tdr['Date'],format="%Y-%m-%d",infer_datetime_format=False)
@@ -47,10 +68,13 @@ def main(fobs, fcable, case_name, ring, layer):
     SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,0,0,0], columns=['SoilMoist'])
 
     if layer == "6":
+        SoilMoist['SoilMoist'] = cable.variables['SoilMoist'][:,0,0,0]
+        '''
         SoilMoist['SoilMoist'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.022 \
                                  + cable.variables['SoilMoist'][:,1,0,0]*0.058 \
                                  + cable.variables['SoilMoist'][:,2,0,0]*0.154 \
                                  + cable.variables['SoilMoist'][:,3,0,0]*(0.5-0.022-0.058-0.154) )/0.5
+        '''
     elif layer == "13":
         SoilMoist['SoilMoist'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.02 \
                                  + cable.variables['SoilMoist'][:,1,0,0]*0.05 \
@@ -307,8 +331,10 @@ def main(fobs, fcable, case_name, ring, layer):
     ax1.plot(x, sfc,             c="black", lw=1.0, ls="-.", label="sfc")
     ax1.plot(x, ssat,            c="black", lw=1.0, ls=":", label="ssat")
     ax3.plot(x, Fwsoil.values,   c="forestgreen", lw=1.0, ls="-", label="Fwsoil")
-    ax5.plot(x, TVeg['TVeg'].rolling(window=7).mean(),     c="green", lw=1.0, ls="-", label="TVeg")
-    ax5.plot(x, ESoil['ESoil'].rolling(window=7).mean(),    c="orange", lw=1.0, ls="-", label="ESoil")
+    ax5.plot(x, TVeg['TVeg'],     c="green", lw=1.0, ls="-", label="TVeg") #.rolling(window=7).mean()
+    ax5.plot(x, ESoil['ESoil'],    c="orange", lw=1.0, ls="-", label="ESoil") #.rolling(window=7).mean()
+    ax5.scatter(subs.index, subs['wuTP'], s=1., c='red', marker='.', label="ESoil-obs") # subs['EfloorPred']
+
     #ax7.plot(x, Tair['Tair'].rolling(window=7).mean(),     c="red",    lw=1.0, ls="-", label="Tair")
     #ax7.plot(x, VegT['VegT'].rolling(window=7).mean(),     c="orange", lw=1.0, ls="-", label="VegT")
 
@@ -391,13 +417,18 @@ def main(fobs, fcable, case_name, ring, layer):
     ax8.set_ylim(-20.,160.)
     ax8.set_xlim(367,2739)
     '''
+    #fig.savefig("EucFACE_tdr_%s_hk=%s_b=%s_%s.png" % (case_name, hk, b, ring), bbox_inches='tight', pad_inches=0.1)
     fig.savefig("EucFACE_tdr_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
 
 if __name__ == "__main__":
 
     layer =  "6"
 
-    cases = ["met_only_or_test_rsv-bch=2"]
+    cases = ["ctl_met_LAI_vrt_SM_swilt-watr_Or-Off"]
+	    #["ctl_met_LAI_vrt_SM_swilt-watr_HDM_Or-Off_litter-on"]
+            #["ctl_met_LAI_vrt_SM_swilt-watr"]
+            #["ctl_met_LAI_vrt_SM_swilt-watr_hyds-bch"]
+            #["met_only_or_test_rsv-bch=2"]
             #["met_only_or_test_rsv-top50wb"]
             #["met_only_or_test_rsv-lm0.0001","met_only_or_test_rsv-lm0.01"]
             #["met_only_or_test_rm-rg","met_only_or_test_rm-rsv","met_only_or_test_rm-rBL"]
@@ -425,8 +456,22 @@ if __name__ == "__main__":
     #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-log10"]
 
     rings = ["amb"] #["R1","R2","R3","R4","R5","R6","amb","ele"]
+    '''
+    hyds_value = [1e3,1e2,1e1,1.,1e-1,1e-2,1e-3,1e-4,1e-5,1e-6]
+    bch_value  = np.arange(1.,11.,1.)
+    for hk in hyds_value:
+        for b in bch_value:
+            for case_name in cases:
+                for ring in rings:
+                    fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
+                    fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_hyds=%s_bch=%s_%s_out.nc" \
+                            % (case_name,str(hk),str(b), ring)
+                    main(fobs, fcable, case_name, str(hk),str(b), ring, layer)
+    '''
     for case_name in cases:
         for ring in rings:
+            fobs_Esoil = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_underET.csv"
             fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
-            fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" % (case_name, ring)
-            main(fobs, fcable, case_name, ring, layer)
+            fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" \
+                    % (case_name, ring)
+            main(fobs_Esoil, fobs, fcable, case_name, ring, layer)

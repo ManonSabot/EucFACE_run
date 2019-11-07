@@ -23,30 +23,49 @@ from scipy.interpolate import griddata
 import scipy.stats as stats
 from sklearn.metrics import mean_squared_error
 
-def main(fobs, fcable, case_name, hk, b, ring, layer, ep_type):
+def main(fobs_Esoil, fobs_vwc, fcable, case_name, hk, b, ring, layer, ep_type):
 
-    tdr = pd.read_csv(fobs, usecols = ['Ring','Date','swc.tdr'])
-    tdr['Date'] = pd.to_datetime(tdr['Date'],format="%Y-%m-%d",infer_datetime_format=False)
-    tdr['Date'] = tdr['Date'] - pd.datetime(2011,12,31)
-    tdr['Date'] = tdr['Date'].dt.days
-    tdr = tdr.sort_values(by=['Date'])
+    est_esoil = pd.read_csv(fobs_Esoil, usecols = ['Ring','Date','wuTP','EfloorPred'])
+    est_esoil['Date'] = pd.to_datetime(est_esoil['Date'],format="%d/%m/%Y",infer_datetime_format=False)
+    est_esoil['Date'] = est_esoil['Date'] - pd.datetime(2011,12,31)
+    est_esoil['Date'] = est_esoil['Date'].dt.days
+    est_esoil = est_esoil.sort_values(by=['Date'])
     # divide neo into groups
     if ring == 'amb':
-        subset = tdr[(tdr['Ring'].isin(['R2','R3','R6'])) & (tdr.Date > 366)]
+        subset = est_esoil[(est_esoil['Ring'].isin(['R2','R3','R6'])) & (est_esoil.Date > 366)]
     elif ring == 'ele':
-        subset = tdr[(tdr['Ring'].isin(['R1','R4','R5'])) & (tdr.Date > 366)]
+        subset = est_esoil[(est_esoil['Ring'].isin(['R1','R4','R5'])) & (est_esoil.Date > 366)]
     else:
-        subset = tdr[(tdr['Ring'].isin([ring]))  & (tdr.Date > 366)]
+        subset = est_esoil[(est_esoil['Ring'].isin([ring]))  & (est_esoil.Date > 366)]
 
-    subset = subset.groupby(by=["Date"]).mean()/100.
-    subset['swc.tdr']   = subset['swc.tdr'].clip(lower=0.)
-    subset['swc.tdr']   = subset['swc.tdr'].replace(0., float('nan'))
-    subset['Esoil']     = np.zeros(len(subset))
-    subset['Esoil'][1:] = (subset['swc.tdr'].values[1:] - subset['swc.tdr'].values[:-1])*(-500.)
-    subset['Esoil']     = subset['Esoil'].clip(lower=0.)
-    subset['Esoil']     = subset['Esoil'].replace(0., float('nan'))
+    subset = subset.groupby(by=["Date"]).mean()
+    #subset['wuTP']   = subset['wuTP'].replace(NA, float('nan'))
+    subset['wuTP']   = subset['wuTP'].clip(lower=0.)
+    subset['wuTP']   = subset['wuTP'].replace(0., float('nan'))
+    #subset['EfloorPred'] = subset['EfloorPred'].replace(NA, float('nan'))
+    subset['EfloorPred'] = subset['EfloorPred'].clip(lower=0.)
+    subset['EfloorPred'] = subset['EfloorPred'].replace(0., float('nan'))
     #subset = subset.xs('swc.tdr', axis=1, drop_level=True)
-    print(subset)
+    #print(subset)
+
+    tdr_30 = pd.read_csv(fobs_vwc, usecols = ['Ring','Date','vwcMean'])
+    tdr_30['Date'] = pd.to_datetime(tdr_30['Date'],format="%d/%m/%Y",infer_datetime_format=False)
+    tdr_30['Date'] = tdr_30['Date'] - pd.datetime(2011,12,31)
+    tdr_30['Date'] = tdr_30['Date'].dt.days
+    tdr_30 = tdr_30.sort_values(by=['Date'])
+    # divide neo into groups
+    if ring == 'amb':
+        subset1 = tdr_30[(tdr_30['Ring'].isin(['R2','R3','R6'])) & (tdr_30.Date > 366)]
+    elif ring == 'ele':
+        subset1 = tdr_30[(tdr_30['Ring'].isin(['R1','R4','R5'])) & (tdr_30.Date > 366)]
+    else:
+        subset1 = tdr_30[(tdr_30['Ring'].isin([ring]))  & (tdr_30.Date > 366)]
+
+    subset1 = subset1.groupby(by=["Date"]).mean()
+    subset1['vwcMean'] = subset1['vwcMean'].clip(lower=0.)
+    subset1['vwcMean'] = subset1['vwcMean'].replace(0., float('nan'))
+    #subset1['vwcMean']   = subset1['wuTP'].replace('NA', float('nan'))
+    #print(subset1)
 
 # _________________________ CABLE ___________________________
     cable = nc.Dataset(fcable, 'r')
@@ -111,7 +130,7 @@ def main(fobs, fcable, case_name, hk, b, ring, layer, ep_type):
     ESoil = ESoil.resample("D").agg('sum')
     ESoil.index = ESoil.index - pd.datetime(2011,12,31)
     ESoil.index = ESoil.index.days
-    print(ESoil)
+    #print(ESoil)
 
     if ep_type == 'PotEvap':
         Ep = pd.DataFrame(cable.variables['PotEvap'][:,0,0],columns=['Ep'])
@@ -131,7 +150,6 @@ def main(fobs, fcable, case_name, hk, b, ring, layer, ep_type):
         Ep.index = Ep.index.days
         print(Ep*86400/2454000)
 
-
     Rainf = pd.DataFrame(cable.variables['Rainf'][:,0,0],columns=['Rainf'])
     Rainf = Rainf*1800.
     Rainf['dates'] = Time
@@ -140,28 +158,32 @@ def main(fobs, fcable, case_name, hk, b, ring, layer, ep_type):
     Rainf.index = Rainf.index - pd.datetime(2011,12,31)
     Rainf.index = Rainf.index.days
 
-    rain          = Rainf['Rainf'].loc[Rainf.index.isin(subset.index)]
-    esoil         = ESoil['ESoil'].loc[ESoil.index.isin(subset.index)]
-    ep            = Ep['Ep'].loc[Ep.index.isin(subset.index)]
-    soilmoist     = SoilMoist['SoilMoist'].loc[SoilMoist.index.isin(subset.index)]
-    esoil_tdr     = subset['Esoil'].loc[subset.index.isin(SoilMoist.index)]
-    soilmoist_tdr = subset['swc.tdr'].loc[subset.index.isin(SoilMoist.index)]
+    rain          = Rainf['Rainf'].loc[np.all([Rainf.index.isin(subset.index), Rainf.index.isin(subset1.index)],axis=0)]
+    esoil         = ESoil['ESoil'].loc[np.all([ESoil.index.isin(subset.index), ESoil.index.isin(subset1.index)],axis=0)]
+    ep            = Ep['Ep'].loc[np.all([Ep.index.isin(subset.index), Ep.index.isin(subset1.index)],axis=0)]
+    soilmoist     = SoilMoist['SoilMoist'].loc[np.all([SoilMoist.index.isin(subset.index), SoilMoist.index.isin(subset1.index)],axis=0)]
+
+    wuTP       = subset['wuTP'].loc[np.all([subset.index.isin(subset1.index), subset.index.isin(SoilMoist.index)],axis=0)]
+    EfloorPred = subset['EfloorPred'].loc[np.all([subset.index.isin(subset1.index), subset.index.isin(SoilMoist.index)],axis=0)]
+    vwcMean    = subset1['vwcMean'].loc[subset1.index.isin(subset.index)]
+    #.loc[np.all([subset1.index.isin(subset.index), subset.index.isin(SoilMoist.index)],axis=0)]
 
     # exclude tdr soilmoisture < 0 or tdr esoil < 0
-    mask      = np.any([np.isnan(soilmoist_tdr), np.isnan(esoil_tdr)],axis=0)
+    mask      = np.any([np.isnan(wuTP), np.isnan(vwcMean)],axis=0)
     print(mask)
     rain      = rain[mask == False]
     esoil     = esoil[mask == False]
     ep        = ep[mask == False]
     soilmoist = soilmoist[mask == False]
-    esoil_tdr = esoil_tdr[mask == False]
-    soilmoist_tdr = soilmoist_tdr[mask == False]
+    wuTP      = wuTP[mask == False]
+    EfloorPred= EfloorPred[mask == False]
+    vwcMean   = vwcMean[mask == False]
     print("any(rain>0.)")
     print(np.any(rain>0.))
 
     # exclude rainday and the after two days of rain
     mask      = np.ones((len(rain)), dtype=bool)
-    print(rain)
+    #print(rain)
     if rain.values[0] > 0. :
         mask[0] = False
     if rain.values[0] > 0. or rain.values[1] > 0.:
@@ -173,8 +195,9 @@ def main(fobs, fcable, case_name, hk, b, ring, layer, ep_type):
     esoil     = esoil[mask == True]
     ep        = ep[mask == True]
     soilmoist = soilmoist[mask == True]
-    esoil_tdr = esoil_tdr[mask == True]
-    soilmoist_tdr = soilmoist_tdr[mask == True]
+    wuTP      = wuTP[mask == True]
+    EfloorPred= EfloorPred[mask == True]
+    vwcMean   = vwcMean[mask == True]
     print("any(rain>0.)")
     print(np.any(rain>0.))
 
@@ -186,30 +209,30 @@ def main(fobs, fcable, case_name, hk, b, ring, layer, ep_type):
     esoil     = esoil[mask == False]
     ep        = ep[mask == False]
     soilmoist = soilmoist[mask == False]
-    esoil_tdr = esoil_tdr[mask == False]
-    soilmoist_tdr = soilmoist_tdr[mask == False]
+    wuTP      = wuTP[mask == False]
+    EfloorPred= EfloorPred[mask == False]
+    vwcMean   = vwcMean[mask == False]
 
     if ep_type == 'PotEvap':
         rate      = esoil/ep
-        rate_tdr  = esoil_tdr/ep
+        rate_tdr  = wuTP/ep #wuTP/ep
     elif ep_type == 'Rnet-G':
         rate      = esoil/(ep*86400/2454000)
-        rate_tdr  = esoil_tdr/(ep*86400/2454000)
-
+        rate_tdr  = wuTP/(ep*86400/2454000)
 
 
     print("-------------------------------------------------")
     print(np.any(esoil < 0.))
     print(np.any(ep < 0.))
     print(np.any(soilmoist < 0.))
-    print(np.any(esoil_tdr < 0.))
-    print(np.any(soilmoist_tdr < 0.))
+    print(np.any(wuTP < 0.))
+    print(np.any(vwcMean < 0.))
 
     print(esoil)
     print(ep)
     print(soilmoist)
-    print(esoil_tdr)
-    print(soilmoist_tdr)
+    print(wuTP)
+    print(vwcMean)
     print(rate)
     print(rate_tdr)
     print("-------------------------------------------------")
@@ -244,13 +267,14 @@ def main(fobs, fcable, case_name, hk, b, ring, layer, ep_type):
     ax1 = fig.add_subplot(111)
 
     ax1.scatter(soilmoist, rate, s=2, marker='o', c='orange')
-    ax1.scatter(soilmoist_tdr, rate_tdr, s=2, marker='o', c='green')
-    ax1.set_xlim(0.,1.)
-    ax1.set_ylim(-0.1,1.)
+    ax1.scatter(vwcMean, rate_tdr, s=2, marker='o', c='green')
+    ax1.set_xlim(0.,0.4)
+    ax1.set_ylim(0.,1.)
 
-    fig.savefig("EucFACE_Esoil_E0_theta_%s_%s_hk=%s_b=%s_%s.png" \
-                % (ep_type, case_name, hk, b, ring),\
-                 bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("EucFACE_Esoil_E0_theta_Gimeno-tdr_%s_%s_hk=%s_b=%s_%s.png" \
+                    % (ep_type, case_name, hk, b, ring), bbox_inches='tight', pad_inches=0.1)
+
+
 if __name__ == "__main__":
 
     layer =  "6"
@@ -270,8 +294,10 @@ if __name__ == "__main__":
     #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-uni",\
     #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-log10"]
 
-    ep_type = 'Rnet-G'
-    #"PotEvap"
+    ep_type = "PotEvap"
+            #"Rnet-G"
+            #"PotEvap"
+
     rings = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
     hyds_value = [1e3,1e2,1e1,1.,1e-1,1e-2,1e-3,1e-4,1e-5,1e-6]
     bch_value  = np.arange(1.,11.,1.)
@@ -279,7 +305,8 @@ if __name__ == "__main__":
         for b in bch_value:
             for case_name in cases:
                 for ring in rings:
-                    fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
+                    fobs_Esoil = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_underET.csv"
+                    fobs_vwc = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_soilVars.csv"
                     fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_hyds=%s_bch=%s_%s_out.nc" \
                             % (case_name,str(hk),str(b), ring)
-                    main(fobs, fcable, case_name, str(hk),str(b), ring, layer,ep_type)
+                    main(fobs_Esoil, fobs_vwc, fcable, case_name, str(hk),str(b), ring, layer, ep_type)
