@@ -43,8 +43,6 @@ def main(fobs, fcable, case_name, ring, layer):
     print(subset)
 
 
-'''
-
 # _________________________ CABLE ___________________________
     cable = nc.Dataset(fcable, 'r')
     Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
@@ -303,8 +301,8 @@ def main(fobs, fcable, case_name, ring, layer):
     #print(np.isnan(tmp1).values.any())
     #print(np.isnan(tmp2).values.any())
     cor_tdr = stats.pearsonr(tmp1,tmp2)
-    mse_tdr = mean_squared_error(y_true, y_pred)
-    ax1.set_title("r = % 6.4f , MSE = % 6.2f" %(cor_tdr[0], mse_tdr))
+    mse_tdr = mean_squared_error(tmp2, tmp1)
+    ax1.set_title("r = % 5.3f , RMSE = % 5.3f" %(cor_tdr[0], np.sqrt(mse_tdr)))
     print("-----------------------------------------------")
     print(cor_tdr)
     ax1.plot(x, swilt,           c="black", lw=1.0, ls="-", label="swilt")
@@ -394,17 +392,19 @@ def main(fobs, fcable, case_name, ring, layer):
     ax8.axis('tight')
     ax8.set_ylim(-20.,160.)
     ax8.set_xlim(367,2739)
-    
+
     fig.savefig("EucFACE_tdr_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
-'''
+
 if __name__ == "__main__":
 
     layer =  "6"
 
-    cases = ["met_LAI_sand","met_LAI_clay","met_LAI_silt"\
-             "ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM",\
-             "ctl_met_LAI_vrt_SM_swilt-watr", "ctl_met_LAI_vrt_SM_swilt-watr_Hvrd",\
-             "ctl_met_LAI_vrt_SM_swilt-watr_Or-Off","default-met_only"]
+    cases = ["default-met_only_or-off"]
+    '''
+    "ctl_met_LAI_vrt_SM_swilt-watr_HDM_or-off-litter_top5cm",\
+    "ctl_met_LAI_vrt_SM_swilt-watr_HDM_or-off-litter_top50cm",\
+    "ctl_met_LAI_vrt_SM_swilt-watr_HDM_or-off-litter_top15cm",\
+    '''
     # 6
     # ["met_LAI_sand","met_LAI_clay","met_LAI_silt"\
     #  "ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM",\

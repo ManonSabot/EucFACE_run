@@ -194,40 +194,40 @@ def main(fobs, fcable, case_name, ring, layer):
         print(mse_neo[i])
 
     ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax1.set_title("25cm, r=% 6.4f, MSE=% 6.2f" %(cor_neo[0], mse_neo[0]))
+    ax1.set_title("25cm, r=% 5.3f, RMSE=% 5.3f" %(cor_neo[0], np.sqrt(mse_neo[0])))
     ax1.axis('tight')
     ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax2.set_title("50cm, r=% 6.4f, MSE=% 6.2f" %(cor_neo[1], mse_neo[1]))
+    ax2.set_title("50cm, r=% 5.3f, RMSE=% 5.3f" %(cor_neo[1],np.sqrt(mse_neo[1])))
     ax2.axis('tight')
     ax3.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax3.set_title("75cm, r=% 6.4f, MSE=% 6.2f" %(cor_neo[2], mse_neo[2]))
+    ax3.set_title("75cm, r=% 5.3f, RMSE=% 5.3f" %(cor_neo[2], np.sqrt(mse_neo[2])))
     ax3.axis('tight')
     ax4.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax4.set_title("100cm, r=% 6.4f, MSE=% 6.2f" %(cor_neo[3], mse_neo[3]))
+    ax4.set_title("100cm, r=% 5.3f, RMSE=% 5.3f" %(cor_neo[3], np.sqrt(mse_neo[3])))
     ax4.axis('tight')
     ax5.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax5.set_title("125cm, r=% 6.4f, MSE=% 6.2f" %(cor_neo[4], mse_neo[4]))
+    ax5.set_title("125cm, r=% 5.3f, RMSE=% 5.3f" %(cor_neo[4], np.sqrt(mse_neo[4])))
     ax5.axis('tight')
     ax6.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax6.set_title("150cm, r= % 6.4f, MSE=% 6.2f" %(cor_neo[5], mse_neo[5]))
+    ax6.set_title("150cm, r=% 5.3f, RMSE=% 5.3f" %(cor_neo[5], np.sqrt(mse_neo[5])))
     ax6.axis('tight')
     ax7.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax7.set_title("200cm, r= % 6.4f, MSE=% 6.2f" %(cor_neo[6], mse_neo[6]))
+    ax7.set_title("200cm, r=% 5.3f, RMSE=% 5.3f" %(cor_neo[6], np.sqrt(mse_neo[6])))
     ax7.axis('tight')
     ax8.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax8.set_title("250cm, r= % 6.4f, MSE=% 6.2f" %(cor_neo[7], mse_neo[7]))
+    ax8.set_title("250cm, r=% 5.3f, RMSE=% 5.3f" %(cor_neo[7], np.sqrt(mse_neo[7])))
     ax8.axis('tight')
     ax9.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax9.set_title("300cm, r= % 6.4f, MSE=% 6.2f" %(cor_neo[8], mse_neo[8]))
+    ax9.set_title("300cm, r=% 5.3f, RMSE=% 5.3f" %(cor_neo[8], np.sqrt(mse_neo[8])))
     ax9.axis('tight')
     ax10.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax10.set_title("350cm, r= % 6.4f, MSE=% 6.2f" %(cor_neo[9], mse_neo[9]))
+    ax10.set_title("350cm, r=% 5.3f, RMSE=% 5.3f" %(cor_neo[9], np.sqrt(mse_neo[9])))
     ax10.axis('tight')
     ax11.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax11.set_title("400cm, r= % 6.4f, MSE=% 6.2f" %(cor_neo[10], mse_neo[10]))
+    ax11.set_title("400cm, r=% 5.3f, RMSE=% 5.3f" %(cor_neo[10], np.sqrt(mse_neo[10])))
     ax11.axis('tight')
     ax12.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax12.set_title("450cm, r= % 6.4f, MSE=% 6.2f" %(cor_neo[11], mse_neo[11]))
+    ax12.set_title("450cm, r=% 5.3f, RMSE=% 5.3f" %(cor_neo[11], np.sqrt(mse_neo[11])))
     ax12.axis('tight')
 
     ax1.set_xlim([0,2374])
@@ -281,12 +281,10 @@ def main(fobs, fcable, case_name, ring, layer):
 
 if __name__ == "__main__":
 
-    layer =  "6"
+    layer =  "31uni"
 
-    cases = ["met_LAI_sand","met_LAI_clay","met_LAI_silt"\
-             "ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM",\
-             "ctl_met_LAI_vrt_SM_swilt-watr", "ctl_met_LAI_vrt_SM_swilt-watr_Hvrd",\
-             "ctl_met_LAI_vrt_SM_swilt-watr_Or-Off","default-met_only"]
+    cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off_Hvrd"]
+    #["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off-litter_Hvrd"]
     # 6
     # ["met_LAI_sand","met_LAI_clay","met_LAI_silt"\
     #  "ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM",\

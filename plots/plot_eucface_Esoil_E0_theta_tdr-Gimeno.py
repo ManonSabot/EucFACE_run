@@ -279,7 +279,8 @@ if __name__ == "__main__":
 
     layer =  "6"
 
-    cases = ["ctl_met_LAI_vrt_SM_swilt-watr_hyds-bch"]
+    cases = ["ctl_met_LAI_vrt_SM_swilt-watr_hyds-bch_or-off-litter"]
+    #["ctl_met_LAI_vrt_SM_swilt-watr_hyds-bch"]
     # 6
     # ["met_LAI_sand","met_LAI_clay","met_LAI_silt"\
     #  "ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM",\
@@ -294,7 +295,7 @@ if __name__ == "__main__":
     #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-uni",\
     #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-log10"]
 
-    ep_type = "PotEvap"
+    ep_type = "Rnet-G"
             #"Rnet-G"
             #"PotEvap"
 

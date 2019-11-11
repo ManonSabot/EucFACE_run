@@ -23,7 +23,7 @@ from scipy.interpolate import griddata
 import scipy.stats as stats
 from sklearn.metrics import mean_squared_error
 
-#def main(fobs, fcable, case_name, hk, b, ring, layer):
+#def main(fobs_Esoil, fobs, fcable, case_name, hk, b, ring, layer):
 def main(fobs_Esoil, fobs, fcable, case_name, ring, layer):
 
     est_esoil = pd.read_csv(fobs_Esoil, usecols = ['Ring','Date','wuTP','EfloorPred'])
@@ -68,13 +68,10 @@ def main(fobs_Esoil, fobs, fcable, case_name, ring, layer):
     SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,0,0,0], columns=['SoilMoist'])
 
     if layer == "6":
-        SoilMoist['SoilMoist'] = cable.variables['SoilMoist'][:,0,0,0]
-        '''
         SoilMoist['SoilMoist'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.022 \
                                  + cable.variables['SoilMoist'][:,1,0,0]*0.058 \
                                  + cable.variables['SoilMoist'][:,2,0,0]*0.154 \
                                  + cable.variables['SoilMoist'][:,3,0,0]*(0.5-0.022-0.058-0.154) )/0.5
-        '''
     elif layer == "13":
         SoilMoist['SoilMoist'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.02 \
                                  + cable.variables['SoilMoist'][:,1,0,0]*0.05 \
@@ -324,7 +321,7 @@ def main(fobs_Esoil, fobs, fcable, case_name, ring, layer):
     #print(np.isnan(tmp2).values.any())
     cor_tdr = stats.pearsonr(tmp1,tmp2)
     mse_tdr = mean_squared_error(tmp2, tmp1)
-    ax1.set_title("r = % 6.4f , MSE = % 10.8f" %(cor_tdr[0], mse_tdr))
+    ax1.set_title("r = % 5.3f , MSE = % 5.3f" %(cor_tdr[0], np.sqrt(mse_tdr)))
     print("-----------------------------------------------")
     print(mse_tdr)
     ax1.plot(x, swilt,           c="black", lw=1.0, ls="-", label="swilt")
@@ -422,9 +419,15 @@ def main(fobs_Esoil, fobs, fcable, case_name, ring, layer):
 
 if __name__ == "__main__":
 
-    layer =  "6"
+    layer =  "31uni"
 
-    cases = ["ctl_met_LAI_vrt_SM_swilt-watr_Or-Off"]
+    cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off_Hvrd"]
+        #["default-met_only_or-off"]
+        #["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off-litter"]
+        #["default-met_only_or-off"]
+        #["ctl_met_LAI_vrt_SM_swilt-watr_hyds-bch"]
+	    #["ctl_met_LAI_vrt_SM_swilt-watr_hyds-bch_or-off-litter"]
+            #["ctl_met_LAI_vrt_SM_swilt-watr_Or-Off"]
 	    #["ctl_met_LAI_vrt_SM_swilt-watr_HDM_Or-Off_litter-on"]
             #["ctl_met_LAI_vrt_SM_swilt-watr"]
             #["ctl_met_LAI_vrt_SM_swilt-watr_hyds-bch"]
@@ -455,7 +458,7 @@ if __name__ == "__main__":
     #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-uni",\
     #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-log10"]
 
-    rings = ["amb"] #["R1","R2","R3","R4","R5","R6","amb","ele"]
+    rings = ["R1","R2","R3","R4","R5","R6","amb","ele"]
     '''
     hyds_value = [1e3,1e2,1e1,1.,1e-1,1e-2,1e-3,1e-4,1e-5,1e-6]
     bch_value  = np.arange(1.,11.,1.)
@@ -463,11 +466,13 @@ if __name__ == "__main__":
         for b in bch_value:
             for case_name in cases:
                 for ring in rings:
+                    fobs_Esoil = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_underET.csv"
                     fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
                     fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_hyds=%s_bch=%s_%s_out.nc" \
                             % (case_name,str(hk),str(b), ring)
-                    main(fobs, fcable, case_name, str(hk),str(b), ring, layer)
+                    main(fobs_Esoil, fobs, fcable, case_name, str(hk),str(b), ring, layer)
     '''
+
     for case_name in cases:
         for ring in rings:
             fobs_Esoil = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_underET.csv"

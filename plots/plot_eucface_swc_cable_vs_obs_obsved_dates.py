@@ -306,12 +306,15 @@ def main(fobs, fcable, case_name, ring, contour, layer):
         fig.savefig("EucFACE_SW_obsved_dates_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
 
 if __name__ == "__main__":
+
     contour = False
     #  True for contour
     #  False for raster
-    layer =  "31exp"
+    layer =  "31uni"
 
-    cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31exp"]
+    cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off_Hvrd"]
+    #["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off-litter_Hvrd"]
+    #["default-met_only_or-off"]
     # 6
     # ["ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM",\
     #  "ctl_met_LAI_vrt_SM_swilt-watr", "ctl_met_LAI_vrt_SM_swilt-watr_Hvrd",\
