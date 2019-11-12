@@ -37,7 +37,7 @@ def main(fobs, fcable, case_name, ring):
     Rainf.index = Rainf.index - pd.datetime(2011,12,31)
     Rainf.index = Rainf.index.days
 
-    Qh = pd.DataFrame(cable.variables['Qh'][:,0,0],columns=['Qh'])
+    Qh = pd.DataFrame(cable.variables['Qle'][:,0,0],columns=['Qh'])
     Qh['dates'] = Time
     Qh = Qh.set_index('dates')
     Qh = Qh.resample("D").agg('mean')
@@ -52,42 +52,59 @@ def main(fobs, fcable, case_name, ring):
     Tair.index = Tair.index.days
 
     # exclude rainday and the after two days of rain
-    day0      = np.zeros((len(Qh)), dtype=bool)
-    day1      = np.zeros((len(Qh)), dtype=bool)
-    day2      = np.zeros((len(Qh)), dtype=bool)
-    #day3      = np.zeros((len(Qh)), dtype=bool)
-    #day4      = np.zeros((len(Qh)), dtype=bool)
+    day      = np.zeros((len(Qh)), dtype=bool)
 
-    for i in np.arange(0,len(Qh)-2):
-        if Tair.values[i] >= 35.:
+    for i in np.arange(0,len(Qh)):
+        if (Tair.values[i] >= 35. and Rainf.values[i] == 0.):
+            day[i]   = True
+
+    event = 0
+    con_max = 0
+    i = 0
+    while i < len(Qh)-2:
+        if np.all([day[i:i+3]]):
+            event += 1
+            i     += 3
+            con   = 3
+            while day[i]:
+                con += 1
+                i   += 1
+        else:
+            con = 0
+            i += 1
+        if con > con_max:
+            con_max = con
+
+    print(event)
+    print(con_max)
+
+    qh      = np.zeros((event,con_max))
+    lct     = np.zeros((event,con_max))
+    qh[:,:] = np.nan
+    for con in np.arange(1,con_max+1):
+        lct[:,con-1] = con
+
+    i = 0
+    j = 0
+    while i < len(Qh)-2:
+        if (np.all([day[i:i+3]])):
             print(i)
-            print(Tair.values[i])
-
-        a = np.all([Tair.values[i] >= 35., Tair.values[i+1] >= 35., Tair.values[i+2] >= 35.])#, \
-                   #Tair.values[i+3] >= 35., Tair.values[i+4] >= 35.])
-        b = np.all([Rainf.values[i] == 0., Rainf.values[i+1] == 0., Rainf.values[i+2] == 0.])#, \
-                  # Rainf.values[i+3] == 0., Rainf.values[i+4] == 0.])
-        if (a and b):
-            day0[i]   = True
-            day1[i+1] = True
-            day2[i+2] = True
-            #day3[i+3] = True
-            #day4[i+4] = True
-    print(np.any(day0))
-    qh      = np.zeros((len(Qh[day0 == True]),3))
-    lct     = np.zeros((len(Qh[day0 == True]),3))
-    qh[:,0] = Qh['Qh'].values[day0 == True]
-    qh[:,1] = Qh['Qh'].values[day1 == True]
-    qh[:,2] = Qh['Qh'].values[day2 == True]
-    #qh[:,3] = Qh['Qh'].values[day3 == True]
-    #qh[:,4] = Qh['Qh'].values[day4 == True]
-
-    lct[:,0] = 0
-    lct[:,1] = 1
-    lct[:,2] = 2
-    #lct[:,3] = 3
-    #lct[:,4] = 4
-
+            print(Qh['Qh'].values[i])
+            qh[j,0] = Qh['Qh'].values[i]
+            qh[j,1] = Qh['Qh'].values[i+1]
+            qh[j,2] = Qh['Qh'].values[i+2]
+            i = i + 3
+            cont_day = 3
+            while day[i]:
+                qh[j,cont_day] = Qh['Qh'].values[i]
+                i += 1
+                cont_day += 1
+            j += 1
+        else:
+            i += 1
+    print(qh)
+    print(lct)
+    #return np.ravel(qh),np.ravel(lct);
     return qh,lct;
 
 if __name__ == "__main__":
@@ -138,11 +155,12 @@ if __name__ == "__main__":
         #ax1.scatter(lct1, qh2, marker='o', c='',edgecolors='green',label="imp")
 
 
-        lct = [0,1,2]
-        qh_mean1 = np.mean(qh1, axis=0)
-        qh_mean2 = np.mean(qh2, axis=0)
-        ax1.plot(lct, qh_mean1, c='orange', label="def")
-        ax1.plot(lct, qh_mean2, c='green', label="imp")
+        #lct = [0,1,2]
+        #qh_mean1 = np.mean(qh1, axis=0)
+        #qh_mean2 = np.mean(qh2, axis=0)
+        for i in np.arange(0,8):
+            ax1.plot(lct1[i,:], qh1[i,:], c='orange', label="def")
+            ax1.plot(lct2[i,:], qh2[i,:], c='green', label="imp")
         '''
         soilmoist_tdr = np.mean(soilmoist_tdr_rn1, axis=0)
         soilmoist_max1 = np.max(soilmoist_rn1, axis=0)
@@ -177,7 +195,7 @@ if __name__ == "__main__":
         ax2.scatter(lct, evap1, marker='o', c='',edgecolors='orange',label="def")
         ax2.scatter(lct, evap2, marker='o', c='',edgecolors='green',label="imp")
         '''
-        ax1.set_xlim(-0.5,2.5)
+        #ax1.set_xlim(-0.5,2.5)
         # ax1.set_ylim(-0.1,1.)
         ax1.legend()
-        fig.savefig("EucFACE_SH_during_HW_%s.png" % (ring),bbox_inches='tight')#, pad_inches=0.1)
+        fig.savefig("EucFACE_LH_during_HW_%s.png" % (ring),bbox_inches='tight')#, pad_inches=0.1)

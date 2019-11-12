@@ -281,9 +281,10 @@ def main(fobs, fcable, case_name, ring, layer):
 
 if __name__ == "__main__":
 
-    layer =  "31uni"
+    layer =  "6" #"31uni"
 
-    cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off_Hvrd"]
+    cases = ["default-met_only_or-off"]
+    #["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off_Hvrd"]
     #["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off-litter_Hvrd"]
     # 6
     # ["met_LAI_sand","met_LAI_clay","met_LAI_silt"\
