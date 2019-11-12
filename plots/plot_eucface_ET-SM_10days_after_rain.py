@@ -7,7 +7,7 @@ That's all folks.
 """
 
 __author__ = "MU Mengyuan"
-__version__ = "2019-10-06"
+__version__ = "2019-11-12"
 __changefrom__ = 'plot_eucface_swc_cable_vs_obs.py'
 
 import os
@@ -59,8 +59,8 @@ def main(fobs, fcable, case_name, ring, layer):
     Rainf = Rainf.resample("D").agg('sum')
     Rainf.index = Rainf.index - pd.datetime(2011,12,31)
     Rainf.index = Rainf.index.days
-    rain        = Rainf['Rainf'].loc[Rainf.index.isin(subset.index)]
-
+    #rain        = Rainf['Rainf'].loc[Rainf.index.isin(subset.index)]
+    print(Rainf)
     SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,0,0,0], columns=['SoilMoist'])
     if layer == "6":
         SoilMoist['SoilMoist'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.022 \
@@ -108,8 +108,8 @@ def main(fobs, fcable, case_name, ring, layer):
     SoilMoist.index = SoilMoist.index - pd.datetime(2011,12,31)
     SoilMoist.index = SoilMoist.index.days
     SoilMoist = SoilMoist.sort_values(by=['dates'])
-    soilmoist     = SoilMoist['SoilMoist'].loc[SoilMoist.index.isin(subset.index)]
-    soilmoist_tdr = subset['swc.tdr'].loc[subset.index.isin(SoilMoist.index)]
+    #soilmoist     = SoilMoist['SoilMoist'].loc[SoilMoist.index.isin(subset.index)]
+    #soilmoist_tdr = subset['swc.tdr'].loc[subset.index.isin(SoilMoist.index)]
 
     ESoil = pd.DataFrame(cable.variables['ESoil'][:,0,0],columns=['ESoil'])
     ESoil = ESoil*1800.
@@ -118,8 +118,8 @@ def main(fobs, fcable, case_name, ring, layer):
     ESoil = ESoil.resample("D").agg('sum')
     ESoil.index = ESoil.index - pd.datetime(2011,12,31)
     ESoil.index = ESoil.index.days
-    esoil       = ESoil['ESoil'].loc[ESoil.index.isin(subset.index)]
-    esoil_tdr   = subset['Esoil'].loc[subset.index.isin(SoilMoist.index)]
+    #esoil       = ESoil['ESoil'].loc[ESoil.index.isin(subset.index)]
+    #esoil_tdr   = subset['Esoil'].loc[subset.index.isin(SoilMoist.index)]
 
     Evap = pd.DataFrame(cable.variables['Evap'][:,0,0],columns=['Evap'])
     Evap = Evap*1800.
@@ -128,99 +128,67 @@ def main(fobs, fcable, case_name, ring, layer):
     Evap = Evap.resample("D").agg('sum')
     Evap.index = Evap.index - pd.datetime(2011,12,31)
     Evap.index = Evap.index.days
-    evap       = Evap['Evap'].loc[Evap.index.isin(subset.index)]
-
-    # exclude tdr soilmoisture < 0 or tdr esoil < 0
-    mask      = np.any([np.isnan(soilmoist_tdr), np.isnan(esoil_tdr)],axis=0)
+    #evap       = Evap['Evap'].loc[Evap.index.isin(subset.index)]
 
     # exclude rainday and the after two days of rain
-    day0      = np.zeros((len(rain)), dtype=bool)
-    day1      = np.zeros((len(rain)), dtype=bool)
-    day2      = np.zeros((len(rain)), dtype=bool)
-    day3      = np.zeros((len(rain)), dtype=bool)
-    day4      = np.zeros((len(rain)), dtype=bool)
-    day5      = np.zeros((len(rain)), dtype=bool)
-    day6      = np.zeros((len(rain)), dtype=bool)
-    day7      = np.zeros((len(rain)), dtype=bool)
+    day      = np.zeros((len(Rainf),11), dtype=bool)
+    for i in np.arange(1,len(Rainf)-10):
+        a = np.all([Rainf.values[i+1] == 0., Rainf.values[i+2] == 0., Rainf.values[i+3] == 0.,\
+                    Rainf.values[i+4] == 0., Rainf.values[i+5] == 0., Rainf.values[i+6] == 0.,\
+                    Rainf.values[i+7] == 0., Rainf.values[i+8] == 0., Rainf.values[i+9] == 0.,\
+                    Rainf.values[i+10] == 0.])
+        b = np.any([np.isnan(subset['swc.tdr'].values[i+1]), np.isnan(subset['swc.tdr'].values[i+2]), np.isnan(subset['swc.tdr'].values[i+3]),\
+                    np.isnan(subset['swc.tdr'].values[i+4]), np.isnan(subset['swc.tdr'].values[i+5]), np.isnan(subset['swc.tdr'].values[i+6]),\
+                    np.isnan(subset['swc.tdr'].values[i+7]), np.isnan(subset['swc.tdr'].values[i+8]), np.isnan(subset['swc.tdr'].values[i+9]),\
+                    np.isnan(subset['swc.tdr'].values[i+10]), np.isnan(subset['swc.tdr'].values[i])])
+        c = np.any([np.isnan(subset['Esoil'].values[i+1]), np.isnan(subset['Esoil'].values[i+2]), np.isnan(subset['Esoil'].values[i+3]),\
+                    np.isnan(subset['Esoil'].values[i+4]), np.isnan(subset['Esoil'].values[i+5]), np.isnan(subset['Esoil'].values[i+6]),\
+                    np.isnan(subset['Esoil'].values[i+7]), np.isnan(subset['Esoil'].values[i+8]), np.isnan(subset['Esoil'].values[i+9]),\
+                    np.isnan(subset['Esoil'].values[i+10]), np.isnan(subset['Esoil'].values[i])])
+        d = Rainf.values[i] > 0.5 or (Rainf.values[i-1] > 1. and Rainf.values[i] > 0.1)
+        if (d and a and (not b) and (not c)):
+            print(np.isnan(subset['swc.tdr'].values[i:i+10]))
+            print(np.isnan(subset['Esoil'].values[i:i+10]))
+            day[i,0]   = True
+            day[i+1,1] = True
+            day[i+2,2] = True
+            day[i+3,3] = True
+            day[i+4,4] = True
+            day[i+5,5] = True
+            day[i+6,6] = True
+            day[i+7,7] = True
+            day[i+8,8] = True
+            day[i+9,9] = True
+            day[i+10,10]= True
 
-    print(day0)
-    for i in np.arange(0,len(rain)-7):
-        a = np.all([rain.values[i+1] == 0., rain.values[i+2] == 0., rain.values[i+3] == 0.,\
-                    rain.values[i+4] == 0., rain.values[i+5] == 0., rain.values[i+6] == 0.,\
-                    rain.values[i+7] == 0.])
-        b = np.any([np.isnan(soilmoist_tdr.values[i+1]), np.isnan(soilmoist_tdr.values[i+2]), np.isnan(soilmoist_tdr.values[i+3]),\
-                    np.isnan(soilmoist_tdr.values[i+4]), np.isnan(soilmoist_tdr.values[i+5]), np.isnan(soilmoist_tdr.values[i+6]),\
-                    np.isnan(soilmoist_tdr.values[i+7])])
-        c = np.any([np.isnan(esoil_tdr.values[i+1]), np.isnan(esoil_tdr.values[i+2]), np.isnan(esoil_tdr.values[i+3]),\
-                    np.isnan(esoil_tdr.values[i+4]), np.isnan(esoil_tdr.values[i+5]), np.isnan(esoil_tdr.values[i+6]),\
-                    np.isnan(esoil_tdr.values[i+7])])
-
-        if (rain.values[i] > 0.5 and a and (not b) and (not c)):
-            day0[i]   = True
-            day1[i+1] = True
-            day2[i+2] = True
-            day3[i+3] = True
-            day4[i+4] = True
-            day5[i+5] = True
-            day6[i+6] = True
-            day7[i+7] = True
-
-
-    esoil_rn        = np.zeros((len(esoil[day0 == True]),8))
-    esoil_tdr_rn    = np.zeros((len(esoil[day0 == True]),8))
-    soilmoist_rn    = np.zeros((len(esoil[day0 == True]),8))
-    soilmoist_tdr_rn= np.zeros((len(esoil[day0 == True]),8))
-    evap_rn         = np.zeros((len(esoil[day0 == True]),8))
+    event = len(ESoil[day[:,0] == True])
+    esoil_rn        = np.zeros((event,11))
+    esoil_tdr_rn    = np.zeros((event,11))
+    soilmoist_rn    = np.zeros((event,11))
+    soilmoist_tdr_rn= np.zeros((event,11))
+    evap_rn         = np.zeros((event,11))
     print("____________________________________________")
-    print(len(esoil[day0 == True]))
+    print(event)
     print("____________________________________________")
-    esoil_rn[:,0] = esoil[day0 == True]
-    esoil_rn[:,1] = esoil[day1 == True]
-    esoil_rn[:,2] = esoil[day2 == True]
-    esoil_rn[:,3] = esoil[day3 == True]
-    esoil_rn[:,4] = esoil[day4 == True]
-    esoil_rn[:,5] = esoil[day5 == True]
-    esoil_rn[:,6] = esoil[day6 == True]
-    esoil_rn[:,7] = esoil[day7 == True]
 
-    esoil_tdr_rn[:,0] = esoil_tdr[day0 == True]
-    esoil_tdr_rn[:,1] = esoil_tdr[day1 == True]
-    esoil_tdr_rn[:,2] = esoil_tdr[day2 == True]
-    esoil_tdr_rn[:,3] = esoil_tdr[day3 == True]
-    esoil_tdr_rn[:,4] = esoil_tdr[day4 == True]
-    esoil_tdr_rn[:,5] = esoil_tdr[day5 == True]
-    esoil_tdr_rn[:,6] = esoil_tdr[day6 == True]
-    esoil_tdr_rn[:,7] = esoil_tdr[day7 == True]
+    for i in np.arange(0,11):
+        esoil_rn[:,i]     = ESoil['ESoil'][day[:,i] == True].values
+        esoil_tdr_rn[:,i] = subset['Esoil'][day[:,i] == True].values
 
-    soilmoist_rn[:,0] = soilmoist[day0 == True]
-    soilmoist_rn[:,1] = soilmoist[day1 == True] - soilmoist_rn[:,0]
-    soilmoist_rn[:,2] = soilmoist[day2 == True] - soilmoist_rn[:,0]
-    soilmoist_rn[:,3] = soilmoist[day3 == True] - soilmoist_rn[:,0]
-    soilmoist_rn[:,4] = soilmoist[day4 == True] - soilmoist_rn[:,0]
-    soilmoist_rn[:,5] = soilmoist[day5 == True] - soilmoist_rn[:,0]
-    soilmoist_rn[:,6] = soilmoist[day6 == True] - soilmoist_rn[:,0]
-    soilmoist_rn[:,7] = soilmoist[day7 == True] - soilmoist_rn[:,0]
-    soilmoist_rn[:,0] = soilmoist[day0 == True] - soilmoist_rn[:,0]
+        if i == 0 :
+            # the rainday
+            soilmoist_rn[:,i]     = SoilMoist['SoilMoist'][day[:,i] == True].values
+            soilmoist_tdr_rn[:,i] = subset['swc.tdr'][day[:,i] == True].values
+            evap_rn[:,i]          = Evap['Evap'][day[:,i] == True].values
+        else:
+            # 10 days after rainday
+            soilmoist_rn[:,i]     = SoilMoist['SoilMoist'][day[:,i] == True].values - soilmoist_rn[:,0]
+            soilmoist_tdr_rn[:,i] = subset['swc.tdr'][day[:,i] == True].values  - soilmoist_tdr_rn[:,0]
+            evap_rn[:,i]          = Evap['Evap'][day[:,i] == True].values/evap_rn[:,0]
 
-    soilmoist_tdr_rn[:,0] = soilmoist_tdr[day0 == True]
-    soilmoist_tdr_rn[:,1] = soilmoist_tdr[day1 == True] - soilmoist_tdr_rn[:,0]
-    soilmoist_tdr_rn[:,2] = soilmoist_tdr[day2 == True] - soilmoist_tdr_rn[:,0]
-    soilmoist_tdr_rn[:,3] = soilmoist_tdr[day3 == True] - soilmoist_tdr_rn[:,0]
-    soilmoist_tdr_rn[:,4] = soilmoist_tdr[day4 == True] - soilmoist_tdr_rn[:,0]
-    soilmoist_tdr_rn[:,5] = soilmoist_tdr[day5 == True] - soilmoist_tdr_rn[:,0]
-    soilmoist_tdr_rn[:,6] = soilmoist_tdr[day6 == True] - soilmoist_tdr_rn[:,0]
-    soilmoist_tdr_rn[:,7] = soilmoist_tdr[day7 == True] - soilmoist_tdr_rn[:,0]
-    soilmoist_tdr_rn[:,0] = soilmoist_tdr[day0 == True] - soilmoist_tdr_rn[:,0]
-
-    evap_rn[:,0] = evap[day0 == True]
-    evap_rn[:,1] = evap[day1 == True]/evap_rn[:,0]
-    evap_rn[:,2] = evap[day2 == True]/evap_rn[:,0]
-    evap_rn[:,3] = evap[day3 == True]/evap_rn[:,0]
-    evap_rn[:,4] = evap[day4 == True]/evap_rn[:,0]
-    evap_rn[:,5] = evap[day5 == True]/evap_rn[:,0]
-    evap_rn[:,6] = evap[day6 == True]/evap_rn[:,0]
-    evap_rn[:,7] = evap[day7 == True]/evap_rn[:,0]
-    evap_rn[:,0] = evap[day0 == True]/evap_rn[:,0]
+    soilmoist_rn[:,0]     = 0.
+    soilmoist_tdr_rn[:,0] = 0.
+    evap_rn[:,0]          = 1.
 
     return esoil_rn,esoil_tdr_rn,soilmoist_rn,soilmoist_tdr_rn,evap_rn;
 
@@ -229,7 +197,7 @@ if __name__ == "__main__":
     case_name = ["default-met_only_or-off",\
                  "ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off-litter_Hvrd"]
 
-    rings = ["R1","R2","R3","R4","R5","R6","amb","ele"]
+    rings = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
 
     for ring in rings:
         layer =  "6"
@@ -245,7 +213,7 @@ if __name__ == "__main__":
         esoil_rn2, esoil_tdr_rn2, soilmoist_rn2, soilmoist_tdr_rn2, evap_rn2 = \
                       main(fobs, fcable, case_name[1], ring, layer)
 
-        fig = plt.figure(figsize=[15,10])
+        fig = plt.figure(figsize=[10,10])
         fig.subplots_adjust(hspace=0.1)
         fig.subplots_adjust(wspace=0.05)
         plt.rcParams['text.usetex'] = False
@@ -270,18 +238,20 @@ if __name__ == "__main__":
         plt.rcParams['axes.edgecolor'] = almost_black
         plt.rcParams['axes.labelcolor'] = almost_black
 
-        ax1 = fig.add_subplot(121)
-        ax2 = fig.add_subplot(122)
+        ax1 = fig.add_subplot(211)
+        ax2 = fig.add_subplot(212)
 
         #ax1.scatter(lct1, esoil_rn1, s=2., marker='o', c='orange', label="def")
         #ax1.scatter(lct1, esoil_rn2, s=2., marker='o', c='green', label="imp")
         #ax1.scatter(lct1, esoil_tdr_rn1, s=2., marker='o', c='gray', label="obs")
 
-        lct = [0,1,2,3,4,5,6,7]
+        lct = [0,1,2,3,4,5,6,7,8,9,10]
         soilmoist1 = np.mean(soilmoist_rn1, axis=0)
         soilmoist2 = np.mean(soilmoist_rn2, axis=0)
         soilmoist_tdr = np.mean(soilmoist_tdr_rn1, axis=0)
-
+        print('===========================')
+        print(soilmoist_tdr_rn1)
+        print('===========================')
         soilmoist_std1    = np.std(soilmoist_rn1,   axis=0, ddof = 1)
         soilmoist_std2    = np.std(soilmoist_rn2,   axis=0, ddof = 1)
         soilmoist_tdr_std = np.std(soilmoist_tdr_rn1,axis=0, ddof = 1)
@@ -317,9 +287,9 @@ if __name__ == "__main__":
         ax2.scatter(lct, evap1, marker='o', c='',edgecolors='orange',label="def")
         ax2.scatter(lct, evap2, marker='o', c='',edgecolors='green',label="imp")
         '''
-        ax1.set_xlim(-0.5,7.5)
-        ax2.set_xlim(-0.5,7.5)
+        ax1.set_xlim(-0.5,10.5)
+        ax2.set_xlim(-0.5,10.5)
         # ax1.set_ylim(-0.1,1.)
         ax1.legend()
         ax2.legend()
-        fig.savefig("EucFACE_ET-SM_after_rain_%s.png" % (ring),bbox_inches='tight')#, pad_inches=0.1)
+        fig.savefig("EucFACE_ET-SM_after_rain_10days_%s.png" % (ring),bbox_inches='tight')#, pad_inches=0.1)
