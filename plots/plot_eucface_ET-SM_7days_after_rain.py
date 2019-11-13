@@ -23,7 +23,7 @@ from scipy.interpolate import griddata
 import scipy.stats as stats
 from sklearn.metrics import mean_squared_error
 
-def main(fobs, fcable, case_name, ring, layer):
+def main(fobs, fcable, case_name, ring, layer, ss):
 
     tdr = pd.read_csv(fobs, usecols = ['Ring','Date','swc.tdr'])
     tdr['Date'] = pd.to_datetime(tdr['Date'],format="%Y-%m-%d",infer_datetime_format=False)
@@ -130,9 +130,24 @@ def main(fobs, fcable, case_name, ring, layer):
     Evap.index = Evap.index.days
     #evap       = Evap['Evap'].loc[Evap.index.isin(subset.index)]
 
+    if ss > 0 :
+        season = np.arange('2013-01-01', '2019-07-02', dtype='datetime64[D]')
+        season = np.datetime_as_string(season, unit='D')
+        Season = np.arange(0, len(season))
+        print(season)
+        for i in np.arange(0,len(season),1):
+            if season[i][5:7] in ['01','02','12']:
+                Season[i] = 1
+            elif season[i][5:7] in ['03','04','05']:
+                Season[i] = 2
+            elif season[i][5:7] in ['06','07','08']:
+                Season[i] = 3
+            elif season[i][5:7] in ['09','10','11']:
+                Season[i] = 4
+        print(Season)
     # exclude rainday and the after two days of rain
     day      = np.zeros((len(Rainf),8), dtype=bool)
-    for i in np.arange(1,len(Rainf)-7):
+    for i in np.arange(2,len(Rainf)-7):
         a = np.all([Rainf.values[i+1] == 0., Rainf.values[i+2] == 0., Rainf.values[i+3] == 0.,\
                     Rainf.values[i+4] == 0., Rainf.values[i+5] == 0., Rainf.values[i+6] == 0.,\
                     Rainf.values[i+7] == 0.])
@@ -142,8 +157,12 @@ def main(fobs, fcable, case_name, ring, layer):
         c = np.any([np.isnan(subset['Esoil'].values[i+1]), np.isnan(subset['Esoil'].values[i+2]), np.isnan(subset['Esoil'].values[i+3]),\
                     np.isnan(subset['Esoil'].values[i+4]), np.isnan(subset['Esoil'].values[i+5]), np.isnan(subset['Esoil'].values[i+6]),\
                     np.isnan(subset['Esoil'].values[i+7]), np.isnan(subset['Esoil'].values[i])])
-        d = Rainf.values[i] > 0.5 or (Rainf.values[i-1] > 1. and Rainf.values[i] > 0.1)
-        if (d and a and (not b) and (not c)):
+        d = Rainf.values[i] > 0.5 or (Rainf.values[i-1] > 0.5 and Rainf.values[i] > 0.0) or (Rainf.values[i-2] > 10. and Rainf.values[i] > 0.0)
+        if ss > 0:
+            e = Season[i] == ss
+        else:
+            e = True
+        if (e and d and a and (not b) and (not c) ):
             print(np.isnan(subset['swc.tdr'].values[i:i+7]))
             print(np.isnan(subset['Esoil'].values[i:i+7]))
             day[i,0]   = True
@@ -192,22 +211,27 @@ if __name__ == "__main__":
                  "ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off-litter_Hvrd"]
 
     rings = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
-
+    ss    = 0
+            # 1 summer
+            # 2 autumn
+            # 3 winter
+            # 4 spring
+            # 0 year
     for ring in rings:
         layer =  "6"
         fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
         fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" \
                     % (case_name[0], ring)
         esoil_rn1, esoil_tdr_rn1, soilmoist_rn1, soilmoist_tdr_rn1, evap_rn1 = \
-                      main(fobs, fcable, case_name[0], ring, layer)
+                      main(fobs, fcable, case_name[0], ring, layer, ss)
 
         layer =  "31uni"
         fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" \
                     % (case_name[1], ring)
         esoil_rn2, esoil_tdr_rn2, soilmoist_rn2, soilmoist_tdr_rn2, evap_rn2 = \
-                      main(fobs, fcable, case_name[1], ring, layer)
+                      main(fobs, fcable, case_name[1], ring, layer, ss)
 
-        fig = plt.figure(figsize=[10,10])
+        fig = plt.figure(figsize=[15,10])
         fig.subplots_adjust(hspace=0.1)
         fig.subplots_adjust(wspace=0.05)
         plt.rcParams['text.usetex'] = False
@@ -258,22 +282,22 @@ if __name__ == "__main__":
         print(evap_rn1)
         print('===========================')
 
-        ax1.plot(lct, soilmoist1, c='orange', label="def")
-        ax1.plot(lct, soilmoist2, c='green', label="imp")
-        ax1.plot(lct, soilmoist_tdr, c='blue', label="obs")
-        ax1.fill_between(lct, soilmoist1 - soilmoist_std1, soilmoist1 + soilmoist_std1,\
-                        alpha=0.2, edgecolor='', facecolor='orange')
-        ax1.fill_between(lct, soilmoist2 - soilmoist_std2, soilmoist2 + soilmoist_std2,\
-                        alpha=0.2, edgecolor='', facecolor='green')
-        ax1.fill_between(lct, soilmoist_tdr - soilmoist_tdr_std, soilmoist_tdr + soilmoist_tdr_std,\
-                        alpha=0.2, edgecolor='', facecolor='blue')
+        ax1.plot(lct, soilmoist1,lw= 2., c='orange', label="def")
+        ax1.plot(lct, soilmoist2, lw= 2., c='green', label="imp")
+        ax1.plot(lct, soilmoist_tdr, lw= 2., c='blue', label="obs")
+        #ax1.fill_between(lct, soilmoist1 - soilmoist_std1, soilmoist1 + soilmoist_std1,\
+        #                alpha=0.2, edgecolor='', facecolor='orange')
+        #ax1.fill_between(lct, soilmoist2 - soilmoist_std2, soilmoist2 + soilmoist_std2,\
+        #                alpha=0.2, edgecolor='', facecolor='green')
+        #ax1.fill_between(lct, soilmoist_tdr - soilmoist_tdr_std, soilmoist_tdr + soilmoist_tdr_std,\
+        #                alpha=0.2, edgecolor='', facecolor='blue')
 
-        ax2.plot(lct, evap1, c='orange', label="def")
-        ax2.plot(lct, evap2, c='green', label="imp")
-        ax2.fill_between(lct, evap1 - evap_std1, evap1 + evap_std1, \
-                alpha=0.2, edgecolor='', facecolor='orange')
-        ax2.fill_between(lct, evap2 - evap_std2, evap2 + evap_std2, \
-                alpha=0.2, edgecolor='', facecolor='green')
+        ax2.plot(lct, evap1, lw= 2., c='orange', label="def")
+        ax2.plot(lct, evap2, lw= 2., c='green', label="imp")
+        #ax2.fill_between(lct, evap1 - evap_std1, evap1 + evap_std1, \
+        #        alpha=0.2, edgecolor='', facecolor='orange')
+        #ax2.fill_between(lct, evap2 - evap_std2, evap2 + evap_std2, \
+        #        alpha=0.2, edgecolor='', facecolor='green')
 
         '''
         ax1.scatter(lct, soilmoist1, marker='o', c='',edgecolors='orange', label="def") # s=2.,
@@ -284,8 +308,20 @@ if __name__ == "__main__":
         ax2.scatter(lct, evap2, marker='o', c='',edgecolors='green',label="imp")
         '''
         ax1.set_xlim(-0.5,7.5)
+        ax1.set_ylim(-0.03,0.01)
         ax2.set_xlim(-0.5,7.5)
-        # ax1.set_ylim(-0.1,1.)
+        ax2.set_ylim(0.,2.)
+
+        title = ["Year","Summer","Autumn","Winter","Spring"]
+        ax1.set_title(title[ss])
+        cleaner_dates = ["0","1","2","3","4","5","6","7"]
+        xtickslocs = [0,1,2,3,4,5,6,7]
+        ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+        ax1.set_ylabel("$VWC - VWC_{day0}  (m^{3} m^{-3})$")
         ax1.legend()
+
+        ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+        ax2.set_ylabel("$ET/ET_{day0}$ (-)")
+        ax2.set_xlabel("Days After Rainfall")
         ax2.legend()
-        fig.savefig("EucFACE_ET-SM_after_rain_7days_%s.png" % (ring),bbox_inches='tight')#, pad_inches=0.1)
+        fig.savefig("EucFACE_ET-SM_after_rain_7days_%s-%s.png" % (ring, title[ss]),bbox_inches='tight')#, pad_inches=0.1)

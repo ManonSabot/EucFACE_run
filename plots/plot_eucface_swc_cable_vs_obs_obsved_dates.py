@@ -73,15 +73,24 @@ def main(fobs, fcable, case_name, ring, contour, layer):
 #    date_end   = date_end.days
 
     # Interpolate
-    x     = subset.index.get_level_values(1).values #, \
-            #                np.concatenate((subset[(25)].index.values,               \
-            #                subset[(450)].index.values ))              # time
-    y     = subset.index.get_level_values(0).values#, \
-            #                np.concatenate(([0]*len(subset[(25)]),                   \
-            #                [460]*len(subset[(25)])    ))
-    value = subset.values
-            #                np.concatenate((subset[(25)].values,
-            #                , subset[(450)].values))
+    if contour:
+        x     = np.concatenate((subset[(25)].index.values,               \
+                                subset.index.get_level_values(1).values, \
+                                subset[(450)].index.values ))            # time
+        y     = np.concatenate(([0]*len(subset[(25)]),                  \
+                                subset.index.get_level_values(0).values, \
+                                [460]*len(subset[(25)])    ))
+        value =  np.concatenate((subset[(25)].values, subset.values, subset[(450)].values))
+    else :
+        x     = subset.index.get_level_values(1).values #, \
+                #                np.concatenate((subset[(25)].index.values,               \
+                #                subset[(450)].index.values ))              # time
+        y     = subset.index.get_level_values(0).values#, \
+                #                np.concatenate(([0]*len(subset[(25)]),                   \
+                #                [460]*len(subset[(25)])    ))
+        value = subset.values
+                #                np.concatenate((subset[(25)].values,
+                #                , subset[(450)].values))
     # get_level_values(1) : Return an Index of values for requested level.
     # add Depth = 0 and Depth = 460
 
@@ -93,8 +102,10 @@ def main(fobs, fcable, case_name, ring, contour, layer):
     grid_X, grid_Y = np.meshgrid(X,Y)
     print(grid_X.shape)
     # interpolate
-    grid_data = griddata((x, y) , value, (grid_X, grid_Y), method='nearest')
-    #'cubic')#'linear')#'nearest')
+    if contour:
+        grid_data = griddata((x, y) , value, (grid_X, grid_Y), method='cubic')
+    else:
+        grid_data = griddata((x, y) , value, (grid_X, grid_Y), method='nearest')
     print(grid_data.shape)
 
 # ____________________ Plot obs _______________________
@@ -222,15 +233,22 @@ def main(fobs, fcable, case_name, ring, contour, layer):
     ntimes      = len(np.unique(SoilMoist['dates']))
     dates       = np.unique(SoilMoist['dates'].values)
     print(dates)
-    x_cable     = SoilMoist['dates'].values
-                  #np.concatenate(( dates,
-                  #,dates)) # Time
-    y_cable     = SoilMoist['Depth'].values
-                  #np.concatenate(([0]*ntimes,
-                  #,[460]*ntimes))# Depth
-    value_cable = SoilMoist.iloc[:,2].values#,         \
-                  #np.concatenate(( SoilMoist.iloc[:ntimes,2].values, \
-                  #SoilMoist.iloc[-(ntimes):,2].values ))
+    if contour:
+        x_cable     = np.concatenate(( dates, SoilMoist['dates'].values,dates)) # Time
+        y_cable     = np.concatenate(([0]*ntimes,SoilMoist['Depth'].values,[460]*ntimes))# Depth
+        value_cable = np.concatenate(( SoilMoist.iloc[:ntimes,2].values, \
+                                       SoilMoist.iloc[:,2].values,         \
+                                       SoilMoist.iloc[-(ntimes):,2].values ))
+    else:
+        x_cable     = SoilMoist['dates'].values
+                      #np.concatenate(( dates,
+                      #,dates)) # Time
+        y_cable     = SoilMoist['Depth'].values
+                      #np.concatenate(([0]*ntimes,
+                      #,[460]*ntimes))# Depth
+        value_cable = SoilMoist.iloc[:,2].values#,         \
+                      #np.concatenate(( SoilMoist.iloc[:ntimes,2].values, \
+                      #SoilMoist.iloc[-(ntimes):,2].values ))
     value_cable = value_cable*100.
     # add the 12 depths to 0
     X_cable     = X #np.arange(date_start_cable,date_end_cable,1) # 2013-1-1 to 2016-12-31
@@ -238,14 +256,19 @@ def main(fobs, fcable, case_name, ring, contour, layer):
     grid_X_cable, grid_Y_cable = np.meshgrid(X_cable,Y_cable)
 
     # interpolate
-    grid_cable = griddata((x_cable, y_cable) , value_cable, (grid_X_cable, grid_Y_cable),\
+    if contour:
+        grid_cable = griddata((x_cable, y_cable) , value_cable, (grid_X_cable, grid_Y_cable),\
+                 method='cubic')
+                 #'cubic')#'linear')#
+    else:
+        grid_cable = griddata((x_cable, y_cable) , value_cable, (grid_X_cable, grid_Y_cable),\
                  method='nearest')
                  #'cubic')#'linear')#'nearest')
 
     ax2 = fig.add_subplot(312)#, sharey = ax1)#(nrows=2, ncols=2, index=2, sharey=ax1)
 
     if contour:
-        img2 = ax2.contourf(grid_cable, cmap=cmap, origin="upper", levels=levels)
+        img2 = ax2.contourf(grid_cable, cmap=cmap, origin="upper", levels=levels,interpolation='nearest')
         Y_labels2 = np.flipud(Y)
     else:
         img2 = ax2.imshow(grid_cable, cmap=cmap, vmin=0, vmax=52, origin="upper", interpolation='nearest')
@@ -307,12 +330,13 @@ def main(fobs, fcable, case_name, ring, contour, layer):
 
 if __name__ == "__main__":
 
-    contour = False
+    contour = True
     #  True for contour
     #  False for raster
     layer =  "31uni"
 
-    cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off_Hvrd"]
+    cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off-litter_Hvrd"]
+    #["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off_Hvrd"]
     #["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off-litter_Hvrd"]
     #["default-met_only_or-off"]
     # 6
@@ -328,7 +352,7 @@ if __name__ == "__main__":
     #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-uni",\
     #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-log10"]
 
-    rings = ["R1","R2","R3","R4","R5","R6","amb","ele"]
+    rings = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
     for case_name in cases:
         for ring in rings:
             fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"

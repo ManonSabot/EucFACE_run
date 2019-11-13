@@ -328,9 +328,9 @@ def main(fobs_Esoil, fobs, fcable, case_name, ring, layer):
     ax1.plot(x, sfc,             c="black", lw=1.0, ls="-.", label="sfc")
     ax1.plot(x, ssat,            c="black", lw=1.0, ls=":", label="ssat")
     ax3.plot(x, Fwsoil.values,   c="forestgreen", lw=1.0, ls="-", label="Fwsoil")
-    ax5.plot(x, TVeg['TVeg'],     c="green", lw=1.0, ls="-", label="TVeg") #.rolling(window=7).mean()
-    ax5.plot(x, ESoil['ESoil'],    c="orange", lw=1.0, ls="-", label="ESoil") #.rolling(window=7).mean()
-    ax5.scatter(subs.index, subs['wuTP'], s=1., c='red', marker='.', label="ESoil-obs") # subs['EfloorPred']
+    ax5.plot(x, TVeg['TVeg'].rolling(window=5).mean(),     c="green", lw=1.0, ls="-", label="Trans") #.rolling(window=7).mean()
+    ax5.plot(x, ESoil['ESoil'].rolling(window=5).mean(),    c="orange", lw=1.0, ls="-", label="ESoil") #.rolling(window=7).mean()
+    ax5.scatter(subs.index, subs['wuTP'], marker='o', c='',edgecolors='red', s = 2., label="ESoil Obs") # subs['EfloorPred']
 
     #ax7.plot(x, Tair['Tair'].rolling(window=7).mean(),     c="red",    lw=1.0, ls="-", label="Tair")
     #ax7.plot(x, VegT['VegT'].rolling(window=7).mean(),     c="orange", lw=1.0, ls="-", label="VegT")
@@ -366,9 +366,9 @@ def main(fobs_Esoil, fobs, fcable, case_name, ring, layer):
 
     #plt.setp(ax5.get_xticklabels(), visible=False)
     ax5.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
-    ax5.set_ylabel("TVeg, ESoil (mm/day)")
+    ax5.set_ylabel("ET ($mm d^{-1}$)")
     ax5.axis('tight')
-    ax5.set_ylim(0.,4.)
+    ax5.set_ylim(0.,4.5)
     ax5.set_xlim(367,2739)
     ax5.legend()
     '''
@@ -419,9 +419,10 @@ def main(fobs_Esoil, fobs, fcable, case_name, ring, layer):
 
 if __name__ == "__main__":
 
-    layer =  "31uni"
+    layer = "6" #"31uni"
 
-    cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off_Hvrd"]
+    cases =["default-met_only_or-off"]
+    #["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off-litter_Hvrd"]
         #["default-met_only_or-off"]
         #["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off-litter"]
         #["default-met_only_or-off"]
@@ -458,7 +459,7 @@ if __name__ == "__main__":
     #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-uni",\
     #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-log10"]
 
-    rings = ["R1","R2","R3","R4","R5","R6","amb","ele"]
+    rings = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
     '''
     hyds_value = [1e3,1e2,1e1,1.,1e-1,1e-2,1e-3,1e-4,1e-5,1e-6]
     bch_value  = np.arange(1.,11.,1.)
