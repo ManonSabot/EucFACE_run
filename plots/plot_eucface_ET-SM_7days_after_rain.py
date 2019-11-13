@@ -22,6 +22,7 @@ import netCDF4 as nc
 from scipy.interpolate import griddata
 import scipy.stats as stats
 from sklearn.metrics import mean_squared_error
+from pygam import LinearGAM
 
 def main(fobs, fcable, case_name, ring, layer, ss):
 
@@ -46,7 +47,6 @@ def main(fobs, fcable, case_name, ring, layer, ss):
     subset['Esoil']     = subset['Esoil'].clip(lower=0.)
     subset['Esoil']     = subset['Esoil'].replace(0., float('nan'))
     #subset = subset.xs('swc.tdr', axis=1, drop_level=True)
-    print(subset)
 
 # _________________________ CABLE ___________________________
     cable = nc.Dataset(fcable, 'r')
@@ -175,6 +175,7 @@ def main(fobs, fcable, case_name, ring, layer, ss):
             day[i+7,7] = True
 
     event = len(ESoil[day[:,0] == True])
+    lct_nD          = np.zeros((event,8))
     esoil_rn        = np.zeros((event,8))
     esoil_tdr_rn    = np.zeros((event,8))
     soilmoist_rn    = np.zeros((event,8))
@@ -185,6 +186,7 @@ def main(fobs, fcable, case_name, ring, layer, ss):
     print("____________________________________________")
 
     for i in np.arange(0,8):
+        lct_nD[:,i]       = i
         esoil_rn[:,i]     = ESoil['ESoil'][day[:,i] == True].values
         esoil_tdr_rn[:,i] = subset['Esoil'][day[:,i] == True].values
 
@@ -203,7 +205,7 @@ def main(fobs, fcable, case_name, ring, layer, ss):
     soilmoist_tdr_rn[:,0] = 0.
     evap_rn[:,0]          = 1.
 
-    return esoil_rn,esoil_tdr_rn,soilmoist_rn,soilmoist_tdr_rn,evap_rn;
+    return lct_nD, esoil_rn,esoil_tdr_rn,soilmoist_rn,soilmoist_tdr_rn,evap_rn;
 
 if __name__ == "__main__":
 
@@ -211,24 +213,20 @@ if __name__ == "__main__":
                  "ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off-litter_Hvrd"]
 
     rings = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
-    ss    = 0
-            # 1 summer
-            # 2 autumn
-            # 3 winter
-            # 4 spring
-            # 0 year
+    ss    = 0   # 1 summer # 2 autumn # 3 winter # 4 spring # 0 year
+    plot_type = "GAM" # "linear" # "scatter"
     for ring in rings:
         layer =  "6"
         fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
         fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" \
                     % (case_name[0], ring)
-        esoil_rn1, esoil_tdr_rn1, soilmoist_rn1, soilmoist_tdr_rn1, evap_rn1 = \
+        lct_nD, esoil_rn1, esoil_tdr_rn1, soilmoist_rn1, soilmoist_tdr_rn1, evap_rn1 = \
                       main(fobs, fcable, case_name[0], ring, layer, ss)
-
+        print(soilmoist_tdr_rn1.shape)
         layer =  "31uni"
         fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" \
                     % (case_name[1], ring)
-        esoil_rn2, esoil_tdr_rn2, soilmoist_rn2, soilmoist_tdr_rn2, evap_rn2 = \
+        lct_nD, esoil_rn2, esoil_tdr_rn2, soilmoist_rn2, soilmoist_tdr_rn2, evap_rn2 = \
                       main(fobs, fcable, case_name[1], ring, layer, ss)
 
         fig = plt.figure(figsize=[15,10])
@@ -259,54 +257,84 @@ if __name__ == "__main__":
         ax1 = fig.add_subplot(211)
         ax2 = fig.add_subplot(212)
 
-        #ax1.scatter(lct1, esoil_rn1, s=2., marker='o', c='orange', label="def")
-        #ax1.scatter(lct1, esoil_rn2, s=2., marker='o', c='green', label="imp")
-        #ax1.scatter(lct1, esoil_tdr_rn1, s=2., marker='o', c='gray', label="obs")
 
-        lct = [0,1,2,3,4,5,6,7]
-        soilmoist1 = np.mean(soilmoist_rn1, axis=0)
-        soilmoist2 = np.mean(soilmoist_rn2, axis=0)
-        soilmoist_tdr = np.mean(soilmoist_tdr_rn1, axis=0)
-        print('===========================')
-        print(soilmoist_tdr_rn1)
-        print('===========================')
-        soilmoist_std1    = np.std(soilmoist_rn1,   axis=0, ddof = 1)
-        soilmoist_std2    = np.std(soilmoist_rn2,   axis=0, ddof = 1)
-        soilmoist_tdr_std = np.std(soilmoist_tdr_rn1,axis=0, ddof = 1)
+        if plot_type == "GAM":
+            nsplines = 20
+            lct = [0,1,2,3,4,5,6,7]
+            gam1 = LinearGAM(n_splines=nsplines).gridsearch(lct,soilmoist_tdr_rn1) #np.ravel(
+            x_pred = np.linspace(min(lct), max(lct), num=100)
+            y_pred1 = gam1.predict(x_pred)
+            y_int1 = gam1.confidence_intervals(x_pred, width=.95)
 
-        evap1 = np.mean(evap_rn1, axis=0)
-        evap2 = np.mean(evap_rn2, axis=0)
-        evap_std1 = np.std(evap_rn1, axis=0, ddof = 1)
-        evap_std2 = np.std(evap_rn2, axis=0, ddof = 1)
-        print('===========================')
-        print(evap_rn1)
-        print('===========================')
+            gam2 = LinearGAM(n_splines=nsplines).gridsearch(lct_nD, soilmoist_rn1)
+            y_pred2 = gam2.predict(x_pred)
+            y_int2 = gam2.confidence_intervals(x_pred, width=.95)
 
-        ax1.plot(lct, soilmoist1,lw= 2., c='orange', label="def")
-        ax1.plot(lct, soilmoist2, lw= 2., c='green', label="imp")
-        ax1.plot(lct, soilmoist_tdr, lw= 2., c='blue', label="obs")
-        #ax1.fill_between(lct, soilmoist1 - soilmoist_std1, soilmoist1 + soilmoist_std1,\
-        #                alpha=0.2, edgecolor='', facecolor='orange')
-        #ax1.fill_between(lct, soilmoist2 - soilmoist_std2, soilmoist2 + soilmoist_std2,\
-        #                alpha=0.2, edgecolor='', facecolor='green')
-        #ax1.fill_between(lct, soilmoist_tdr - soilmoist_tdr_std, soilmoist_tdr + soilmoist_tdr_std,\
-        #                alpha=0.2, edgecolor='', facecolor='blue')
+            gam3 = LinearGAM(n_splines=nsplines).gridsearch(lct_nD, soilmoist_rn2)
+            y_pred3 = gam3.predict(x_pred)
+            y_int3 = gam3.confidence_intervals(x_pred, width=.95)
 
-        ax2.plot(lct, evap1, lw= 2., c='orange', label="def")
-        ax2.plot(lct, evap2, lw= 2., c='green', label="imp")
-        #ax2.fill_between(lct, evap1 - evap_std1, evap1 + evap_std1, \
-        #        alpha=0.2, edgecolor='', facecolor='orange')
-        #ax2.fill_between(lct, evap2 - evap_std2, evap2 + evap_std2, \
-        #        alpha=0.2, edgecolor='', facecolor='green')
+            ax1.plot(x_pred, y_pred1, color="orange", ls='-', lw=2.0, zorder=10, label="def")
+            ax1.fill_between(x_pred, y_int1[:, 0], y_int1[:, 1], alpha=0.2, facecolor='orange', zorder=10)
+            ax1.plot(x_pred, y_pred2, color="green", ls='-', lw=2.0, zorder=10, label="imp")
+            ax1.fill_between(x_pred, y_int2[:, 0], y_int2[:, 1], alpha=0.2, facecolor='green', zorder=10)
+            ax1.plot(x_pred, y_pred3, color="blue", ls='-', lw=2.0, zorder=10, label="obs")
+            ax1.fill_between(x_pred, y_in3[:, 0], y_int3[:, 1], alpha=0.2, facecolor='blue', zorder=10)
 
-        '''
-        ax1.scatter(lct, soilmoist1, marker='o', c='',edgecolors='orange', label="def") # s=2.,
-        ax1.scatter(lct, soilmoist2, marker='o', c='',edgecolors='green', label="imp")
-        ax1.scatter(lct, soilmoist_tdr, marker='o', c='',edgecolors='blue', label="obs")
+            gam4 = LinearGAM(n_splines=nsplines).gridsearch(lct_nD, evap_rn1)
+            y_pred4 = gam4.predict(x_pred)
+            y_int4 = gam4.confidence_intervals(x_pred, width=.95)
 
-        ax2.scatter(lct, evap1, marker='o', c='',edgecolors='orange',label="def")
-        ax2.scatter(lct, evap2, marker='o', c='',edgecolors='green',label="imp")
-        '''
+            gam5 = LinearGAM(n_splines=nsplines).gridsearch(lct_nD, evap_rn2)
+            y_pred5 = gam5.predict(x_pred)
+            y_int5 = gam5.confidence_intervals(x_pred, width=.95)
+
+            ax2.plot(x_pred, y_pred4, color="orange", ls='-', lw=2.0, zorder=10, label="def")
+            ax2.fill_between(x_pred, y_int4[:, 0], y_int4[:, 1], alpha=0.2, facecolor='orange', zorder=10)
+            ax2.plot(x_pred, y_pred5, color="green", ls='-', lw=2.0, zorder=10, label="imp")
+            ax2.fill_between(x_pred, y_int5[:, 0], y_int5[:, 1], alpha=0.2, facecolor='green', zorder=10)
+
+        elif plot_type == "linear" :
+            lct = [0,1,2,3,4,5,6,7]
+            soilmoist1 = np.mean(soilmoist_rn1, axis=0)
+            soilmoist2 = np.mean(soilmoist_rn2, axis=0)
+            soilmoist_tdr = np.mean(soilmoist_tdr_rn1, axis=0)
+            soilmoist_std1    = np.std(soilmoist_rn1,   axis=0, ddof = 1)
+            soilmoist_std2    = np.std(soilmoist_rn2,   axis=0, ddof = 1)
+            soilmoist_tdr_std = np.std(soilmoist_tdr_rn1,axis=0, ddof = 1)
+
+            evap1 = np.mean(evap_rn1, axis=0)
+            evap2 = np.mean(evap_rn2, axis=0)
+            evap_std1 = np.std(evap_rn1, axis=0, ddof = 1)
+            evap_std2 = np.std(evap_rn2, axis=0, ddof = 1)
+
+            ax1.plot(lct, soilmoist1,lw= 2., c='orange', label="def")
+            ax1.plot(lct, soilmoist2, lw= 2., c='green', label="imp")
+            ax1.plot(lct, soilmoist_tdr, lw= 2., c='blue', label="obs")
+            #ax1.fill_between(lct, soilmoist1 - soilmoist_std1, soilmoist1 + soilmoist_std1,\
+            #                alpha=0.2, edgecolor='', facecolor='orange')
+            #ax1.fill_between(lct, soilmoist2 - soilmoist_std2, soilmoist2 + soilmoist_std2,\
+            #                alpha=0.2, edgecolor='', facecolor='green')
+            #ax1.fill_between(lct, soilmoist_tdr - soilmoist_tdr_std, soilmoist_tdr + soilmoist_tdr_std,\
+            #                alpha=0.2, edgecolor='', facecolor='blue')
+
+            ax2.plot(lct, evap1, lw= 2., c='orange', label="def")
+            ax2.plot(lct, evap2, lw= 2., c='green', label="imp")
+            #ax2.fill_between(lct, evap1 - evap_std1, evap1 + evap_std1, \
+            #        alpha=0.2, edgecolor='', facecolor='orange')
+            #ax2.fill_between(lct, evap2 - evap_std2, evap2 + evap_std2, \
+            #        alpha=0.2, edgecolor='', facecolor='green')
+        elif plot_type == "scatter":
+            lct = [0,1,2,3,4,5,6,7]
+            ax1.scatter(lct, esoil_rn1, s=2., marker='o', c='orange', label="def")
+            ax1.scatter(lct, esoil_rn2, s=2., marker='o', c='green', label="imp")
+            ax1.scatter(lct, esoil_tdr_rn1, s=2., marker='o', c='gray', label="obs")
+            ax1.scatter(lct, soilmoist1, marker='o', c='',edgecolors='orange', label="def") # s=2.,
+            ax1.scatter(lct, soilmoist2, marker='o', c='',edgecolors='green', label="imp")
+            ax1.scatter(lct, soilmoist_tdr, marker='o', c='',edgecolors='blue', label="obs")
+            ax2.scatter(lct, evap1, marker='o', c='',edgecolors='orange',label="def")
+            ax2.scatter(lct, evap2, marker='o', c='',edgecolors='green',label="imp")
+
         ax1.set_xlim(-0.5,7.5)
         ax1.set_ylim(-0.03,0.01)
         ax2.set_xlim(-0.5,7.5)
