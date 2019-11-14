@@ -175,35 +175,35 @@ def main(fobs, fcable, case_name, ring, layer, ss):
             day[i+7,7] = True
 
     event = len(ESoil[day[:,0] == True])
-    lct_nD          = np.zeros((event,8))
-    esoil_rn        = np.zeros((event,8))
-    esoil_tdr_rn    = np.zeros((event,8))
-    soilmoist_rn    = np.zeros((event,8))
-    soilmoist_tdr_rn= np.zeros((event,8))
-    evap_rn         = np.zeros((event,8))
+    lct_nD          = np.zeros((8,event))
+    esoil_rn        = np.zeros((8,event))
+    esoil_tdr_rn    = np.zeros((8,event))
+    soilmoist_rn    = np.zeros((8,event))
+    soilmoist_tdr_rn= np.zeros((8,event))
+    evap_rn         = np.zeros((8,event))
     print("____________________________________________")
     print(event)
     print("____________________________________________")
 
     for i in np.arange(0,8):
-        lct_nD[:,i]       = i
-        esoil_rn[:,i]     = ESoil['ESoil'][day[:,i] == True].values
-        esoil_tdr_rn[:,i] = subset['Esoil'][day[:,i] == True].values
+        lct_nD[i,:]       = i
+        esoil_rn[i,:]     = ESoil['ESoil'][day[:,i] == True].values
+        esoil_tdr_rn[i,:] = subset['Esoil'][day[:,i] == True].values
 
         if i == 0 :
             # the rainday
-            soilmoist_rn[:,i]     = SoilMoist['SoilMoist'][day[:,i] == True].values
-            soilmoist_tdr_rn[:,i] = subset['swc.tdr'][day[:,i] == True].values
-            evap_rn[:,i]          = Evap['Evap'][day[:,i] == True].values
+            soilmoist_rn[i,:]     = SoilMoist['SoilMoist'][day[:,i] == True].values
+            soilmoist_tdr_rn[i,:] = subset['swc.tdr'][day[:,i] == True].values
+            evap_rn[i,:]          = Evap['Evap'][day[:,i] == True].values
         else:
             # 10 days after rainday
-            soilmoist_rn[:,i]     = SoilMoist['SoilMoist'][day[:,i] == True].values - soilmoist_rn[:,0]
-            soilmoist_tdr_rn[:,i] = subset['swc.tdr'][day[:,i] == True].values  - soilmoist_tdr_rn[:,0]
-            evap_rn[:,i]          = Evap['Evap'][day[:,i] == True].values/evap_rn[:,0]
+            soilmoist_rn[i,:]     = SoilMoist['SoilMoist'][day[:,i] == True].values - soilmoist_rn[0,:]
+            soilmoist_tdr_rn[i,:] = subset['swc.tdr'][day[:,i] == True].values  - soilmoist_tdr_rn[0,:]
+            evap_rn[i,:]          = Evap['Evap'][day[:,i] == True].values/evap_rn[0,:]
 
-    soilmoist_rn[:,0]     = 0.
-    soilmoist_tdr_rn[:,0] = 0.
-    evap_rn[:,0]          = 1.
+    soilmoist_rn[0,:]     = 0.
+    soilmoist_tdr_rn[0,:] = 0.
+    evap_rn[0,:]          = 1.
 
     return lct_nD, esoil_rn,esoil_tdr_rn,soilmoist_rn,soilmoist_tdr_rn,evap_rn;
 
@@ -260,13 +260,15 @@ if __name__ == "__main__":
 
         if plot_type == "GAM":
             nsplines = 20
-            lct = [0,1,2,3,4,5,6,7]
-            gam1 = LinearGAM(n_splines=nsplines).gridsearch(lct,soilmoist_tdr_rn1) #np.ravel(
+            lct = np.arange(0,8)
+            gam1 = LinearGAM(n_splines=nsplines).gridsearch(soilmoist_tdr_rn1,lct) #np.ravel(
             x_pred = np.linspace(min(lct), max(lct), num=100)
             y_pred1 = gam1.predict(x_pred)
             y_int1 = gam1.confidence_intervals(x_pred, width=.95)
 
-            gam2 = LinearGAM(n_splines=nsplines).gridsearch(lct_nD, soilmoist_rn1)
+
+
+            gam2 = LinearGAM(n_splines=nsplines).gridsearch(lct,soilmoist_tdr_rn1)
             y_pred2 = gam2.predict(x_pred)
             y_int2 = gam2.confidence_intervals(x_pred, width=.95)
 
