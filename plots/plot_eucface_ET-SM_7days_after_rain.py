@@ -236,7 +236,7 @@ if __name__ == "__main__":
         plt.rcParams['font.family'] = "sans-serif"
         plt.rcParams['font.sans-serif'] = "Helvetica"
         plt.rcParams['axes.labelsize'] = 14
-        plt.rcParams['font.size'] = 14
+        plt.rcParams['font.size'] = 1
         plt.rcParams['legend.fontsize'] = 10
         plt.rcParams['xtick.labelsize'] = 14
         plt.rcParams['ytick.labelsize'] = 14
@@ -257,17 +257,25 @@ if __name__ == "__main__":
         ax1 = fig.add_subplot(211)
         ax2 = fig.add_subplot(212)
 
-
         if plot_type == "GAM":
             nsplines = 20
-            lct = np.arange(0,8)
+
+            x = np.tile(np.arange(8),22)
+            y = soilmoist_tdr_rn1
+            gam = LinearGAM(n_splines=nsplines).gridsearch(x, y)
+            x_pred = np.linspace(min(x), max(x), num=100)
+            y_pred = gam.predict(x_pred)
+            y_int = gam.confidence_intervals(x_pred, width=.95)
+            '''
+            lct = np.tile(np.arange(8),22)
             gam1 = LinearGAM(n_splines=nsplines).gridsearch(soilmoist_tdr_rn1,lct) #np.ravel(
-            x_pred = np.linspace(min(lct), max(lct), num=100)
-            y_pred1 = gam1.predict(x_pred)
-            y_int1 = gam1.confidence_intervals(x_pred, width=.95)
-
-
-
+            print(gam1)
+            x_pred = np.linspace(0, 8, num=100)
+            y_pred1 = gam1.predict(soilmoist_tdr_rn1)
+            y_int1 = gam1.confidence_intervals(soilmoist_tdr_rn1, width=.95)
+            print(y_pred1)
+            print(y_int1)
+            
             gam2 = LinearGAM(n_splines=nsplines).gridsearch(lct,soilmoist_tdr_rn1)
             y_pred2 = gam2.predict(x_pred)
             y_int2 = gam2.confidence_intervals(x_pred, width=.95)
@@ -275,9 +283,10 @@ if __name__ == "__main__":
             gam3 = LinearGAM(n_splines=nsplines).gridsearch(lct_nD, soilmoist_rn2)
             y_pred3 = gam3.predict(x_pred)
             y_int3 = gam3.confidence_intervals(x_pred, width=.95)
-
-            ax1.plot(x_pred, y_pred1, color="orange", ls='-', lw=2.0, zorder=10, label="def")
-            ax1.fill_between(x_pred, y_int1[:, 0], y_int1[:, 1], alpha=0.2, facecolor='orange', zorder=10)
+            '''
+            ax1.plot(lct, y_pred1, color="orange", ls='-', lw=2.0, zorder=10, label="def")
+            #ax1.fill_between(lct, y_int1[:, 0], y_int1[:, 1], alpha=0.2, facecolor='orange', zorder=10)
+            '''
             ax1.plot(x_pred, y_pred2, color="green", ls='-', lw=2.0, zorder=10, label="imp")
             ax1.fill_between(x_pred, y_int2[:, 0], y_int2[:, 1], alpha=0.2, facecolor='green', zorder=10)
             ax1.plot(x_pred, y_pred3, color="blue", ls='-', lw=2.0, zorder=10, label="obs")
@@ -295,7 +304,7 @@ if __name__ == "__main__":
             ax2.fill_between(x_pred, y_int4[:, 0], y_int4[:, 1], alpha=0.2, facecolor='orange', zorder=10)
             ax2.plot(x_pred, y_pred5, color="green", ls='-', lw=2.0, zorder=10, label="imp")
             ax2.fill_between(x_pred, y_int5[:, 0], y_int5[:, 1], alpha=0.2, facecolor='green', zorder=10)
-
+            '''
         elif plot_type == "linear" :
             lct = [0,1,2,3,4,5,6,7]
             soilmoist1 = np.mean(soilmoist_rn1, axis=0)
@@ -337,10 +346,10 @@ if __name__ == "__main__":
             ax2.scatter(lct, evap1, marker='o', c='',edgecolors='orange',label="def")
             ax2.scatter(lct, evap2, marker='o', c='',edgecolors='green',label="imp")
 
-        ax1.set_xlim(-0.5,7.5)
-        ax1.set_ylim(-0.03,0.01)
-        ax2.set_xlim(-0.5,7.5)
-        ax2.set_ylim(0.,2.)
+        #ax1.set_xlim(-0.5,7.5)
+        #ax1.set_ylim(-0.03,0.01)
+        #ax2.set_xlim(-0.5,7.5)
+        #ax2.set_ylim(0.,2.)
 
         title = ["Year","Summer","Autumn","Winter","Spring"]
         ax1.set_title(title[ss])
