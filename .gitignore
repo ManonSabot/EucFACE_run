@@ -5,6 +5,7 @@ plots/plots_raijin/*
 plots/*.pdf
 plots/*.png
 plots/*.csv
+plots/*.out
 cable
 __pycache__/*
 logs/*

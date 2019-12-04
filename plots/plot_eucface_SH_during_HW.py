@@ -89,7 +89,7 @@ def main(fobs, fcable, case_name, ring, term):
     j = 0
     while i < len(var)-2:
         if (np.all([day[i:i+3]])):
-            print(i)
+            print(Tair.index[i])
             print(var['var'].values[i])
             v[j,0] = var['var'].values[i]
             v[j,1] = var['var'].values[i+1]
@@ -131,11 +131,11 @@ if __name__ == "__main__":
         plt.rcParams['text.usetex'] = False
         plt.rcParams['font.family'] = "sans-serif"
         plt.rcParams['font.sans-serif'] = "Helvetica"
-        plt.rcParams['axes.labelsize'] = 14
-        plt.rcParams['font.size'] = 14
-        plt.rcParams['legend.fontsize'] = 10
-        plt.rcParams['xtick.labelsize'] = 14
-        plt.rcParams['ytick.labelsize'] = 14
+        plt.rcParams['axes.labelsize'] = 16
+        plt.rcParams['font.size'] = 16
+        plt.rcParams['legend.fontsize'] = 12
+        plt.rcParams['xtick.labelsize'] = 16
+        plt.rcParams['ytick.labelsize'] = 16
 
         almost_black = '#262626'
         # change the tick colors also to the almost black
@@ -152,8 +152,8 @@ if __name__ == "__main__":
 
         ax1 = fig.add_subplot(111)
 
-        #ax1.scatter(lct1, v1, marker='o', c='',edgecolors='orange',label="def")
-        #ax1.scatter(lct1, v2, marker='o', c='',edgecolors='green',label="imp")
+        #ax1.scatter(lct1, v1, marker='o', c='',edgecolors='orange',label="CTL")
+        #ax1.scatter(lct1, v2, marker='o', c='',edgecolors='green',label="NEW")
 
 
         #lct = [0,1,2]
@@ -161,29 +161,29 @@ if __name__ == "__main__":
         #qh_mean2 = np.mean(v2, axis=0)
         #for i in np.arange(0,8):
 
-        ax1.plot(lct1[1,:], v1[1,:], c='orange', ls= '-', label="HW1-def")
-        ax1.plot(lct2[1,:], v2[1,:], c='green', ls= '-',  label="HW1-imp")
-        ax1.plot(lct1[6,:], v1[6,:], c='orange', ls= '--', label="HW2-def")
-        ax1.plot(lct2[6,:], v2[6,:], c='green', ls= '--',  label="HW2-imp")
-        ax1.plot(lct1[0,:], v1[0,:], c='orange', ls= ':', label="HW3-def")
-        ax1.plot(lct2[0,:], v2[0,:], c='green', ls= ':',  label="HW3-imp")
+        ax1.plot(lct1[1,:], v1[1,:], c='orange', ls= '-', label="HW1-CTL")
+        ax1.plot(lct2[1,:], v2[1,:], c='green', ls= '-',  label="HW1-NEW")
+        ax1.plot(lct1[6,:], v1[6,:], c='orange', ls= '--', label="HW2-CTL")
+        ax1.plot(lct2[6,:], v2[6,:], c='green', ls= '--',  label="HW2-NEW")
+        ax1.plot(lct1[7,:], v1[7,:], c='orange', ls= ':', label="HW3-CTL")
+        ax1.plot(lct2[7,:], v2[7,:], c='green', ls= ':',  label="HW3-NEW")
         '''
-        ax1.plot(lct1[0,:], v1[0,:], c='orange', ls= ':', label="HW1-def")
-        ax1.plot(lct2[0,:], v2[0,:], c='green', ls= ':',  label="HW1-imp")
-        ax1.plot(lct1[1,:], v1[1,:], c='orange', ls= '-', label="HW2-def")
-        ax1.plot(lct2[1,:], v2[1,:], c='green', ls= '-',  label="HW2-imp")
-        ax1.plot(lct1[2,:], v1[2,:], c='orange', ls= '--', label="HW3-def")
-        ax1.plot(lct2[2,:], v2[2,:], c='green', ls= '--',  label="HW3-imp")
-        ax1.plot(lct1[3,:], v1[3,:], c='orange', ls= '-.', label="HW4-def")
-        ax1.plot(lct2[3,:], v2[3,:], c='green', ls= '-.',  label="HW4-imp")
-        ax1.plot(lct1[4,:], v1[4,:], c='red', ls= ':', label="HW5-def")
-        ax1.plot(lct2[4,:], v2[4,:], c='blue', ls= ':',  label="HW5-imp")
-        ax1.plot(lct1[5,:], v1[5,:], c='red', ls= '-', label="HW6-def")
-        ax1.plot(lct2[5,:], v2[5,:], c='blue', ls= '-',  label="HW6-imp")
-        ax1.plot(lct1[6,:], v1[6,:], c='red', ls= '--', label="HW7-def")
-        ax1.plot(lct2[6,:], v2[6,:], c='blue', ls= '--',  label="HW7-imp")
-        ax1.plot(lct1[7,:], v1[7,:], c='red', ls= '-.', label="HW8-def")
-        ax1.plot(lct2[7,:], v2[7,:], c='blue', ls= '-.',  label="HW8-imp")
+        ax1.plot(lct1[0,:], v1[0,:], c='orange', ls= ':', label="HW1-CTL")
+        ax1.plot(lct2[0,:], v2[0,:], c='green', ls= ':',  label="HW1-NEW")
+        ax1.plot(lct1[1,:], v1[1,:], c='orange', ls= '-', label="HW2-CTL")
+        ax1.plot(lct2[1,:], v2[1,:], c='green', ls= '-',  label="HW2-NEW")
+        ax1.plot(lct1[2,:], v1[2,:], c='orange', ls= '--', label="HW3-CTL")
+        ax1.plot(lct2[2,:], v2[2,:], c='green', ls= '--',  label="HW3-NEW")
+        ax1.plot(lct1[3,:], v1[3,:], c='orange', ls= '-.', label="HW4-CTL")
+        ax1.plot(lct2[3,:], v2[3,:], c='green', ls= '-.',  label="HW4-NEW")
+        ax1.plot(lct1[4,:], v1[4,:], c='red', ls= ':', label="HW5-CTL")
+        ax1.plot(lct2[4,:], v2[4,:], c='blue', ls= ':',  label="HW5-NEW")
+        ax1.plot(lct1[5,:], v1[5,:], c='red', ls= '-', label="HW6-CTL")
+        ax1.plot(lct2[5,:], v2[5,:], c='blue', ls= '-',  label="HW6-NEW")
+        ax1.plot(lct1[6,:], v1[6,:], c='red', ls= '--', label="HW7-CTL")
+        ax1.plot(lct2[6,:], v2[6,:], c='blue', ls= '--',  label="HW7-NEW")
+        ax1.plot(lct1[7,:], v1[7,:], c='red', ls= '-.', label="HW8-CTL")
+        ax1.plot(lct2[7,:], v2[7,:], c='blue', ls= '-.',  label="HW8-NEW")
         '''
         ax1.set_xlim(0.5,5.5)
 
@@ -214,25 +214,25 @@ if __name__ == "__main__":
         evap_max2 = np.max(evap_rn2, axis=0)
         evap_min1 = np.max(evap_rn1, axis=0)
         evap_min2 = np.max(evap_rn2, axis=0)
-        ax1.plot(lct, soilmoist1, c='orange', label="def")
-        ax1.plot(lct, soilmoist2, c='green', label="imp")
-        ax1.plot(lct, soilmoist_tdr, c='blue', label="obs")
+        ax1.plot(lct, soilmoist1, c='orange', label="CTL")
+        ax1.plot(lct, soilmoist2, c='green', label="NEW")
+        ax1.plot(lct, soilmoist_tdr, c='blue', label="OBS")
         ax1.fill_between(lct, soilmoist_min1, soilmoist_max1, alpha=0.5, edgecolor='', facecolor='orange')
         ax1.fill_between(lct, soilmoist_min2, soilmoist_max2, alpha=0.5, edgecolor='', facecolor='green')
         ax1.fill_between(lct, soilmoist_min_tdr, soilmoist_max_tdr, alpha=0.5, edgecolor='', facecolor='blue')
 
-        ax2.plot(lct, evap1, c='orange', label="def")
-        ax2.plot(lct, evap2, c='green', label="imp")
+        ax2.plot(lct, evap1, c='orange', label="CTL")
+        ax2.plot(lct, evap2, c='green', label="NEW")
         ax2.fill_between(lct, evap_min1, evap_max1, alpha=0.5, edgecolor='', facecolor='orange')
         ax2.fill_between(lct, evap_min2, evap_max2, alpha=0.5, edgecolor='', facecolor='green')
         '''
         '''
-        ax1.scatter(lct, soilmoist1, marker='o', c='',edgecolors='orange', label="def") # s=2.,
-        ax1.scatter(lct, soilmoist2, marker='o', c='',edgecolors='green', label="imp")
-        ax1.scatter(lct, soilmoist_tdr, marker='o', c='',edgecolors='blue', label="obs")
+        ax1.scatter(lct, soilmoist1, marker='o', c='',edgecolors='orange', label="CTL") # s=2.,
+        ax1.scatter(lct, soilmoist2, marker='o', c='',edgecolors='green', label="NEW")
+        ax1.scatter(lct, soilmoist_tdr, marker='o', c='',edgecolors='blue', label="OBS")
 
-        ax2.scatter(lct, evap1, marker='o', c='',edgecolors='orange',label="def")
-        ax2.scatter(lct, evap2, marker='o', c='',edgecolors='green',label="imp")
+        ax2.scatter(lct, evap1, marker='o', c='',edgecolors='orange',label="CTL")
+        ax2.scatter(lct, evap2, marker='o', c='',edgecolors='green',label="NEW")
         '''
         #ax1.set_xlim(-0.5,2.5)
         # ax1.set_ylim(-0.1,1.)

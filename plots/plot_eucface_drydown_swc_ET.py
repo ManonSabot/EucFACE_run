@@ -47,7 +47,15 @@ def main(fobs, fcable, ring, layer):
     print( pd.datetime(2018,1,1) - pd.datetime(2012,12,31))
     print( pd.datetime(2018,2,1) - pd.datetime(2012,12,31))
     print( pd.datetime(2018,3,1) - pd.datetime(2012,12,31))
-    
+    print( pd.datetime(2018,4,1) - pd.datetime(2012,12,31))
+    print( pd.datetime(2018,5,1) - pd.datetime(2012,12,31))
+    print( pd.datetime(2018,6,1) - pd.datetime(2012,12,31))
+    print( pd.datetime(2018,7,1) - pd.datetime(2012,12,31))
+    print( pd.datetime(2018,8,1) - pd.datetime(2012,12,31))
+    print( pd.datetime(2018,9,1) - pd.datetime(2012,12,31))
+    print( pd.datetime(2018,10,1) - pd.datetime(2012,12,31))
+    print( pd.datetime(2018,11,1) - pd.datetime(2012,12,31))
+    print( pd.datetime(2018,12,1) - pd.datetime(2012,12,31))
     if ring == 'amb':
         subset = neo[neo['Ring'].isin(['R2','R3','R6'])]
     elif ring == 'ele':
@@ -148,7 +156,7 @@ if __name__ == "__main__":
 
 # ____________________ Plot obs _______________________
     fig = plt.figure(figsize=[10,7],constrained_layout=True)
-    fig.subplots_adjust(hspace=0.1)
+    fig.subplots_adjust(hspace=0.2)
     fig.subplots_adjust(wspace=0.05)
     plt.rcParams['text.usetex'] = False
     plt.rcParams['font.family'] = "sans-serif"
@@ -171,33 +179,35 @@ if __name__ == "__main__":
     ax2 = fig.add_subplot(312)
     ax3 = fig.add_subplot(313)
     '''
-    ax1.plot(X_cable1, grid_cable1[0,:]-grid_cable1[0,1546],  c="orange", lw=1.0, ls="-", label="Def")
-    ax2.plot(X_cable1, grid_cable1[3,:]-grid_cable1[3,1546],  c="orange", lw=1.0, ls="-", label="Def")
-    ax3.plot(X_cable1, grid_cable1[8,:]-grid_cable1[8,1546],  c="orange", lw=1.0, ls="-", label="Def")
+    ax1.plot(X_cable1, grid_cable1[0,:]-grid_cable1[0,1546],  c="orange", lw=1.0, ls="-", label="CTL")
+    ax2.plot(X_cable1, grid_cable1[3,:]-grid_cable1[3,1546],  c="orange", lw=1.0, ls="-", label="CTL")
+    ax3.plot(X_cable1, grid_cable1[8,:]-grid_cable1[8,1546],  c="orange", lw=1.0, ls="-", label="CTL")
 
-    ax1.plot(X_cable2, grid_cable2[0,:]-grid_cable2[0,1546],  c="green", lw=1.0, ls="-", label="Imp")
-    ax2.plot(X_cable2, grid_cable2[3,:]-grid_cable2[3,1546],  c="green", lw=1.0, ls="-", label="Imp")
-    ax3.plot(X_cable2, grid_cable2[8,:]-grid_cable2[8,1546],  c="green", lw=1.0, ls="-", label="Imp")
+    ax1.plot(X_cable2, grid_cable2[0,:]-grid_cable2[0,1546],  c="green", lw=1.0, ls="-", label="NEW")
+    ax2.plot(X_cable2, grid_cable2[3,:]-grid_cable2[3,1546],  c="green", lw=1.0, ls="-", label="NEW")
+    ax3.plot(X_cable2, grid_cable2[8,:]-grid_cable2[8,1546],  c="green", lw=1.0, ls="-", label="NEW")
 
-    ax1.scatter(subset1[(25)].index.values, subset1[(25)].values-subset1[(25)][subset1[(25)].index.values == 1547].values, marker='.', label="obs")
-    ax2.scatter(subset1[(100)].index.values, subset1[(100)]-subset1[(100)][subset1[(100)].index.values == 1547].values, marker='.', label="obs")
-    ax3.scatter(subset1[(300)].index.values, subset1[(300)]-subset1[(300)][subset1[(300)].index.values == 1547].values, marker='.', label="obs")
+    ax1.scatter(subset1[(25)].index.values, subset1[(25)].values-subset1[(25)][subset1[(25)].index.values == 1547].values, marker='.', label="OBS")
+    ax2.scatter(subset1[(100)].index.values, subset1[(100)]-subset1[(100)][subset1[(100)].index.values == 1547].values, marker='.', label="OBS")
+    ax3.scatter(subset1[(300)].index.values, subset1[(300)]-subset1[(300)][subset1[(300)].index.values == 1547].values, marker='.', label="OBS")
     '''
 
-    ax1.plot(X_cable1, grid_cable1[0,:],  c="orange", lw=1.0, ls="-", label="Def")
-    ax2.plot(X_cable1, grid_cable1[3,:],  c="orange", lw=1.0, ls="-", label="Def")
-    ax3.plot(X_cable1, grid_cable1[8,:],  c="orange", lw=1.0, ls="-", label="Def")
+    ax1.plot(X_cable1, grid_cable1[0,:],  c="orange", lw=1.0, ls="-", label="CTL")
+    ax2.plot(X_cable1, grid_cable1[3,:],  c="orange", lw=1.0, ls="-", label="CTL")
+    ax3.plot(X_cable1, grid_cable1[8,:],  c="orange", lw=1.0, ls="-", label="CTL")
 
-    ax1.plot(X_cable2, grid_cable2[0,:],  c="green", lw=1.0, ls="-", label="Imp")
-    ax2.plot(X_cable2, grid_cable2[3,:],  c="green", lw=1.0, ls="-", label="Imp")
-    ax3.plot(X_cable2, grid_cable2[8,:],  c="green", lw=1.0, ls="-", label="Imp")
+    ax1.plot(X_cable2, grid_cable2[0,:],  c="green", lw=1.0, ls="-", label="NEW")
+    ax2.plot(X_cable2, grid_cable2[3,:],  c="green", lw=1.0, ls="-", label="NEW")
+    ax3.plot(X_cable2, grid_cable2[8,:],  c="green", lw=1.0, ls="-", label="NEW")
 
-    ax1.scatter(subset1[(25)].index.values, subset1[(25)].values, marker='.', label="obs")
-    ax2.scatter(subset1[(100)].index.values, subset1[(100)].values, marker='.', label="obs")
-    ax3.scatter(subset1[(300)].index.values, subset1[(300)].values, marker='.', label="obs")
+    ax1.scatter(subset1[(25)].index.values, subset1[(25)].values, marker='.', label="OBS")
+    ax2.scatter(subset1[(100)].index.values, subset1[(100)].values, marker='.', label="OBS")
+    ax3.scatter(subset1[(300)].index.values, subset1[(300)].values, marker='.', label="OBS")
 
-    cleaner_dates = ["2017-4","2017-5","2017-6","2017-7","2017-8","2017-9","2017-10","2017-11","2017-12","2018-1","2018-2"]
-    xtickslocs    = [1552,1583,1614,1645,1676,1707,1738,1769,1807,1831,1862]
+    cleaner_dates = ["2017-4","2017-6","2017-8","2017-10","2017-12","2018-2",\
+                     "2018-4","2018-6","2018-8","2018-10"]
+    xtickslocs    = [1552,1613,1674,1735,1796,1858,\
+                     1917,1978,2039,2100]
 
     dd = [25,50,75,100,125,150,200,250,300,350,400,450]
     cor1_neo = np.zeros(12)
@@ -218,21 +228,24 @@ if __name__ == "__main__":
         cor2_neo[i]= stats.pearsonr(tmp1,tmp2)[0]
 
     ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax1.set_title("25cm, r_def=% 5.3f, r_imp=% 5.3f" %(cor1_neo[0],cor2_neo[0]))
-    ax1.axis('tight')
+    ax1.set_title("25cm")
+    #ax1.set_title("25cm, r_CTL=% 5.3f, r_NEW=% 5.3f" %(cor1_neo[0],cor2_neo[0]))
+    #ax1.axis('tight')
     ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax2.set_title("100cm, r_def=% 5.3f, r_imp=% 5.3f" %(cor1_neo[3],cor2_neo[3]))
-    ax2.axis('tight')
+    ax2.set_title("100cm")
+    #ax2.set_title("100cm, r_CTL=% 5.3f, r_NEW=% 5.3f" %(cor1_neo[3],cor2_neo[3]))
+    #ax2.axis('tight')
     ax3.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax3.set_title("300cm, r_def=% 5.3f, r_imp=% 5.3f" %(cor1_neo[8],cor2_neo[8]))
-    ax3.axis('tight')
+    ax3.set_title("300cm")
+    #ax3.set_title("300cm, r_CTL=% 5.3f, r_NEW=% 5.3f" %(cor1_neo[8],cor2_neo[8]))
+    #ax3.axis('tight')
 
-    ax1.set_xlim([1547,1880]) # 1625
-    ax1.set_ylim([0.0,0.4])
-    ax2.set_xlim([1547,1880])
-    ax2.set_ylim([0.0,0.4])
-    ax3.set_xlim([1547,1880])
-    ax3.set_ylim([0.0,0.4])
+    ax1.set_xlim([1548,2100]) # 1625
+    ax1.set_ylim([0.0,0.3])
+    ax2.set_xlim([1548,2100])
+    ax2.set_ylim([0.0,0.3])
+    ax3.set_xlim([1548,2100])
+    ax3.set_ylim([0.0,0.3])
 
     ax1.legend()
 
