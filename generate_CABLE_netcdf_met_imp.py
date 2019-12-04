@@ -820,7 +820,7 @@ def convert_rh_to_qair(rh, tair, press):
     ws = 0.622 * esat / (press - esat)
 
     # specific humidity
-    qair = (rh / 100.0) * ws
+    qair = rh * ws
 
     return qair
 
@@ -856,7 +856,7 @@ def estimate_lwdown(tairK, rh):
     zeroC = 273.15
 
     sat_vapress = 611.2 * np.exp(17.67 * ((tairK - zeroC) / (tairK - 29.65)))
-    vapress = np.maximum(5.0, rh) / 100. * sat_vapress
+    vapress = np.maximum(0.05, rh) * sat_vapress
     lw_down = 2.648 * tairK + 0.0346 * vapress - 474.0
 
     return lw_down
