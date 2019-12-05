@@ -127,7 +127,7 @@ if __name__ == "__main__":
 
     fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
     #fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off-litter_Hvrd/EucFACE_amb_out.nc"
-    fcable1 ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_6layers/met/met_only/EucFACE_met_amb.nc"
+    fcable1 ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/met/met_only_6/EucFACE_met_amb.nc"
     fcable2 ="/srv/ccrc/data25/z5218916/data/Cumberland_OzFlux/CumberlandPlainsOzFlux2.0_met.nc"
 
     main(fobs, fcable1, fcable2)

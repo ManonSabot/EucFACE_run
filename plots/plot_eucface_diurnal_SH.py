@@ -78,9 +78,8 @@ if __name__ == "__main__":
                 #"default-met_only_or-off"]
 
     fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
-        #fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" \
-        #            % (case_name[1], ring)
-    fcable = "/srv/ccrc/data25/z5218916/cable/EucFACE/test_PLUMBER/outputs/Mark_latest_gw-on_spinup-off_Hvrd_litter_met/TumbaFluxnet_out.nc"
+    fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_SM_swilt-watr_31uni_Hvrd/EucFACE_amb_out.nc"
+    #fcable = "/srv/ccrc/data25/z5218916/cable/EucFACE/test_PLUMBER/outputs/Mark_latest_gw-on_spinup-off_Hvrd_litter_met/TumbaFluxnet_out.nc"
     main(fobs, fcable)
 
 

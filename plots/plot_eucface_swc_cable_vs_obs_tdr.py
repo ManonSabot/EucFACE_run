@@ -419,45 +419,27 @@ def main(fobs_Esoil, fobs, fcable, case_name, ring, layer):
 
 if __name__ == "__main__":
 
-    layer = "6" #"31uni"
+    layer = "31uni"
 
-    cases =["default-met_only_or-off"]
-    #["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off-litter_Hvrd"]
-        #["default-met_only_or-off"]
-        #["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off-litter"]
-        #["default-met_only_or-off"]
-        #["ctl_met_LAI_vrt_SM_swilt-watr_hyds-bch"]
-	    #["ctl_met_LAI_vrt_SM_swilt-watr_hyds-bch_or-off-litter"]
-            #["ctl_met_LAI_vrt_SM_swilt-watr_Or-Off"]
-	    #["ctl_met_LAI_vrt_SM_swilt-watr_HDM_Or-Off_litter-on"]
-            #["ctl_met_LAI_vrt_SM_swilt-watr"]
-            #["ctl_met_LAI_vrt_SM_swilt-watr_hyds-bch"]
-            #["met_only_or_test_rsv-bch=2"]
-            #["met_only_or_test_rsv-top50wb"]
-            #["met_only_or_test_rsv-lm0.0001","met_only_or_test_rsv-lm0.01"]
-            #["met_only_or_test_rm-rg","met_only_or_test_rm-rsv","met_only_or_test_rm-rBL"]
-            #["met_only_or_test_CABLE-2.2.3_pore_scale_model"]
-            #["met_only_or_test_l_new_roughness_soil-on"]
-            #["met_only_or_test"]
-	    #["ctl_met_LAI_vrt_SM_swilt-watr_hyds100",\
-            #"ctl_met_LAI_vrt_SM_swilt-watr_hyds0.01"]
-            #["met_LAI_sand","met_LAI_clay","met_LAI_silt"\
-            # "ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM",\
-            # "ctl_met_LAI_vrt_SM_swilt-watr", "ctl_met_LAI_vrt_SM_swilt-watr_Hvrd",\
-            # "ctl_met_LAI_vrt_SM_swilt-watr_Or-Off","default-met_only"]
+    cases = [ "met_LAI_vrt_SM_swilt-watr_31uni_Or_Hvrd",\
+              "met_LAI_vrt_SM_swilt-watr_31uni_Hvrd",\
+              "met_LAI_vrt_SM_swilt-watr_31uni_Or",\
+              "met_LAI_vrt_SM_swilt-watr_31uni"]
+    #["default-met_only_6", "met_only_6_Hvrd","met_only_6_Or","met_only_6_Or_Hvrd"]
+
     # 6
-    # ["met_LAI_sand","met_LAI_clay","met_LAI_silt"\
-    #  "ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM",\
-    #  "ctl_met_LAI_vrt_SM_swilt-watr", "ctl_met_LAI_vrt_SM_swilt-watr_Hvrd",\
-    #  "ctl_met_LAI_vrt_SM_swilt-watr_Or-Off","default-met_only"]
+    # ["default-met_only_6", "met_only_6_Hvrd","met_only_6_Or","met_only_6_Or_Hvrd"]
     # 31para
     #["ctl_met_LAI_vrt_SM_swilt-watr_31para"]
     # 31exp
     #["ctl_met_LAI_vrt_SM_swilt-watr_31exp"]
+
     # 31uni
-    #  ["ctl_met_LAI_vrt_SM_31uni","ctl_met_LAI_vrt_SM_swilt-watr_31uni",\
-    #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-uni",\
-    #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-log10"]
+    # ["met_LAI_vrt_SM_swilt-watr_31uni_g1-hie", \
+    #  "met_LAI_vrt_SM_swilt-watr_31uni_Or_Hvrd",\
+    #  "met_LAI_vrt_SM_swilt-watr_31uni_Hvrd",\
+    #  "met_LAI_vrt_SM_swilt-watr_31uni_Or",\
+    #  "met_LAI_vrt_SM_swilt-watr_31uni"]
 
     rings = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
     '''
