@@ -330,27 +330,26 @@ def main(fobs, fcable, case_name, ring, contour, layer):
 
 if __name__ == "__main__":
 
-    contour = True
+    contour = False
     #  True for contour
     #  False for raster
-    layer =  "31uni"
+    layer =  "6"
 
-    cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off-litter_Hvrd"]
-    #["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off_Hvrd"]
-    #["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off-litter_Hvrd"]
-    #["default-met_only_or-off"]
-    # 6
-    # ["ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM",\
-    #  "ctl_met_LAI_vrt_SM_swilt-watr", "ctl_met_LAI_vrt_SM_swilt-watr_Hvrd",\
-    #  "ctl_met_LAI_vrt_SM_swilt-watr_Or-Off","default-met_only"]
-    # 31para
-    #["ctl_met_LAI_vrt_SM_swilt-watr_31para"]
-    # 31exp
-    #["ctl_met_LAI_vrt_SM_swilt-watr_31exp"]
-    # 31uni
-    #  ["ctl_met_LAI_vrt_SM_31uni","ctl_met_LAI_vrt_SM_swilt-watr_31uni",\
-    #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-uni",\
-    #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-log10"]
+    if layer == "6":
+        cases = ["met_LAI_vrt_SM_swilt-watr_6_litter-off",\
+                 "met_only_6_gw_off",\
+                 "met_LAI_vrt_SM_swilt-watr_6","default-met_only_6",\
+                 "met_only_6_Hvrd","met_only_6_Or","met_only_6_Or_Hvrd"]
+    elif layer == "31para":
+        cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31para"]
+    elif layer == "31exp":
+        cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31exp"]
+    elif layer == "31uni":
+        cases = ["met_LAI_vrt_SM_swilt-watr_31uni_g1-hie",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_Or_Hvrd",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_Hvrd",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_Or",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni"]
 
     rings = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
     for case_name in cases:

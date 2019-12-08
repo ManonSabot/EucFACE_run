@@ -281,25 +281,25 @@ def main(fobs, fcable, case_name, ring, layer):
 
 if __name__ == "__main__":
 
-    layer =  "6" #"31uni"
+    layer =  "6"
 
-    cases = ["default-met_only_or-off"]
-    #["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off_Hvrd"]
-    #["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off-litter_Hvrd"]
-    # 6
-    # ["met_LAI_sand","met_LAI_clay","met_LAI_silt"\
-    #  "ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM",\
-    #  "ctl_met_LAI_vrt_SM_swilt-watr", "ctl_met_LAI_vrt_SM_swilt-watr_Hvrd",\
-    #  "ctl_met_LAI_vrt_SM_swilt-watr_Or-Off","default-met_only"]
-    # 31para
-    #["ctl_met_LAI_vrt_SM_swilt-watr_31para"]
-    # 31exp
-    #["ctl_met_LAI_vrt_SM_swilt-watr_31exp"]
-    # 31uni
-    #  ["ctl_met_LAI_vrt_SM_31uni","ctl_met_LAI_vrt_SM_swilt-watr_31uni",\
-    #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-uni",\
-    #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-log10"]
-    rings = ["R1","R2","R3","R4","R5","R6","amb","ele"]
+    if layer == "6":
+        cases = ["met_LAI_vrt_SM_swilt-watr_6_litter-off",\
+                 "met_only_6_gw_off",\
+                 "met_LAI_vrt_SM_swilt-watr_6","default-met_only_6",\
+                 "met_only_6_Hvrd","met_only_6_Or","met_only_6_Or_Hvrd"]
+    elif layer == "31para":
+        cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31para"]
+    elif layer == "31exp":
+        cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31exp"]
+    elif layer == "31uni":
+        cases = ["met_LAI_vrt_SM_swilt-watr_31uni_g1-hie",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_Or_Hvrd",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_Hvrd",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_Or",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni"]
+
+    rings = ["amb"]#"R1","R2","R3","R4","R5","R6",,"ele"
     for case_name in cases:
         for ring in rings:
             fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"

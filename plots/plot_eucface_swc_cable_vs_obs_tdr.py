@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+transtrans#!/usr/bin/env python
 
 """
 Plot EucFACE soil moisture at observated dates
@@ -24,44 +24,12 @@ import scipy.stats as stats
 from sklearn.metrics import mean_squared_error
 
 #def main(fobs_Esoil, fobs, fcable, case_name, hk, b, ring, layer):
-def main(fobs_Esoil, fobs, fcable, case_name, ring, layer):
+def main(fobs_Esoil, fobs_Trans, fobs, fcable, case_name, ring, layer):
 
-    est_esoil = pd.read_csv(fobs_Esoil, usecols = ['Ring','Date','wuTP','EfloorPred'])
-    est_esoil['Date'] = pd.to_datetime(est_esoil['Date'],format="%d/%m/%Y",infer_datetime_format=False)
-    est_esoil['Date'] = est_esoil['Date'] - pd.datetime(2011,12,31)
-    est_esoil['Date'] = est_esoil['Date'].dt.days
-    est_esoil = est_esoil.sort_values(by=['Date'])
-    # divide neo into groups
-    if ring == 'amb':
-        subs = est_esoil[(est_esoil['Ring'].isin(['R2','R3','R6'])) & (est_esoil.Date > 366)]
-    elif ring == 'ele':
-        subs = est_esoil[(est_esoil['Ring'].isin(['R1','R4','R5'])) & (est_esoil.Date > 366)]
-    else:
-        subs = est_esoil[(est_esoil['Ring'].isin([ring]))  & (est_esoil.Date > 366)]
+    subs_Esoil = read_obs_esoil(fobs_Esoil, ring)
+    subs_Trans = read_obs_esoil(fobs_Trans, ring)
+    subset     = read_obs_swc(fobs, ring)
 
-    subs = subs.groupby(by=["Date"]).mean()
-    subs['wuTP']   = subs['wuTP'].clip(lower=0.)
-    subs['wuTP']   = subs['wuTP'].replace(0., float('nan'))
-    subs['EfloorPred'] = subs['EfloorPred'].clip(lower=0.)
-    subs['EfloorPred'] = subs['EfloorPred'].replace(0., float('nan'))
-
-
-    tdr = pd.read_csv(fobs, usecols = ['Ring','Date','swc.tdr'])
-    tdr['Date'] = pd.to_datetime(tdr['Date'],format="%Y-%m-%d",infer_datetime_format=False)
-    tdr['Date'] = tdr['Date'] - pd.datetime(2011,12,31)
-    tdr['Date'] = tdr['Date'].dt.days
-    tdr = tdr.sort_values(by=['Date'])
-    # divide neo into groups
-    if ring == 'amb':
-        subset = tdr[(tdr['Ring'].isin(['R2','R3','R6'])) & (tdr.Date > 366)]
-    elif ring == 'ele':
-        subset = tdr[(tdr['Ring'].isin(['R1','R4','R5'])) & (tdr.Date > 366)]
-    else:
-        subset = tdr[(tdr['Ring'].isin([ring]))  & (tdr.Date > 366)]
-
-    subset = subset.groupby(by=["Date"]).mean()/100.
-    subset = subset.xs('swc.tdr', axis=1, drop_level=True)
-    #print(subset)
 # _________________________ CABLE ___________________________
     cable = nc.Dataset(fcable, 'r')
     Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
@@ -330,7 +298,8 @@ def main(fobs_Esoil, fobs, fcable, case_name, ring, layer):
     ax3.plot(x, Fwsoil.values,   c="forestgreen", lw=1.0, ls="-", label="Fwsoil")
     ax5.plot(x, TVeg['TVeg'].rolling(window=5).mean(),     c="green", lw=1.0, ls="-", label="Trans") #.rolling(window=7).mean()
     ax5.plot(x, ESoil['ESoil'].rolling(window=5).mean(),    c="orange", lw=1.0, ls="-", label="ESoil") #.rolling(window=7).mean()
-    ax5.scatter(subs.index, subs['wuTP'], marker='o', c='',edgecolors='red', s = 2., label="ESoil Obs") # subs['EfloorPred']
+    ax5.scatter(subs_Trans.index, subs_Trans['volRing'], marker='o', c='',edgecolors='blue', s = 2., label="Trans Obs") # subs['EfloorPred']
+    ax5.scatter(subs_Esoil.index, subs_Esoil['wuTP'], marker='o', c='',edgecolors='red', s = 2., label="ESoil Obs") # subs['EfloorPred']
 
     #ax7.plot(x, Tair['Tair'].rolling(window=7).mean(),     c="red",    lw=1.0, ls="-", label="Tair")
     #ax7.plot(x, VegT['VegT'].rolling(window=7).mean(),     c="orange", lw=1.0, ls="-", label="VegT")
@@ -417,31 +386,100 @@ def main(fobs_Esoil, fobs, fcable, case_name, ring, layer):
     #fig.savefig("EucFACE_tdr_%s_hk=%s_b=%s_%s.png" % (case_name, hk, b, ring), bbox_inches='tight', pad_inches=0.1)
     fig.savefig("EucFACE_tdr_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
 
+
+def read_obs_esoil(fobs_Esoil, ring):
+
+   est_esoil = pd.read_csv(fobs_Esoil, usecols = ['Ring','Date','wuTP','EfloorPred'])
+   est_esoil['Date'] = pd.to_datetime(est_esoil['Date'],format="%d/%m/%Y",infer_datetime_format=False)
+   est_esoil['Date'] = est_esoil['Date'] - pd.datetime(2011,12,31)
+   est_esoil['Date'] = est_esoil['Date'].dt.days
+   est_esoil = est_esoil.sort_values(by=['Date'])
+   # divide neo into groups
+   if ring == 'amb':
+       subs = est_esoil[(est_esoil['Ring'].isin(['R2','R3','R6'])) & (est_esoil.Date > 366)]
+   elif ring == 'ele':
+       subs = est_esoil[(est_esoil['Ring'].isin(['R1','R4','R5'])) & (est_esoil.Date > 366)]
+   else:
+       subs = est_esoil[(est_esoil['Ring'].isin([ring]))  & (est_esoil.Date > 366)]
+
+   subs = subs.groupby(by=["Date"]).mean()
+   subs['wuTP']   = subs['wuTP'].clip(lower=0.)
+   subs['wuTP']   = subs['wuTP'].replace(0., float('nan'))
+   subs['EfloorPred'] = subs['EfloorPred'].clip(lower=0.)
+   subs['EfloorPred'] = subs['EfloorPred'].replace(0., float('nan'))
+
+   return subs
+
+def read_obs_trans(fobs_Trans, ring):
+   est_trans = pd.read_csv(fobs_Trans, usecols = ['Ring','Date','volRing'])
+   est_trans['Date'] = pd.to_datetime(est_trans['Date'],format="%d/%m/%Y",infer_datetime_format=False)
+   est_trans['Date'] = est_trans['Date'] - pd.datetime(2011,12,31)
+   est_trans['Date'] = est_trans['Date'].dt.days
+   est_trans = est_trans.sort_values(by=['Date'])
+   # divide neo into groups
+   if ring == 'amb':
+       subs = est_trans[(est_trans['Ring'].isin(['R2','R3','R6'])) & (est_trans.Date > 366)]
+   elif ring == 'ele':
+       subs = est_trans[(est_trans['Ring'].isin(['R1','R4','R5'])) & (est_trans.Date > 366)]
+   else:
+       subs = est_trans[(est_trans['Ring'].isin([ring]))  & (est_trans.Date > 366)]
+
+   subs = subs.groupby(by=["Date"]).mean()
+   subs['volRing']   = subs['volRing'].clip(lower=0.)
+   subs['volRing']   = subs['volRing'].replace(0., float('nan'))
+   return subs
+
+def read_obs_swc(fobs, ring):
+    tdr = pd.read_csv(fobs, usecols = ['Ring','Date','swc.tdr'])
+    tdr['Date'] = pd.to_datetime(tdr['Date'],format="%Y-%m-%d",infer_datetime_format=False)
+    tdr['Date'] = tdr['Date'] - pd.datetime(2011,12,31)
+    tdr['Date'] = tdr['Date'].dt.days
+    tdr = tdr.sort_values(by=['Date'])
+    # divide neo into groups
+    if ring == 'amb':
+        subset = tdr[(tdr['Ring'].isin(['R2','R3','R6'])) & (tdr.Date > 366)]
+    elif ring == 'ele':
+        subset = tdr[(tdr['Ring'].isin(['R1','R4','R5'])) & (tdr.Date > 366)]
+    else:
+        subset = tdr[(tdr['Ring'].isin([ring]))  & (tdr.Date > 366)]
+
+    subset = subset.groupby(by=["Date"]).mean()/100.
+    subset = subset.xs('swc.tdr', axis=1, drop_level=True)
+
+    return subset
+
+
 if __name__ == "__main__":
 
-    layer = "31uni"
+    layer =  "6"
 
-    cases = [ "met_LAI_vrt_SM_swilt-watr_31uni_Or_Hvrd",\
-              "met_LAI_vrt_SM_swilt-watr_31uni_Hvrd",\
-              "met_LAI_vrt_SM_swilt-watr_31uni_Or",\
-              "met_LAI_vrt_SM_swilt-watr_31uni"]
-    #["default-met_only_6", "met_only_6_Hvrd","met_only_6_Or","met_only_6_Or_Hvrd"]
-
-    # 6
-    # ["default-met_only_6", "met_only_6_Hvrd","met_only_6_Or","met_only_6_Or_Hvrd"]
-    # 31para
-    #["ctl_met_LAI_vrt_SM_swilt-watr_31para"]
-    # 31exp
-    #["ctl_met_LAI_vrt_SM_swilt-watr_31exp"]
-
-    # 31uni
-    # ["met_LAI_vrt_SM_swilt-watr_31uni_g1-hie", \
-    #  "met_LAI_vrt_SM_swilt-watr_31uni_Or_Hvrd",\
-    #  "met_LAI_vrt_SM_swilt-watr_31uni_Hvrd",\
-    #  "met_LAI_vrt_SM_swilt-watr_31uni_Or",\
-    #  "met_LAI_vrt_SM_swilt-watr_31uni"]
+    if layer == "6":
+        cases = ["met_LAI_vrt_SM_swilt-watr_6_litter-off",\
+                 "met_only_6_gw_off",\
+                 "met_LAI_vrt_SM_swilt-watr_6","default-met_only_6",\
+                 "met_only_6_Hvrd","met_only_6_Or","met_only_6_Or_Hvrd"]
+    elif layer == "31para":
+        cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31para"]
+    elif layer == "31exp":
+        cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31exp"]
+    elif layer == "31uni":
+        cases = ["met_LAI_vrt_SM_swilt-watr_31uni_g1-hie",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_Or_Hvrd",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_Hvrd",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_Or",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni"]
 
     rings = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
+
+    for case_name in cases:
+        for ring in rings:
+            fobs_Esoil = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_underET.csv"
+            fobs_Trans = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_sapflow.csv"
+            fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
+            fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" \
+                    % (case_name, ring)
+            main(fobs_Esoil, fobs_Trans, fobs, fcable, case_name, ring, layer)
+
     '''
     hyds_value = [1e3,1e2,1e1,1.,1e-1,1e-2,1e-3,1e-4,1e-5,1e-6]
     bch_value  = np.arange(1.,11.,1.)
@@ -455,11 +493,3 @@ if __name__ == "__main__":
                             % (case_name,str(hk),str(b), ring)
                     main(fobs_Esoil, fobs, fcable, case_name, str(hk),str(b), ring, layer)
     '''
-
-    for case_name in cases:
-        for ring in rings:
-            fobs_Esoil = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_underET.csv"
-            fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
-            fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" \
-                    % (case_name, ring)
-            main(fobs_Esoil, fobs, fcable, case_name, ring, layer)
