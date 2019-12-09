@@ -333,7 +333,7 @@ if __name__ == "__main__":
     contour = False
     #  True for contour
     #  False for raster
-    layer =  "6"
+    layer =  "31uni"
 
     if layer == "6":
         cases = ["met_LAI_vrt_SM_swilt-watr_6_litter-off",\
@@ -345,11 +345,16 @@ if __name__ == "__main__":
     elif layer == "31exp":
         cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31exp"]
     elif layer == "31uni":
-        cases = ["met_LAI_vrt_SM_swilt-watr_31uni_g1-hie",\
+        cases = ["met_LAI_vrt_SM_swilt-watr_31uni_litter-off",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_g1-hie",\
                  "met_LAI_vrt_SM_swilt-watr_31uni_Or_Hvrd",\
                  "met_LAI_vrt_SM_swilt-watr_31uni_Hvrd",\
                  "met_LAI_vrt_SM_swilt-watr_31uni_Or",\
-                 "met_LAI_vrt_SM_swilt-watr_31uni"]
+                 "met_LAI_vrt_SM_swilt-watr_31uni",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_hyds100_hk100",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_hyds10_hk10",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_hyds01_hk01",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_hyds001_hk001"]
 
     rings = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
     for case_name in cases:

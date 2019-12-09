@@ -1,4 +1,4 @@
-transtrans#!/usr/bin/env python
+#!/usr/bin/env python
 
 """
 Plot EucFACE soil moisture at observated dates
@@ -27,7 +27,7 @@ from sklearn.metrics import mean_squared_error
 def main(fobs_Esoil, fobs_Trans, fobs, fcable, case_name, ring, layer):
 
     subs_Esoil = read_obs_esoil(fobs_Esoil, ring)
-    subs_Trans = read_obs_esoil(fobs_Trans, ring)
+    subs_Trans = read_obs_trans(fobs_Trans, ring)
     subset     = read_obs_swc(fobs, ring)
 
 # _________________________ CABLE ___________________________
@@ -451,7 +451,7 @@ def read_obs_swc(fobs, ring):
 
 if __name__ == "__main__":
 
-    layer =  "6"
+    layer =  "31uni"
 
     if layer == "6":
         cases = ["met_LAI_vrt_SM_swilt-watr_6_litter-off",\
@@ -463,12 +463,16 @@ if __name__ == "__main__":
     elif layer == "31exp":
         cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31exp"]
     elif layer == "31uni":
-        cases = ["met_LAI_vrt_SM_swilt-watr_31uni_g1-hie",\
+        cases = ["met_LAI_vrt_SM_swilt-watr_31uni_litter-off",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_g1-hie",\
                  "met_LAI_vrt_SM_swilt-watr_31uni_Or_Hvrd",\
                  "met_LAI_vrt_SM_swilt-watr_31uni_Hvrd",\
                  "met_LAI_vrt_SM_swilt-watr_31uni_Or",\
-                 "met_LAI_vrt_SM_swilt-watr_31uni"]
-
+                 "met_LAI_vrt_SM_swilt-watr_31uni",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_hyds100_hk100",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_hyds10_hk10",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_hyds01_hk01",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_hyds001_hk001"]
     rings = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
 
     for case_name in cases:

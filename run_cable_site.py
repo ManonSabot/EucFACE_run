@@ -125,17 +125,17 @@ class RunCable(object):
                             "filename%soil": "'%s'" % (self.soil_fname),
                             "output%restart": ".TRUE.",
                             #"output%gsc": ".TRUE.",
-			    "casafile%phen": "'%s'" % (self.phen_fname),
+                            "casafile%phen": "'%s'" % (self.phen_fname),
                             "casafile%cnpbiome": "'%s'" % (self.cnpbiome_fname),
                             "cable_user%FWSOIL_SWITCH": "'Haverd2013'",
                             #"cable_user%FWSOIL_SWITCH": "'standard'",
-			    "cable_user%GS_SWITCH": "'medlyn'",
+                            "cable_user%GS_SWITCH": "'medlyn'",
                             "cable_user%GW_MODEL": ".TRUE.",
                             "cable_user%or_evap": ".TRUE.",
                             #"cable_user%SSNOW_POTEV": "'HDM'", # Humidity Deficit Method
                             #"cable_user%SSNOW_POTEV": "'P-M'",
                             #"cable_user%soil_struc": "'default'",
-			    #"cable_user%litter": ".true.",
+                            #"cable_user%litter": ".true.",
                             #"cable_user%soil_thermal_fix": ".true.",
                             #"gw_params%cosby_univariate": ".false.",
                             #"gw_params%cosby_multivariate": ".false.",
@@ -143,12 +143,12 @@ class RunCable(object):
                             #  MaxSatFraction=2500.0,     & !parameter controll max sat fraction
                             #"gw_params%MaxHorzDrainRate": "2e-5",
                             # default MaxHorzDrainRate is 2e-4
-	                    #"gw_params%EfoldHorzDrainRate": "4.0",
+                            #"gw_params%EfoldHorzDrainRate": "4.0",
                             # EfoldHorzDrainRate=2.0, & !e fold rate of q_horz
-		            # "gw_params%hkrz": "2.5",
+                            # "gw_params%hkrz": "2.5",
                             # hkrz=0.5,               & !hyds_vec variation with z
-			    #"gw_params%zdepth": "0.5",
-			    # zdepth=1.5,             & !level where hyds_vec(z) = hyds_vec(no z)
+                            #"gw_params%zdepth": "0.5",
+                            # zdepth=1.5,             & !level where hyds_vec(z) = hyds_vec(no z)
                             #"gw_params%ssgw_ice_switch": ".true.",
                             "cable_user%MetType": "site",
             }
@@ -186,10 +186,10 @@ class RunCable(object):
         (url, rev) = get_svn_info(cwd, self.cable_src)
 
         # delete local executable, copy a local copy and use that
-        local_exe = "cable" 
-        #if os.path.isfile(local_exe): 
+        local_exe = "cable"
+        #if os.path.isfile(local_exe):
         #    os.remove(local_exe)
-        #shutil.copy(self.cable_exe, local_exe) 
+        #shutil.copy(self.cable_exe, local_exe)
         self.cable_exe = local_exe
 
         return (met_files, url, rev)
