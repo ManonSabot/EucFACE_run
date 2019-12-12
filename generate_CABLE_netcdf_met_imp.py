@@ -551,9 +551,9 @@ def main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname,\
         swilt_vec[:,0,0],watr[:],ssat_vec[:,0,0]  = \
             neo_swilt_ssat(swc_fname, nsoil, ring, layer_num, swilt_vec[:,0,0], watr[:], ssat_vec[:,0,0], soil_frac, boundary)
     if tdr_constrain:
-        swilt_vec[:,0,0],ssat_vec[:,0,0] = tdr_constrain_top_50cm(tdr_fname, ring, layer_num, swilt_vec[:,0,0],ssat_vec[:0,0])
+        swilt_vec[:,0,0],ssat_vec[:,0,0] = tdr_constrain_top_50cm(tdr_fname, ring, layer_num, swilt_vec[:,0,0],ssat_vec[:,0,0])
 
-    if swilt_neo or tdr_constrain:
+    if neo_constrain or tdr_constrain:
         if PTF == 'Campbell_Cosby_multi_Python':
             for i in np.arange(0,nsoil,1):
                 sfc_vec[i]   = (ssat_vec[i] - watr[i]) * ( 1.157407 * 10**(-6) / hyds_vec[i])** \
@@ -827,7 +827,20 @@ def neo_swilt_ssat(swc_fname, nsoil, ring, layer_num, swilt_input, watr_input, s
 
     g = interp1d(neo_index, neo_max, kind = soil_frac, \
              fill_value=(neo_max[0],neo_max[-1]), bounds_error=False) # fill_value='extrapolate'
-    ssat_output = g(grid_value)
+    ssat_neo = g(grid_value)
+
+    ssat_output  = np.zeros(nsoil)
+
+    for j in np.arange(0,nsoil,1):
+        if (j == 0 and grid_value[0] > boundary[1]):
+            ssat_output[0] = ssat_neo[0]
+        else:
+            counter = 0.
+            for i in np.arange(0,len(grid_value),1):
+                if ((grid_value[i] >= boundary[j]) and (grid_value[i] <= boundary[j+1])):
+                    ssat_output[j] = ssat_output[j] + ssat_neo[i]
+                    counter += 1.
+            ssat_output[j] = ssat_output[j]/counter
 
     # assumption: neo_max cannot capture ssat when depth > 1m
     if layer_num == "6":
@@ -849,7 +862,7 @@ def neo_swilt_ssat(swc_fname, nsoil, ring, layer_num, swilt_input, watr_input, s
         if (abs(ssat_input[j]-ssat_output[j]) > 0.03):
             print("*********************************")
             print("the difference between calculated and observated ssats in the %s layer is larger than 0.03" % str(j))
-            print("the calculated is %s and the observated is %s", % ( str(ssat_input[j]), str(ssat_output[j])))
+            print("the calculated is %s and the observated is %s" % ( str(ssat_input[j]), str(ssat_output[j])))
             print("*********************************")
 
     return swilt_output, watr_output, ssat_output;
@@ -866,9 +879,10 @@ def tdr_constrain_top_50cm(tdr_fname, ring, layer_num, swilt_input, ssat_input):
     else:
         subset = tdr[(tdr['Ring'].isin([ring]))]
 
-    tdr_min = subset['swc.tdr'].nsmallest(1)/100.
-    tdr_max = subset['swc.tdr'].nlargest(1)/100.
-
+    tdr_min = subset['swc.tdr'].nsmallest(1).values/100.
+    tdr_max = subset['swc.tdr'].nlargest(1).values/100.
+    print(tdr_min)
+    print(tdr_max)
 
     # assumption: tdr variance can capture swilt and ssat better within 50 cm
     if layer_num == "6":
@@ -885,7 +899,7 @@ def tdr_constrain_top_50cm(tdr_fname, ring, layer_num, swilt_input, ssat_input):
     swilt_output = swilt_input
     ssat_output  = ssat_input
 
-    for i in np.arange(0,layer_num_50cm):
+    for i in np.arange(layer_num_50cm):
         swilt_output[i] = tdr_min
         ssat_output[i]  = tdr_max
     return swilt_output,ssat_output;
