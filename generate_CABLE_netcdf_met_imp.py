@@ -30,7 +30,8 @@ import datetime
 from scipy.interpolate import interp1d
 from scipy.interpolate import griddata
 
-def main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, soil_frac, layer_num, swilt_neo, ring):
+def main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname,\
+         PTF, soil_frac, layer_num, neo_constrain, tdr_constrain, ring):
 
     DEG_2_KELVIN = 273.15
     SW_2_PAR = 2.3
@@ -546,10 +547,27 @@ def main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, soil_frac, 
             sucs_vec[i] = sucs_vec[i]/1000.
     print("all are good")
 
+    if neo_constrain:
+        swilt_vec[:,0,0],watr[:],ssat_vec[:,0,0]  = \
+            neo_swilt_ssat(swc_fname, nsoil, ring, layer_num, swilt_vec[:,0,0], watr[:], ssat_vec[:,0,0], soil_frac, boundary)
+    if tdr_constrain:
+        swilt_vec[:,0,0],ssat_vec[:,0,0] = tdr_constrain_top_50cm(tdr_fname, ring, layer_num, swilt_vec[:,0,0],ssat_vec[:0,0])
 
-
-    if swilt_neo:
-        swilt_vec[:,0,0],watr[:]  = min_neo_swilt(swc_fname, nsoil, ring, swilt_vec[:,0,0], watr[:], soil_frac, boundary)
+    if swilt_neo or tdr_constrain:
+        if PTF == 'Campbell_Cosby_multi_Python':
+            for i in np.arange(0,nsoil,1):
+                sfc_vec[i]   = (ssat_vec[i] - watr[i]) * ( 1.157407 * 10**(-6) / hyds_vec[i])** \
+                              (1.0 / (2.0*bch_vec[i] + 3.0) ) + watr[i]
+                sst_tmp  = 1.0 - max(min(ssat_vec[i], 0.85), 0.15)
+                cnsd_vec[i]  = (1.0-org_vec[i]) * ( 0.135*sst_tmp + 0.0239/sst_tmp )  /  \
+                                (1.0 - 0.947*sst_tmp) + org_vec[i]*0.05
+        else:
+            for i in np.arange(0,nsoil,1):
+                sfc_vec[i]   = (1.157407 * 10**(-6) / hyds_vec[i])**(1.0/(2.0*bch_vec[i]+3.0)) \
+                               *(ssat_vec[i]-watr[i]) + watr[i]
+                ssat_bounded = min(0.8, max(0.1, ssat_vec[i] ))
+                cnsd_vec[i]  = (1.0-org_vec[i]) * (( 0.135*(1.0-ssat_bounded)) + (64.7/rhosoil_vec[i]))\
+                               / (1.0 - 0.947*(1.0-ssat_bounded)) + org_vec[i]*0.1
 
     sand[:,0] = thickness_weighted_average(sand_vec, nsoil, zse_vec)
     silt[:,0] = thickness_weighted_average(silt_vec, nsoil, zse_vec)
@@ -731,7 +749,7 @@ def init_soil_moisture(swc_fname, nsoil, ring, soil_frac, boundary):
     print(SoilM)
     return SoilM
 
-def min_neo_swilt(swc_fname, nsoil, ring, swilt_input, watr_input, soil_frac, boundary):
+def neo_swilt_ssat(swc_fname, nsoil, ring, layer_num, swilt_input, watr_input, ssat_input, soil_frac, boundary):
 
     neo = pd.read_csv(swc_fname, usecols = ['Ring','Depth','VWC'])
     neo = neo.sort_values(by=['Depth'])
@@ -759,9 +777,9 @@ def min_neo_swilt(swc_fname, nsoil, ring, swilt_input, watr_input, soil_frac, bo
     neo_min[10] = subset[subset['Depth'] == 400]['VWC'].nsmallest(5).mean()/100.
     neo_min[11] = subset[subset['Depth'] == 450]['VWC'].nsmallest(5).mean()/100.
     print(neo_min)
-    neo_min_index = [ 25.,  50.,  75., 100., 125., 150., 200., 250.,\
+    neo_index = [ 25.,  50.,  75., 100., 125., 150., 200., 250.,\
                      300., 350., 400., 450. ]
-    f = interp1d(neo_min_index, neo_min, kind = soil_frac, \
+    f = interp1d(neo_index, neo_min, kind = soil_frac, \
              fill_value=(neo_min[0],neo_min[-1]), bounds_error=False) # fill_value='extrapolate'
 
     grid_value = np.arange(0.5,465,1)
@@ -791,13 +809,86 @@ def min_neo_swilt(swc_fname, nsoil, ring, swilt_input, watr_input, soil_frac, bo
                 swilt_output[j]= watr_output[j]+0.0001
             else:
                 watr_output[j] = watr_input[j]
-    print("---------------------------")
-    print(swilt_input)
-    print(swilt_output)
-    print(watr_input)
-    print(watr_output)
-    print("---------------------------")
-    return swilt_output, watr_output;
+
+    neo_max = np.zeros(12)
+    neo_max[0] = subset[subset['Depth'] == 25]['VWC'].nlargest(1)/100.
+    neo_max[1] = subset[subset['Depth'] == 50]['VWC'].nlargest(1)/100.
+    neo_max[2] = subset[subset['Depth'] == 75]['VWC'].nlargest(1)/100.
+    neo_max[3] = subset[subset['Depth'] == 100]['VWC'].nlargest(1)/100.
+    neo_max[4] = subset[subset['Depth'] == 125]['VWC'].nlargest(1)/100.
+    neo_max[5] = subset[subset['Depth'] == 150]['VWC'].nlargest(1)/100.
+    neo_max[6] = subset[subset['Depth'] == 200]['VWC'].nlargest(1)/100.
+    neo_max[7] = subset[subset['Depth'] == 250]['VWC'].nlargest(1)/100.
+    neo_max[8] = subset[subset['Depth'] == 300]['VWC'].nlargest(1)/100.
+    neo_max[9] = subset[subset['Depth'] == 350]['VWC'].nlargest(1)/100.
+    neo_max[10] = subset[subset['Depth'] == 400]['VWC'].nlargest(1)/100.
+    neo_max[11] = subset[subset['Depth'] == 450]['VWC'].nlargest(1)/100.
+    print(neo_max)
+
+    g = interp1d(neo_index, neo_max, kind = soil_frac, \
+             fill_value=(neo_max[0],neo_max[-1]), bounds_error=False) # fill_value='extrapolate'
+    ssat_output = g(grid_value)
+
+    # assumption: neo_max cannot capture ssat when depth > 1m
+    if layer_num == "6":
+        layer_num_1m = 4 # [0-64.3cm]
+    elif layer_num == "13":
+        layer_num_1m = 7 # [0-116cm]
+    elif layer_num == "31uni":
+        layer_num_1m = 3 # [0-105cm]
+    elif layer_num == "31exp":
+        layer_num_1m = 19 # [0-110.6079cm]
+    elif layer_num == "31para":
+        layer_num_1m = 10 # [0-110.0403cm]
+
+    for i in np.arange(layer_num_1m, len(ssat_input)):
+        if ssat_output[i] < ssat_input[i]:
+            ssat_output[i] = ssat_input[i]
+
+    for j in np.arange(0,nsoil,1):
+        if (abs(ssat_input[j]-ssat_output[j]) > 0.03):
+            print("*********************************")
+            print("the difference between calculated and observated ssats in the %s layer is larger than 0.03" % str(j))
+            print("the calculated is %s and the observated is %s", % ( str(ssat_input[j]), str(ssat_output[j])))
+            print("*********************************")
+
+    return swilt_output, watr_output, ssat_output;
+
+def tdr_constrain_top_50cm(tdr_fname, ring, layer_num, swilt_input, ssat_input):
+
+    tdr = pd.read_csv(tdr_fname, usecols = ['Ring','swc.tdr'])
+
+    # divide neo into groups
+    if ring == 'amb':
+        subset = tdr[(tdr['Ring'].isin(['R2','R3','R6']))]
+    elif ring == 'ele':
+        subset = tdr[(tdr['Ring'].isin(['R1','R4','R5']))]
+    else:
+        subset = tdr[(tdr['Ring'].isin([ring]))]
+
+    tdr_min = subset['swc.tdr'].nsmallest(1)/100.
+    tdr_max = subset['swc.tdr'].nlargest(1)/100.
+
+
+    # assumption: tdr variance can capture swilt and ssat better within 50 cm
+    if layer_num == "6":
+        layer_num_50cm = 4 # [0-64.3cm]
+    elif layer_num == "13":
+        layer_num_50cm = 5 # [0-56cm]
+    elif layer_num == "31uni":
+        layer_num_50cm = 3 # [0-45cm]
+    elif layer_num == "31exp":
+        layer_num_50cm = 14 # [0-46.63cm]
+    elif layer_num == "31para":
+        layer_num_50cm = 6 # [0-42.0714cm]
+
+    swilt_output = swilt_input
+    ssat_output  = ssat_input
+
+    for i in np.arange(0,layer_num_50cm):
+        swilt_output[i] = tdr_min
+        ssat_output[i]  = tdr_max
+    return swilt_output,ssat_output;
 
 def convert_rh_to_qair(rh, tair, press):
     """
@@ -920,6 +1011,7 @@ if __name__ == "__main__":
     met_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/met_July2019/eucMet_gap_filled.csv"
     lai_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/met_July2019/eucLAI.csv"
     swc_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
+    tdr_fname = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
     stx_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/soil_texture/FACE_P0018_RA_SOILTEXT_L2_20120501.csv"
 
     PTF = "Campbell_Cosby_multivariate"
@@ -929,7 +1021,9 @@ if __name__ == "__main__":
     # "Campbell_HC_SWC"
     soil_frac = "nearest" # "linear"
     layer_num = "6"
-    swilt_neo = True
+    neo_constrain = True
+    tdr_constrain = True
     for ring in ["R1","R2","R3","R4","R5","R6","amb", "ele"]:
         out_fname = "EucFACE_met_%s.nc" % (ring)
-        main(met_fname, lai_fname, swc_fname, stx_fname, out_fname, PTF, soil_frac, layer_num, swilt_neo, ring=ring)
+        main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname, PTF, soil_frac,\
+             layer_num, neo_constrain, tdr_constrain, ring=ring)
