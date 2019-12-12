@@ -281,18 +281,31 @@ def main(fobs, fcable, case_name, ring, layer):
 
 if __name__ == "__main__":
 
-    layer =  "31uni"
+    layer =  "6"
 
     if layer == "6":
+        cases = ["met_LAI_vrt_SM_swilt-watr_6_hie-watpot"]
+        '''
         cases = ["met_LAI_vrt_SM_swilt-watr_6_litter-off",\
                  "met_only_6_gw_off",\
                  "met_LAI_vrt_SM_swilt-watr_6","default-met_only_6",\
                  "met_only_6_Hvrd","met_only_6_Or","met_only_6_Or_Hvrd"]
+        '''
     elif layer == "31para":
         cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31para"]
     elif layer == "31exp":
         cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31exp"]
     elif layer == "31uni":
+        cases = ["met_LAI_vrt_SM_swilt-watr_31uni_hk-bch","met_LAI_vrt_SM_swilt-watr_31uni_hk-15bch",\
+                 "met_LAI_vrt_SM_swilt-watr_31uni_swilt003_ssat035_"]
+        '''
+        "met_LAI_vrt_SM_swilt-watr_31uni_bch=1_gw_off", "met_LAI_vrt_SM_swilt-watr_31uni_bch=2_gw_off",\
+                "met_LAI_vrt_SM_swilt-watr_31uni_bch=3_gw_off", "met_LAI_vrt_SM_swilt-watr_31uni_bch=4_gw_off",
+                "met_LAI_vrt_SM_swilt-watr_31uni_bch=5_gw_off", "met_LAI_vrt_SM_swilt-watr_31uni_bch=6_gw_off",\
+                "met_LAI_vrt_SM_swilt-watr_31uni_bch=7_gw_off", "met_LAI_vrt_SM_swilt-watr_31uni_bch=8_gw_off",\
+                "met_LAI_vrt_SM_swilt-watr_31uni_bch=9_gw_off", "met_LAI_vrt_SM_swilt-watr_31uni_bch=10_gw_off",\
+                "met_LAI_vrt_SM_swilt-watr_31uni_bch=11_gw_off","met_LAI_vrt_SM_swilt-watr_31uni_bch=12_gw_off",\
+                "met_LAI_vrt_SM_swilt-watr_31uni_bch=13_gw_off",\
         cases = ["met_LAI_vrt_SM_swilt-watr_31uni_litter-off",\
                  "met_LAI_vrt_SM_swilt-watr_31uni_g1-hie",\
                  "met_LAI_vrt_SM_swilt-watr_31uni_Or_Hvrd",\
@@ -303,10 +316,14 @@ if __name__ == "__main__":
                  "met_LAI_vrt_SM_swilt-watr_31uni_hyds10_hk10",\
                  "met_LAI_vrt_SM_swilt-watr_31uni_hyds01_hk01",\
                  "met_LAI_vrt_SM_swilt-watr_31uni_hyds001_hk001"]
+        '''
 
     rings = ["amb"]#"R1","R2","R3","R4","R5","R6",,"ele"
     for case_name in cases:
         for ring in rings:
             fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
-            fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" % (case_name, ring)
+            #fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" % (case_name, ring)
+            #fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen/outputs/%s/EucFACE_%s_out.nc" % (case_name, ring)
+            fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_6layers/outputs/%s/EucFACE_%s_out.nc" % (case_name, ring)
+
             main(fobs, fcable, case_name, ring, layer)

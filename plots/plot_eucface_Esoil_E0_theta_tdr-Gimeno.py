@@ -23,7 +23,7 @@ from scipy.interpolate import griddata
 import scipy.stats as stats
 from sklearn.metrics import mean_squared_error
 
-def main(fobs_Esoil, fobs_vwc, fcable, case_name, hk, b, ring, layer, ep_type):
+def main(fobs_Esoil, fobs_vwc, fcable, case_name, ring, layer, ep_type):
 
     est_esoil = pd.read_csv(fobs_Esoil, usecols = ['Ring','Date','wuTP','EfloorPred'])
     est_esoil['Date'] = pd.to_datetime(est_esoil['Date'],format="%d/%m/%Y",infer_datetime_format=False)
@@ -48,6 +48,7 @@ def main(fobs_Esoil, fobs_vwc, fcable, case_name, hk, b, ring, layer, ep_type):
     #subset = subset.xs('swc.tdr', axis=1, drop_level=True)
     #print(subset)
 
+    # tdr at 30cm depth
     tdr_30 = pd.read_csv(fobs_vwc, usecols = ['Ring','Date','vwcMean'])
     tdr_30['Date'] = pd.to_datetime(tdr_30['Date'],format="%d/%m/%Y",infer_datetime_format=False)
     tdr_30['Date'] = tdr_30['Date'] - pd.datetime(2011,12,31)
@@ -73,13 +74,10 @@ def main(fobs_Esoil, fobs_vwc, fcable, case_name, hk, b, ring, layer, ep_type):
     SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,0,0,0], columns=['SoilMoist'])
 
     if layer == "6":
-        SoilMoist['SoilMoist'] = cable.variables['SoilMoist'][:,0,0,0]
-        '''
         SoilMoist['SoilMoist'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.022 \
                                  + cable.variables['SoilMoist'][:,1,0,0]*0.058 \
                                  + cable.variables['SoilMoist'][:,2,0,0]*0.154 \
                                  + cable.variables['SoilMoist'][:,3,0,0]*(0.5-0.022-0.058-0.154) )/0.5
-        '''
     elif layer == "13":
         SoilMoist['SoilMoist'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.02 \
                                  + cable.variables['SoilMoist'][:,1,0,0]*0.05 \
@@ -271,43 +269,26 @@ def main(fobs_Esoil, fobs_vwc, fcable, case_name, hk, b, ring, layer, ep_type):
     ax1.set_xlim(0.,0.4)
     ax1.set_ylim(0.,1.)
 
-    fig.savefig("EucFACE_Esoil_E0_theta_Gimeno-tdr_%s_%s_hk=%s_b=%s_%s.png" \
-                    % (ep_type, case_name, hk, b, ring), bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("EucFACE_Esoil_E0_theta_Gimeno-tdr_%s_%s_%s.png" \
+                    % (ep_type, case_name, ring), bbox_inches='tight', pad_inches=0.1)
 
 
 if __name__ == "__main__":
 
     layer =  "6"
 
-    cases = ["ctl_met_LAI_vrt_SM_swilt-watr_hyds-bch_or-off-litter"]
-    #["ctl_met_LAI_vrt_SM_swilt-watr_hyds-bch"]
-    # 6
-    # ["met_LAI_sand","met_LAI_clay","met_LAI_silt"\
-    #  "ctl_met_LAI", "ctl_met_LAI_vrt", "ctl_met_LAI_vrt_SM",\
-    #  "ctl_met_LAI_vrt_SM_swilt-watr", "ctl_met_LAI_vrt_SM_swilt-watr_Hvrd",\
-    #  "ctl_met_LAI_vrt_SM_swilt-watr_Or-Off","default-met_only"]
-    # 31para
-    #["ctl_met_LAI_vrt_SM_swilt-watr_31para"]
-    # 31exp
-    #["ctl_met_LAI_vrt_SM_swilt-watr_31exp"]
-    # 31uni
-    #  ["ctl_met_LAI_vrt_SM_31uni","ctl_met_LAI_vrt_SM_swilt-watr_31uni",\
-    #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-uni",\
-    #   "ctl_met_LAI_vrt_SM_swilt-watr_31uni_root-log10"]
+    cases = ["default-met_only_6","met_LAI_vrt_SM_swilt-watr_6"]
 
     ep_type = "Rnet-G"
             #"Rnet-G"
             #"PotEvap"
 
     rings = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
-    hyds_value = [1e3,1e2,1e1,1.,1e-1,1e-2,1e-3,1e-4,1e-5,1e-6]
-    bch_value  = np.arange(1.,11.,1.)
-    for hk in hyds_value:
-        for b in bch_value:
-            for case_name in cases:
-                for ring in rings:
-                    fobs_Esoil = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_underET.csv"
-                    fobs_vwc = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_soilVars.csv"
-                    fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_hyds=%s_bch=%s_%s_out.nc" \
-                            % (case_name,str(hk),str(b), ring)
-                    main(fobs_Esoil, fobs_vwc, fcable, case_name, str(hk),str(b), ring, layer, ep_type)
+
+    for case_name in cases:
+        for ring in rings:
+            fobs_Esoil = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_underET.csv"
+            fobs_vwc = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_soilVars.csv"
+            fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" \
+                    % (case_name, ring)
+            main(fobs_Esoil, fobs_vwc, fcable, case_name, ring, layer, ep_type)

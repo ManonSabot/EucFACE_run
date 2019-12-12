@@ -184,10 +184,11 @@ def main(fobs, fcable, case_name):
 if __name__ == "__main__":
 
 
-    cases = ["Cumberland_default", "Cumberland_litter"]
+    cases = ["Cumberland_default", "Cumberland_litter","Cumberland_or"] # ["pore_scale_model_or-off"]
 
     for case_name in cases:
         fobs   = "/srv/ccrc/data25/z5218916/data/Cumberland_OzFlux/CumberlandPlainsOzFlux2.0_flux.nc"
         fcable = "/srv/ccrc/data25/z5218916/cable/EucFACE/test_Cumberland/outputs/%s/CumberlandPlainsOzFlux2_out.nc" \
                 % (case_name)
+        #fcable = "/srv/ccrc/data45/z3509830/CABLE_runs/CABLE_site_runs/GW_fixes/Fixing_GW_model/cable-2.2.3-pore-scale-model/offline/cable_out_1950_or_off.nc"
         main(fobs, fcable, case_name)

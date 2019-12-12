@@ -451,18 +451,40 @@ def read_obs_swc(fobs, ring):
 
 if __name__ == "__main__":
 
-    layer =  "31uni"
+    layer =  "6"
 
     if layer == "6":
+        cases = ["met_LAI_vrt_SM_swilt-watr_6_hie-watpot"]
+        '''
         cases = ["met_LAI_vrt_SM_swilt-watr_6_litter-off",\
                  "met_only_6_gw_off",\
                  "met_LAI_vrt_SM_swilt-watr_6","default-met_only_6",\
                  "met_only_6_Hvrd","met_only_6_Or","met_only_6_Or_Hvrd"]
+        '''
     elif layer == "31para":
         cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31para"]
     elif layer == "31exp":
         cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31exp"]
     elif layer == "31uni":
+        cases = ["met_LAI_vrt_SM_swilt-watr_31uni_bch=1_gw_off", "met_LAI_vrt_SM_swilt-watr_31uni_bch=2_gw_off",\
+                "met_LAI_vrt_SM_swilt-watr_31uni_bch=3_gw_off", "met_LAI_vrt_SM_swilt-watr_31uni_bch=4_gw_off",
+                "met_LAI_vrt_SM_swilt-watr_31uni_bch=5_gw_off", "met_LAI_vrt_SM_swilt-watr_31uni_bch=6_gw_off",\
+                "met_LAI_vrt_SM_swilt-watr_31uni_bch=7_gw_off", "met_LAI_vrt_SM_swilt-watr_31uni_bch=8_gw_off",\
+                "met_LAI_vrt_SM_swilt-watr_31uni_bch=9_gw_off", "met_LAI_vrt_SM_swilt-watr_31uni_bch=10_gw_off",\
+                "met_LAI_vrt_SM_swilt-watr_31uni_bch=11_gw_off","met_LAI_vrt_SM_swilt-watr_31uni_bch=12_gw_off",\
+                "met_LAI_vrt_SM_swilt-watr_31uni_bch=13_gw_off"]
+        '''
+         ["met_LAI_vrt_SM_swilt-watr_31uni_hk-bch","met_LAI_vrt_SM_swilt-watr_31uni_hk-15bch",\
+         "met_LAI_vrt_SM_swilt-watr_31uni_swilt003_ssat035_"]
+                "met_LAI_vrt_SM_swilt-watr_31uni_hydsx001_gw_off","met_LAI_vrt_SM_swilt-watr_31uni_hydsx01_gw_off",\
+                "met_LAI_vrt_SM_swilt-watr_31uni_hydsx10_gw_off", "met_LAI_vrt_SM_swilt-watr_31uni_hydsx100_gw_off"]
+        "met_LAI_vrt_SM_swilt-watr_31uni_bch=1_gw_off", "met_LAI_vrt_SM_swilt-watr_31uni_bch=2_gw_off",\
+                "met_LAI_vrt_SM_swilt-watr_31uni_bch=3_gw_off", "met_LAI_vrt_SM_swilt-watr_31uni_bch=4_gw_off",
+                "met_LAI_vrt_SM_swilt-watr_31uni_bch=5_gw_off", "met_LAI_vrt_SM_swilt-watr_31uni_bch=6_gw_off",\
+                "met_LAI_vrt_SM_swilt-watr_31uni_bch=7_gw_off", "met_LAI_vrt_SM_swilt-watr_31uni_bch=8_gw_off",\
+                "met_LAI_vrt_SM_swilt-watr_31uni_bch=9_gw_off", "met_LAI_vrt_SM_swilt-watr_31uni_bch=10_gw_off",\
+                "met_LAI_vrt_SM_swilt-watr_31uni_bch=11_gw_off","met_LAI_vrt_SM_swilt-watr_31uni_bch=12_gw_off",\
+                "met_LAI_vrt_SM_swilt-watr_31uni_bch=13_gw_off",\
         cases = ["met_LAI_vrt_SM_swilt-watr_31uni_litter-off",\
                  "met_LAI_vrt_SM_swilt-watr_31uni_g1-hie",\
                  "met_LAI_vrt_SM_swilt-watr_31uni_Or_Hvrd",\
@@ -473,6 +495,7 @@ if __name__ == "__main__":
                  "met_LAI_vrt_SM_swilt-watr_31uni_hyds10_hk10",\
                  "met_LAI_vrt_SM_swilt-watr_31uni_hyds01_hk01",\
                  "met_LAI_vrt_SM_swilt-watr_31uni_hyds001_hk001"]
+        '''
     rings = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
 
     for case_name in cases:
@@ -480,8 +503,9 @@ if __name__ == "__main__":
             fobs_Esoil = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_underET.csv"
             fobs_Trans = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_sapflow.csv"
             fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
-            fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" \
-                    % (case_name, ring)
+            #fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" % (case_name, ring)
+            #fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen/outputs/%s/EucFACE_%s_out.nc" % (case_name, ring)
+            fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_6layers/outputs/%s/EucFACE_%s_out.nc" % (case_name, ring)
             main(fobs_Esoil, fobs_Trans, fobs, fcable, case_name, ring, layer)
 
     '''
