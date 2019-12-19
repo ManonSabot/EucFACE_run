@@ -107,8 +107,7 @@ if __name__ == "__main__":
 
     sen_para   = "hyds"
     operator   = "="
-    aa = np.array([0.09])
-    sen_value  = aa[0] # initial_guess
+    sen_value = np.array([0.09])  # initial_guess
 
     ring       = "amb"
     met_case   = "met_LAI_vrt_swilt-watr-ssat_SM_31uni"
