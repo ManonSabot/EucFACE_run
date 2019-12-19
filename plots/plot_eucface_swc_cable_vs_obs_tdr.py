@@ -386,6 +386,7 @@ def main(fobs_Esoil, fobs_Trans, fobs, fcable, case_name, ring, layer):
     '''
     #fig.savefig("EucFACE_tdr_%s_hk=%s_b=%s_%s.png" % (case_name, hk, b, ring), bbox_inches='tight', pad_inches=0.1)
     fig.savefig("EucFACE_tdr_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
+    #fig.savefig("EucFACE_tdr_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
 
 
 def read_obs_esoil(fobs_Esoil, ring):
@@ -455,10 +456,13 @@ if __name__ == "__main__":
     layer =  "31uni"
     '''
     if layer == "6":
+        cases = [ "met_only_fw-fixed_6_gw-off","met_only_6_gw-off"]
+        """
         cases = [ "met_only_6_","met_LAI_6_","met_LAI_vrt_6_","met_LAI_vrt_swilt-watr-ssat_6_",\
                   "met_LAI_vrt_swilt-watr-ssat_SM_6_","met_LAI_vrt_swilt-watr-ssat_SM_6_litter",\
                   "met_LAI_vrt_swilt-watr-ssat_SM_6_Or","met_LAI_vrt_swilt-watr-ssat_SM_6_fw-Haverd",\
                   "met_LAI_vrt_swilt-watr-ssat_SM_6_fw-hie-exp","met_LAI_vrt_swilt-watr-ssat_SM_6_fw-hie-watpot"]
+        """
     elif layer == "31para":
         cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31para"]
     elif layer == "31exp":
@@ -469,7 +473,7 @@ if __name__ == "__main__":
                  "met_LAI_vrt_swilt-watr-ssat_SM_31uni_fw-Haverd","met_LAI_vrt_swilt-watr-ssat_SM_31uni_fw-hie-watpot"]
     '''
     cases = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs",\
-                      "met_LAI_vrt_swilt-watr-ssat_SM_31uni_*_fw-hie-exp"))
+                      "met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx01-hydsx*_fw-hie-exp"))
     rings = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
 
     for case_name in cases:

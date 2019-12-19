@@ -283,13 +283,16 @@ def main(fobs, fcable, case_name, ring, layer):
 
 if __name__ == "__main__":
 
-    layer =  "31uni"
+    layer = "31uni"
     '''
     if layer == "6":
+	cases = [ "met_only_6_","met_only_6_gw-off"]
+	"""
         cases = [ "met_only_6_","met_LAI_6_","met_LAI_vrt_6_","met_LAI_vrt_swilt-watr-ssat_6_",\
                   "met_LAI_vrt_swilt-watr-ssat_SM_6_","met_LAI_vrt_swilt-watr-ssat_SM_6_litter",\
                   "met_LAI_vrt_swilt-watr-ssat_SM_6_Or","met_LAI_vrt_swilt-watr-ssat_SM_6_fw-Haverd",\
                   "met_LAI_vrt_swilt-watr-ssat_SM_6_fw-hie-exp","met_LAI_vrt_swilt-watr-ssat_SM_6_fw-hie-watpot"]
+	"""
     elif layer == "31para":
         cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31para"]
     elif layer == "31exp":
@@ -301,7 +304,7 @@ if __name__ == "__main__":
     '''
 
     cases = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs",\
-                      "met_LAI_vrt_swilt-watr-ssat_SM_31uni_*_fw-hie-exp"))
+                      "met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx01-hydsx*_fw-hie-exp"))
     rings = ["amb"]#"R1","R2","R3","R4","R5","R6",,"ele"
     for case_name in cases:
         for ring in rings:
