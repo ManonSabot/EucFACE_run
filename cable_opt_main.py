@@ -79,7 +79,6 @@ def get_cable_value(output_file, met_case):
     SoilMoist.index = SoilMoist.index - pd.datetime(2011,12,31)
     SoilMoist.index = SoilMoist.index.days
     SoilMoist = SoilMoist.sort_values(by=['dates'])
-    print(SoilMoist['SoilMoist'].values)
     return SoilMoist['SoilMoist'].values
 
 def read_obs_swc(ring):
@@ -116,62 +115,10 @@ if __name__ == "__main__":
     met_subset = "EucFACE_met_%s.nc" % ring
 
     obs = read_obs_swc(ring)
-    print(obs.shape)
-    print(sen_value.shape)
 
     (popt, pcov, info, mesg, success) = optimize.leastsq(residuals, sen_value, \
                                        args=( met_case, met_dir, met_subset,  \
                                        sen_para, operator, obs),full_output=True)
-
-
-
-    def __init__(self,x,y,parameters=None):
-        import scipy.optimize
-        _x = numpy.asarray(x)
-        _y = numpy.asarray(y)
-        p0 = self._get_initial_values(parameters)
-        fitfunc = self.f_factory()
-        def errfunc(p,x,y):
-            return  fitfunc(p,x) - y     # residuals
-        p,msg = scipy.optimize.leastsq(errfunc,p0[:],args=(_x,_y))
-        try:
-            p[0]
-            self.parameters = p
-        except (TypeError,IndexError,):
-            # TypeError for int p, IndexError for numpy scalar (new scipy)
-            self.parameters = [p]
-        self.message = msg
-
-    def f_factory(self):
-        """Stub for fit function factory, which returns the fit function.
-        Override for derived classes.
-        """
-        def fitfunc(p,x):
-            # return f(p,x); should be a numpy ufunc
-            raise NotImplementedError("base class must be extended for each fit function")
-        return fitfunc
-
-    def _get_initial_values(self, parameters=None):
-        p0 = numpy.asarray(self.initial_values())
-        if parameters is not None:
-            try:
-                p0[:] = parameters
-            except ValueError:
-                raise ValueError("Wrong number of custom initital values {0!r}, should be something like {1!r}".format(parameters, p0))
-        return p0
-
-    def initial_values(self):
-        """List of initital guesses for all parameters p[]"""
-        # return [1.0, 2.0, 0.5]
-        raise NotImplementedError("base class must be extended for each fit function")
-
-    def fit(self,x):
-        """Applies the fit to all *x* values"""
-        fitfunc = self.f_factory()
-        return fitfunc(self.parameters,numpy.asarray(x))
-
-
-
 
 
     if success != 1:
