@@ -11,9 +11,12 @@ import pandas as pd
 import numpy as np
 import netCDF4 as nc
 import datetime
-from cable_run_sen_exp import RunCable
+from cable_run_opt_exp import RunCable
 
 def main(sen_para, sen_value, operator, met_dir, met_subset):
+    print("____________________________________")
+    print(sen_value)
+    print("____________________________________")
     if (not os.path.exists(met_dir)):
         raise Exception("No met folder: %s" %met_dir)
     else:
@@ -26,7 +29,7 @@ def main(sen_para, sen_value, operator, met_dir, met_subset):
     return output_file
 
 def alter_met_parameter(sen_para, sen_value, operator, met_dir, met_subset):
-    
+
     print(sen_value)
     print(str(sen_value))
     print(str(sen_value).replace('.',''))
