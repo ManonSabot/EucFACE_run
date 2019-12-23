@@ -24,7 +24,7 @@ __title__ = "best performance for any given parameter/configuration"
 __author__ = "Manon E. B. Sabot"
 __version__ = "1.0 (08.10.2019)"
 __email__ = "m.e.b.sabot@gmail.com"
-
+ 
 
 #=======================================================================
 
