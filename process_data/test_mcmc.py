@@ -1,6 +1,7 @@
+#!/usr/bin/env python
 # https://mc3.readthedocs.io/en/latest/mcmc_tutorial.html
 
-#import mc3
+import mc3
 import numpy as np
 import matplotlib.pyplot as plt
 

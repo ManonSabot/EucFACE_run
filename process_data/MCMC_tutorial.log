@@ -1,0 +1,96 @@
+
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  Multi-core Markov-chain Monte Carlo (MC3).
+  Version 3.0.0.
+  Copyright (c) 2015-2019 Patricio Cubillos and collaborators.
+  MC3 is open-source software under the MIT license (see LICENSE).
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+Least-squares best-fitting parameters:
+  [-1.62368872  0.64495941  0.1       ]
+
+Start MCMC chains  (Mon Dec 23 15:18:01 2019)
+
+[:         ]  10.0% completed  (Mon Dec 23 15:18:01 2019)
+Out-of-bound Trials:
+[0 0]
+Best Parameters: (chisq=3138.7567)
+[-1.62368872  0.64495941]
+
+[::        ]  20.0% completed  (Mon Dec 23 15:18:02 2019)
+Out-of-bound Trials:
+[0 0]
+Best Parameters: (chisq=3138.7567)
+[-1.62368872  0.64495941]
+Gelman-Rubin statistics for free parameters:
+[1.01493935 1.01360453]
+
+[:::       ]  30.0% completed  (Mon Dec 23 15:18:02 2019)
+Out-of-bound Trials:
+[0 0]
+Best Parameters: (chisq=3138.7567)
+[-1.62368872  0.64495941]
+Gelman-Rubin statistics for free parameters:
+[1.00165561 1.00196664]
+All parameters converged to within 1% of unity.
+
+[::::      ]  40.0% completed  (Mon Dec 23 15:18:02 2019)
+Out-of-bound Trials:
+[0 0]
+Best Parameters: (chisq=3138.7567)
+[-1.62368872  0.64495941]
+Gelman-Rubin statistics for free parameters:
+[1.00118323 1.00159839]
+All parameters converged to within 1% of unity.
+
+[:::::     ]  50.0% completed  (Mon Dec 23 15:18:03 2019)
+Out-of-bound Trials:
+[0 0]
+Best Parameters: (chisq=3138.7567)
+[-1.62368872  0.64495941]
+Gelman-Rubin statistics for free parameters:
+[1.00144149 1.00089666]
+All parameters converged to within 1% of unity.
+
+[::::::    ]  60.0% completed  (Mon Dec 23 15:18:03 2019)
+Out-of-bound Trials:
+[0 0]
+Best Parameters: (chisq=3138.7567)
+[-1.62368872  0.64495941]
+Gelman-Rubin statistics for free parameters:
+[1.00067307 1.00031114]
+All parameters converged to within 1% of unity.
+
+All parameters satisfy the GR convergence threshold of 1.01, stopping
+the MCMC.
+
+MCMC Summary:
+-------------
+  Number of evaluated samples:        61004
+  Number of parallel chains:             14
+  Average iterations per chain:        4357
+  Burned-in iterations per chain:      1000
+  Thinning factor:                        1
+  MCMC sample size (thinned, burned): 47004
+  Acceptance rate:   31.47%
+
+Param name     Best fit   Lo HPD CR   Hi HPD CR        Mean    Std dev       S/N
+----------- ----------------------------------- ---------------------- ---------
+y0          -1.6237e+00 -6.9885e-02  7.2373e-02 -1.6234e+00 7.0187e-02      23.1
+alpha        6.4496e-01 -2.4921e-02  2.4603e-02  6.4481e-01 2.4510e-02      26.3
+beta         1.0000e-01  0.0000e+00  0.0000e+00  1.0000e-01 0.0000e+00   [fixed]
+
+  Best-parameter's chi-squared:       3138.7567
+  Best-parameter's -2*log(posterior): 3138.7567
+  Bayesian Information Criterion:     3152.5722
+  Reduced chi-squared:                   3.1450
+  Standard deviation of residuals:  4.81796
+
+Output sampler files:
+  'MCMC_tutorial.npz'
+  'MCMC_tutorial_trace.png'
+  'MCMC_tutorial_pairwise.png'
+  'MCMC_tutorial_posterior.png'
+  'MCMC_tutorial_RMS.png'
+  'MCMC_tutorial_model.png'
+  'MCMC_tutorial.log'
