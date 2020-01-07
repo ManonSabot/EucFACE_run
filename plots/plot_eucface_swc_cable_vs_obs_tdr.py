@@ -474,9 +474,12 @@ if __name__ == "__main__":
     '''
     #cases = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs",\
     #                  "met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx01-hydsx*_fw-hie-exp"))
+    #cases = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_fw-hie-exp_31uni_1/outputs",\
+    #                   "met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=*_soil_moisture_fix_or_fix_check"))
+    cases = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs",\
+                      "met_LAI_vrt_swilt-watr-ssat_SM_31uni_GW-wb_SM-fix_or_fix"))
+    #                   "met_LAI_vrt_swilt-watr-ssat_SM_31uni_GW-wb_SM-fix_fw-hie-exp"))
 
-    cases = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_fw-hie-exp_31uni_1/outputs",\
-                       "met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=31_soil_moisture_fix_check"))
     rings = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
 
     for case_name in cases:
