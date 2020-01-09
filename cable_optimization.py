@@ -19,9 +19,19 @@ import netCDF4 as nc
 import datetime
 from cable_run_optimization import RunCable
 
-def residuals(sen_values, *args):
+def residuals_min/leastsq(sen_values, *args):
 
     (met_case, met_dir, met_subset, sen_para, operator, obs) = args
+
+    output_file = main(sen_para, sen_value, operator, met_dir, met_subset)
+
+    cable_var, obs_var = get_cable_value(ref_var, output_file, met_case)
+
+    metric = get_metric(metric_type, cable_var, obs_var)
+
+    return metric
+
+def residuals_range(met_case, met_dir, met_subset, sen_para, operator, obs, sen_value):
 
     output_file = main(sen_para, sen_value, operator, met_dir, met_subset)
 
@@ -74,8 +84,6 @@ def optimization():
     optimize    = "" # "leastsq" ; "minimize"; "MCMC"; "range"
     ref_var     = "" # "swc_50"; "swc_all"; "trans"; "esoil"; "esoil2trans"
 
-    # "leastsq" ; "minimize"; "MCMC"; "range"
-
     if optimize == "leastsq":
         sen_para  = "hyds"
         operator  = "="
@@ -93,3 +101,31 @@ def optimization():
                                 args=( met_case, met_dir, met_subset,
                                        sen_para, operator, obs),
                                 method='nelder-mead')
+    elif optimize == "MCMC":
+
+    elif optimize == "range":
+        value_s = 1.5
+        value_e = 13.
+        interval =
+        steps   =
+        sen_values = np.linspace(value_s, value_e, 24)
+        print(sen_values)
+        rmse       = np.zeros(24)
+        for i, sen_value in enumerate(sen_values):
+            sen_values = np.linspace(1.5, 13., 24)  #np.arange(-10.,5.,32)  # initial_guess
+            print(sen_values)
+            rmse       = np.zeros(24)
+            for i, sen_value in enumerate(sen_values):
+                print("i = ", i)
+                output_file = main(sen_para, sen_value, operator, met_dir, met_subset)
+                #output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_fw-hie-exp_31uni_1/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^%s_fw-hie-exp/EucFACE_amb_out.nc" % str(sen_value).replace('.', '')
+                print(output_file)
+                cable_swc   = get_cable_value(output_file, met_case)
+                #print("*", cable_swc.shape, obs.shape, cable_swc.mean(), obs.mean())
+                #return (obs - cable_swc)
+                rmse[i]
+
+    else:
+
+        RMSE = residuals(met_case, met_dir, met_subset, sen_para, operator, obs)
+        print("Please choose from 'leastsq', 'minimize', 'MCMC', 'range'")
