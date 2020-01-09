@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 """
-Purpose: provide ? optimization methods to find the optimal parameter suiting the
-         reference data
+Purpose: provide 3 optimization methods (MCMC, ,range) to find the optimal parameter suiting the
+         observation
 """
 
 __author__  = "MU Mengyuan"
-__version__ = "1.0 (11.09.2018)"
+__version__ = "1.0 (2020-01-09)"
 __email__   = "mu.mengyuan815@gmail.com"
 
 import os
@@ -17,84 +17,79 @@ import pandas as pd
 import numpy as np
 import netCDF4 as nc
 import datetime
-from cable_run_opt_exp import RunCable
+from cable_run_optimization import RunCable
 
-def optimization(sen_para, sen_value, operator, met_dir, met_subset):
-    print("____________________________________")
-    print(sen_value)
-    print("____________________________________")
+def residuals(sen_values, *args):
 
-    if (not os.path.exists(met_dir)):
-        raise Exception("No met folder: %s" %met_dir)
-    else:
-        print("we are changing met file")
-        met_dir_new = alter_met_parameter(sen_para, sen_value, operator, met_dir, met_subset)
+    (met_case, met_dir, met_subset, sen_para, operator, obs) = args
 
-    print("we are running cable")
-    output_file = run_cable(met_dir_new, met_subset)
+    output_file = main(sen_para, sen_value, operator, met_dir, met_subset)
 
-    return output_file
+    cable_var, obs_var = get_cable_value(ref_var, output_file, met_case)
 
-def alter_met_parameter(sen_para, sen_value, operator, met_dir, met_subset):
+    metric = get_metric(metric_type, cable_var, obs_var)
 
-    print(sen_value)
-    print(str(sen_value))
-    print(str(sen_value).replace('.',''))
-    met_dir_new = "%s_%s%s%s" %(met_dir, sen_para, operator ,str(sen_value)[1:-1].replace('.', '') )
+    return metric
 
-    if len(met_subset) == 0:
-        if os.path.exists(met_dir_new):
-            shutil. rmtree(met_dir_new)
-        shutil.copytree(met_dir, met_dir_new)
-        met_files = glob.glob(os.path.join(met_dir_new, "*.nc"))
-    else:
-        if (not os.path.exists(met_dir_new)):
-            os.makedirs(met_dir_new)
-        shutil.copy(os.path.join(met_dir, met_subset) , met_dir_new)
-        met_files = glob.glob(os.path.join(met_dir_new, "*.nc"))
-    for met_file in met_files:
-        f = nc.Dataset(met_file, 'r+', format='NETCDF4')
-        f.parameter_sensitivity = 'alter %s as %s%s%s' % (sen_para, sen_para, operator, str(sen_value))
+def get_metric(metric_type, cable_var, obs_var):
+    if metric_type == "rmse":
+        metric = np.sqrt(np.mean((obs_var - cable_var)**2))
+    elif metric_type == "r":
 
-        sen_para_vec = "%s_vec" %sen_para
-        if operator == "x":
-            print(sen_para)
-            f.variables[sen_para_vec][0:3,0,0] = f.variables[sen_para_vec][0:3,0,0] * sen_value
-        elif operator == "=":
-            f.variables[sen_para_vec][0:3,0,0] = sen_value
-        elif operator == "+":
-            f.variables[sen_para_vec][0:3,0,0] = f.variables[sen_para_vec][0:3,0,0] + sen_value
-        elif operator == "-":
-            f.variables[sen_para_vec][0:3,0,0] = f.variables[sen_para_vec][0:3,0,0] - sen_value
-        f.variables[sen_para][:,0] = f.variables[sen_para_vec][:,0,0].mean()/1000.
-        f.close()
-    return met_dir_new
+    return metric
 
+def get_var_value(ref_var, output_file, met_case):
 
+    choose_cable_var = {
+                     'swc_50'     : read_cable_swc_50cm(output_file, met_case),
+                     'swc_all'    : read_cable_swc_all(output_file, met_case),
+                     'trans'      : read_cable_var(output_file, 'TVeg'),
+                     'esoil'      : read_cable_var(output_file, 'ESoil'),
+                     'esoil2trans': calc_cable_esoil2trans(output_file)
+                     }
+    choose_obs_var = {
+                     'swc_50'     : read_obs_swc_tdr(ring),
+                     'swc_all'    : read_obs_swc_neo(ring),
+                     'trans'      : read_obs_trans(ring),
+                     'esoil'      : read_obs_esoil(ring),
+                     'esoil2trans': calc_obs_esoil2trans(ring)
+                     }
 
-def run_cable(met_dir_new, met_subset):
+    cable_var = choose_cable_var.get(ref_var, 'default')
+    obs_var   = choose_obs_var.get(ref_var, 'default')
 
-    met_fname = os.path.basename(met_dir_new).split("/")[-1]
-    case_name = "fw-hie-exp"
-    cable_exe = "cable_met_HDM_fw-hie_31uni"
-    #------------- Change stuff ------------- #
-    met_dir = met_dir_new
-    log_dir = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_fw-hie-exp_31uni/logs/%s_%s" % ( met_fname, case_name )
-    output_dir = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_fw-hie-exp_31uni/outputs/%s_%s" % ( met_fname, case_name )
-    restart_dir = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_fw-hie-exp_31uni/restart_files/%s_%s" % ( met_fname, case_name )
-    namelist_dir = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_fw-hie-exp_31uni/namelists/%s_%s" % ( met_fname, case_name )
-    aux_dir = "/srv/ccrc/data25/z5218916/cable/src/CABLE-AUX/"
-    cable_src = "/srv/ccrc/data25/z5218916/cable/src/Marks_latest_branch_with_fixes/Marks_latest_branch_with_fixes_gw_for_EucFace_fix_met_multi-layer/"
-    mpi = False
-    num_cores = 4 # set to a number, if None it will use all cores...!
+    return get_same_dates(cable_var, obs_var)
 
-    C = RunCable(met_dir=met_dir, log_dir=log_dir, output_dir=output_dir,
-                 restart_dir=restart_dir, aux_dir=aux_dir,
-                 namelist_dir=namelist_dir, met_subset=met_subset,
-                 cable_src=cable_src,cable_exe=cable_exe, mpi=mpi, num_cores=num_cores,
-                 met_fname=met_fname, case_name=case_name)
-    C.main()
+def get_same_dates(cable_var, obs_var):
 
-    output_file = os.path.join(output_dir, "EucFACE_%s_out.nc" % os.path.basename(met_subset).split(".")[0].split("_")[-1])
+    return cable_var, obs_var
 
-    return output_file
+def optimization():
+
+    ring       = "amb"
+    met_case   = "met_LAI_vrt_swilt-watr-ssat_SM_31uni"
+    met_dir    = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_fw-hie-exp_31uni/met/%s" % met_case
+    met_subset = "EucFACE_met_%s.nc" % ring
+
+    optimize    = "" # "leastsq" ; "minimize"; "MCMC"; "range"
+    ref_var     = "" # "swc_50"; "swc_all"; "trans"; "esoil"; "esoil2trans"
+
+    # "leastsq" ; "minimize"; "MCMC"; "range"
+
+    if optimize == "leastsq":
+        sen_para  = "hyds"
+        operator  = "="
+        sen_value = np.array([0.09])  # initial_guess
+        (popt, pcov, info, mesg, success) = optimize.leastsq(residuals, sen_value, \
+                                           args=( met_case, met_dir, met_subset,  \
+                                           sen_para, operator, obs),full_output=True,\
+                                           ftol=100000., xtol=100000.,maxfev = 10000, epsfcn = 0.01)
+
+    elif optimize == "minimize":
+        sen_para  = "hyds"
+        operator  = "="
+        sen_value = np.array([0.09])  # initial_guess
+        res = optimize.minimize(residuals, sen_value,
+                                args=( met_case, met_dir, met_subset,
+                                       sen_para, operator, obs),
+                                method='nelder-mead')
