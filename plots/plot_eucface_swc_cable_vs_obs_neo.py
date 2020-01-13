@@ -24,8 +24,9 @@ from scipy.interpolate import griddata
 import scipy.stats as stats
 from sklearn.metrics import mean_squared_error
 
-def main(fobs, fcable, case_name, ring, layer):
+def plot_neo(fcable, case_name, ring, layer):
 
+    fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
     neo = pd.read_csv(fobs, usecols = ['Ring','Depth','Date','VWC'])
     neo['Date'] = pd.to_datetime(neo['Date'],format="%d/%m/%y",infer_datetime_format=False)
     neo['Date'] = neo['Date'] - pd.datetime(2012,12,31)
@@ -281,10 +282,11 @@ def main(fobs, fcable, case_name, ring, layer):
     plt.suptitle('Volumetric Water Content (m3/m3)')
     fig.savefig("EucFACE_neo_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
 
+'''
 if __name__ == "__main__":
 
     layer = "31uni"
-    '''
+
     if layer == "6":
 	cases = [ "met_only_6_","met_only_6_gw-off"]
 	"""
@@ -301,7 +303,7 @@ if __name__ == "__main__":
         cases = ["met_LAI_vrt_swilt-watr-ssat_SM_31uni_litter","met_LAI_vrt_swilt-watr-ssat_SM_31uni_Or",\
                  "met_LAI_vrt_swilt-watr-ssat_SM_31uni_fw-hie-exp",\
                  "met_LAI_vrt_swilt-watr-ssat_SM_31uni_fw-Haverd","met_LAI_vrt_swilt-watr-ssat_SM_31uni_fw-hie-watpot"]
-    '''
+
 
     #cases = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs",\
     #                  "met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx01-hydsx*_fw-hie-exp"))
@@ -323,3 +325,4 @@ if __name__ == "__main__":
             #fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" % (case_name, ring)
             fcable ="%s/EucFACE_%s_out.nc" % (case_name, ring)
             main(fobs, fcable, case_name, ring, layer)
+'''

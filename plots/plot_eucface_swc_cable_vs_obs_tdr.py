@@ -24,8 +24,11 @@ from scipy.interpolate import griddata
 import scipy.stats as stats
 from sklearn.metrics import mean_squared_error
 
-#def main(fobs_Esoil, fobs, fcable, case_name, hk, b, ring, layer):
-def main(fobs_Esoil, fobs_Trans, fobs, fcable, case_name, ring, layer):
+def plot_tdr(fcable, case_name, ring, layer):
+
+    fobs_Esoil = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_underET.csv"
+    fobs_Trans = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_sapflow.csv"
+    fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
 
     subs_Esoil = read_obs_esoil(fobs_Esoil, ring)
     subs_Trans = read_obs_trans(fobs_Trans, ring)
@@ -449,49 +452,3 @@ def read_obs_swc(fobs, ring):
     subset = subset.xs('swc.tdr', axis=1, drop_level=True)
 
     return subset
-
-
-if __name__ == "__main__":
-
-    layer =  "31uni"
-    '''
-    if layer == "6":
-        cases = [ "met_only_fw-fixed_6_gw-off","met_only_6_gw-off"]
-        """
-        cases = [ "met_only_6_","met_LAI_6_","met_LAI_vrt_6_","met_LAI_vrt_swilt-watr-ssat_6_",\
-                  "met_LAI_vrt_swilt-watr-ssat_SM_6_","met_LAI_vrt_swilt-watr-ssat_SM_6_litter",\
-                  "met_LAI_vrt_swilt-watr-ssat_SM_6_Or","met_LAI_vrt_swilt-watr-ssat_SM_6_fw-Haverd",\
-                  "met_LAI_vrt_swilt-watr-ssat_SM_6_fw-hie-exp","met_LAI_vrt_swilt-watr-ssat_SM_6_fw-hie-watpot"]
-        """
-    elif layer == "31para":
-        cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31para"]
-    elif layer == "31exp":
-        cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31exp"]
-    elif layer == "31uni":
-        cases = ["met_LAI_vrt_swilt-watr-ssat_SM_31uni_litter","met_LAI_vrt_swilt-watr-ssat_SM_31uni_Or",\
-                 "met_LAI_vrt_swilt-watr-ssat_SM_31uni_fw-hie-exp",\
-                 "met_LAI_vrt_swilt-watr-ssat_SM_31uni_fw-Haverd","met_LAI_vrt_swilt-watr-ssat_SM_31uni_fw-hie-watpot"]
-    '''
-    #cases = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs",\
-    #                  "met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx01-hydsx*_fw-hie-exp"))
-    #cases = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_fw-hie-exp_31uni_1/outputs",\
-    #                   "met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=*_soil_moisture_fix_GW-wb_or_fix_check"))
-    cases = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_31uni_bch-hyds-50cm_min_error/outputs",\
-                      "met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=40-hyds^-35_fw-hie-exp_fix"))
-    #                   "met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=*_soil_moisture_fix_or_fix_check"))
-    #cases = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs",\
-    #                       "met_LAI_vrt_swilt-watr-ssat_SM_31uni_GW-wb_SM-fix_or_fix"))
-    #                   "met_LAI_vrt_swilt-watr-ssat_SM_31uni_GW-wb_SM-fix_fw-hie-exp"))
-
-    rings = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
-
-    for case_name in cases:
-        for ring in rings:
-            fobs_Esoil = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_underET.csv"
-            fobs_Trans = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_sapflow.csv"
-            fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
-            #fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" % (case_name, ring)
-            #fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen/outputs/%s/EucFACE_%s_out.nc" % (case_name, ring)
-            #fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" % (case_name, ring)
-            fcable ="%s/EucFACE_%s_out.nc" % (case_name, ring)
-            main(fobs_Esoil, fobs_Trans, fobs, fcable, case_name, ring, layer)

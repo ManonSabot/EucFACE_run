@@ -22,8 +22,9 @@ import datetime as dt
 import netCDF4 as nc
 from scipy.interpolate import griddata
 
-def main(fobs, fcable, case_name, ring, contour, layer):
+def plot_profile(fcable, case_name, ring, contour, layer):
 
+    fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
     neo = pd.read_csv(fobs, usecols = ['Ring','Depth','Date','VWC'])
     # usecols : read specific columns from CSV
 
@@ -328,43 +329,11 @@ def main(fobs, fcable, case_name, ring, contour, layer):
         fig.savefig("EucFACE_SW_obsved_dates_contour_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
     else:
         fig.savefig("EucFACE_SW_obsved_dates_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
-
+'''
 if __name__ == "__main__":
 
     contour = False
     #  True for contour
     #  False for raster
     layer =  "31uni"
-    '''
-    if layer == "6":
-        cases = [ "met_only_6_","met_LAI_6_","met_LAI_vrt_6_","met_LAI_vrt_swilt-watr-ssat_6_",\
-                  "met_LAI_vrt_swilt-watr-ssat_SM_6_","met_LAI_vrt_swilt-watr-ssat_SM_6_litter",\
-                  "met_LAI_vrt_swilt-watr-ssat_SM_6_Or","met_LAI_vrt_swilt-watr-ssat_SM_6_fw-Haverd",\
-                  "met_LAI_vrt_swilt-watr-ssat_SM_6_fw-hie-exp","met_LAI_vrt_swilt-watr-ssat_SM_6_fw-hie-watpot"]
-    elif layer == "31para":
-        cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31para"]
-    elif layer == "31exp":
-        cases = ["ctl_met_LAI_vrt_SM_swilt-watr_31exp"]
-    elif layer == "31uni":
-        cases = ["met_LAI_vrt_swilt-watr-ssat_SM_31uni_litter","met_LAI_vrt_swilt-watr-ssat_SM_31uni_Or",\
-                 "met_LAI_vrt_swilt-watr-ssat_SM_31uni_fw-hie-exp",\
-                 "met_LAI_vrt_swilt-watr-ssat_SM_31uni_fw-Haverd","met_LAI_vrt_swilt-watr-ssat_SM_31uni_fw-hie-watpot"]
-    '''
-    #cases = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs",\
-    #                  "met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx01-hydsx*_fw-hie-exp"))
-    cases = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_31uni_bch-hyds-50cm_min_error/outputs", \
-                      "met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=40-hyds^-35_fw-hie-exp_fix"))
-    #                   "met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=*_soil_moisture_fix_or_fix_check"))
-
-    #cases = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs",\
-    #                  "met_LAI_vrt_swilt-watr-ssat_SM_31uni_GW-wb_SM-fix_or_fix"))
-    #                   "met_LAI_vrt_swilt-watr-ssat_SM_31uni_GW-wb_SM-fix_fw-hie-exp"))
-    rings = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
-    for case_name in cases:
-        for ring in rings:
-            fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
-            #fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" % (case_name, ring)
-            #fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen/outputs/%s/EucFACE_%s_out.nc" % (case_name, ring)
-            #fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" % (case_name, ring)
-            fcable ="%s/EucFACE_%s_out.nc" % (case_name, ring)
-            main(fobs, fcable, case_name, ring, contour, layer)
+'''
