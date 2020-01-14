@@ -41,6 +41,15 @@ def get_var_value(ref_var, output_file, layer, ring):
     if ref_var == 'swc_50':
         cable_var = read_cable_swc_50cm(output_file, layer)
         obs_var   = read_obs_swc_tdr(ring)
+    elif ref_var == 'swc_mid':
+        cable_var = read_cable_swc_mid(output_file, layer)
+        obs_var   = read_obs_swc_neo_mid(ring)
+    elif ref_var == 'swc_bot':
+        cable_var = read_cable_swc_bot(output_file, layer)
+        obs_var   = read_obs_swc_neo_bot(ring)
+    elif ref_var == 'swc_mid_bot':
+        cable_var = read_cable_swc_mid_bot(output_file, layer)
+        obs_var   = read_obs_swc_neo_mid_bot(ring)
     elif ref_var == 'swc_all':
         cable_var = read_cable_swc_all(output_file, layer)
         obs_var   = read_obs_swc_neo(ring)
@@ -113,6 +122,71 @@ def read_cable_swc_50cm(output_file, layer):
                                  + cable.variables['SoilMoist'][:,4,0,0]*0.010993 \
                                  + cable.variables['SoilMoist'][:,5,0,0]*0.015829 \
                                  + cable.variables['SoilMoist'][:,6,0,0]*(0.5-0.420714))/0.5
+
+    SoilMoist['Date'] = Time
+    SoilMoist = SoilMoist.set_index('Date')
+    SoilMoist = SoilMoist.resample("D").agg('mean')
+    SoilMoist.index = SoilMoist.index - pd.datetime(2011,12,31)
+    SoilMoist.index = SoilMoist.index.days
+    SoilMoist = SoilMoist.sort_values(by=['Date'])
+
+    print(SoilMoist)
+    """
+    The difference between SoilMoist['cable'] and SoilMoist is that
+    SoilMoist has the column name "cable", but SoilMoist['cable'] doesn't.
+    Both of them have 'dates' index
+    """
+    return SoilMoist
+
+def read_cable_swc_mid(output_file, layer):
+
+    """
+    read the average swc in top 50cm from CABLE output
+    """
+    print("carry on read_cable_swc_50cm")
+
+    cable = nc.Dataset(output_file, 'r')
+    Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
+    SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,0,0,0], columns=['cable'])
+    SoilMoist['cable'][:] = 0.
+
+    if layer == "6":
+        zse       = [ 0.022, 0.058, 0.154, 0.409, 1.085, 2.872 ]
+    elif layer == "31uni":
+        zse       = [ 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, \
+                      0.015, 0.015, 0.015, 0.015, 0.015, 0.015, \
+                      0.015, 0.015, 0.015, 0.015, 0.015, 0.015, \
+                      0.015, 0.015, 0.015, 0.015, 0.015, 0.015, \
+                      0.015, 0.015, 0.015, 0.015, 0.015, 0.015, \
+                      0.015 ]
+    elif layer == "31exp":
+        zse       = [ 0.020440, 0.001759, 0.003957, 0.007035, 0.010993, 0.015829,\
+                      0.021546, 0.028141, 0.035616, 0.043971, 0.053205, 0.063318,\
+                      0.074311, 0.086183, 0.098934, 0.112565, 0.127076, 0.142465,\
+                      0.158735, 0.175883, 0.193911, 0.212819, 0.232606, 0.253272,\
+                      0.274818, 0.297243, 0.320547, 0.344731, 0.369794, 0.395737,\
+                      0.422559 ]
+    elif layer == "31para":
+        zse       = [ 0.020000, 0.029420, 0.056810, 0.082172, 0.105504, 0.126808,\
+                      0.146083, 0.163328, 0.178545, 0.191733, 0.202892, 0.212023,\
+                      0.219124, 0.224196, 0.227240, 0.228244, 0.227240, 0.224196,\
+                      0.219124, 0.212023, 0.202892, 0.191733, 0.178545, 0.163328,\
+                      0.146083, 0.126808, 0.105504, 0.082172, 0.056810, 0.029420,\
+                      0.020000 ]
+    depth    = np.zeros(len(zse))
+    depth[0] = zse[0]
+    for i in np.arange(1,len(zse)):
+        depth[i] = depth[i-1] + zse(i)
+    for i in np.arange(1,len(zse)):
+        if depth[i-1] >= mid_up and depth[i] <= mid_down:
+            SoilMoist['cable'][:] =  SoilMoist['cable'][:] + cable.variables['SoilMoist'][:,i,0,0]*zse[i]
+        elif depth[i-1] >= mid_up and depth[i-1] <= mid_down and depth[i] >= mid_down:
+            SoilMoist['cable'][:] =  SoilMoist['cable'][:] + cable.variables['SoilMoist'][:,i,0,0]\
+                                    *(mid_down - depth[i-1])
+        elif depth[i-1] <= mid_up and depth[i] >= mid_down and depth[i] >= mid_down:
+            SoilMoist['cable'][:] =  SoilMoist['cable'][:] + cable.variables['SoilMoist'][:,i,0,0]\
+                                    *(mid_down - depth[i-1])
+    SoilMoist['cable'][:] = SoilMoist['cable'][:]/sum(zse)
 
     SoilMoist['Date'] = Time
     SoilMoist = SoilMoist.set_index('Date')
@@ -376,15 +450,15 @@ def calc_obs_esoil2trans(ring):
     print(subs_Trans)
 
     # unify dates
-    Esoil_obs = subs_Esoil.loc[subs_Esoil.index.isin(subs_Trans.index)]
-    Trans_obs = subs_Trans.loc[subs_Trans.index.isin(subs_Esoil.index)]
+    Esoil_obs = subs_Esoil['obs'].loc[subs_Esoil.index.isin(subs_Trans.index)]
+    Trans_obs = subs_Trans['obs'].loc[subs_Trans.index.isin(subs_Esoil.index)]
 
-    mask      = np.any([np.isnan(Esoil_obs['obs']), np.isnan(Trans_obs['obs'])],axis=0)
+    mask      = np.any([np.isnan(Esoil_obs), np.isnan(Trans_obs)],axis=0)
     Esoil_obs = Esoil_obs[mask == False]
     Trans_obs = Trans_obs[mask == False]
 
-    Esoil_2_Trans = Esoil_obs
-    Esoil_2_Trans['obs'] = Esoil_obs['obs']/Trans_obs['obs']
+    #Esoil_2_Trans   = Esoil_obs
+    Esoil_2_Trans = Esoil_obs/Trans_obs
 
     print(Esoil_2_Trans)
 

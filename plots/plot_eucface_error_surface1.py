@@ -170,7 +170,7 @@ if __name__ == "__main__":
 
     if dim_info == "3d":
         var_names  = ["bch","hyds"]
-        case_name  = "std" #"EucFACE_run_sen_31uni_2bch-mid-bot"
+        case_name  = "fix_std" #"EucFACE_run_sen_31uni_2bch-mid-bot"
         var_values1 = ["20","30","40","50","60","70","80","90","100","110","120","130"]
         var_values2 = ["-80","-75","-70","-65","-60","-55","-50","-45","-40","-35","-30","-25","-20","-15","-10","-05",
                       "00","05","10","15","20"]
@@ -188,8 +188,8 @@ if __name__ == "__main__":
                 for j in np.arange(len(var_values2)):
                     #output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=%s-%s_fw-hie-exp_fix/EucFACE_amb_out.nc"\
                     #  % (case_name, var_values1[i],var_values2[j])
-                    output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_31uni_bch-hyds-top1/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=%s-hyds^%s_%s/EucFACE_amb_out.nc"\
-                                   % (case_name, var_values1[i],var_values2[j], case_name)
+                    output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_31uni_bch-hyds-top1/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=%s-hyds^%s_std_fix/EucFACE_amb_out.nc"\
+                                   % (case_name, var_values1[i],var_values2[j])
 
                     cable_var, obs_var = get_var_value(ref_var[k], output_file, layer, ring)
                     rmse[i,j] = np.sqrt(np.mean((obs_var - cable_var)**2))
