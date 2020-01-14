@@ -1,0 +1,106 @@
+\documentclass[12pt,a4paper,oneside]{article}
+
+\usepackage{subfigure}
+\usepackage{tabularx}
+\usepackage[table]{xcolor}
+\usepackage{booktabs}
+\newcommand{\ra}[1]{\renewcommand{\arraystretch}{#1}}
+\usepackage{rotating}
+\usepackage{amsmath}
+\usepackage{placeins}
+\usepackage[margin=1.0in]{geometry}
+\usepackage{graphicx}
+\usepackage{epstopdf}      % eps to pdf conversion on the fly
+\usepackage[T1]{fontenc}
+\usepackage{verbatim}      % block commenting
+%\usepackage{siunitx}
+\usepackage{amssymb}
+
+\renewcommand{\labelitemi}{$\star$}
+
+% Reset counter name for supplementary plots
+\newcommand{\beginsupplement}{%
+        \setcounter{table}{0}
+        \renewcommand{\thetable}{S\arabic{table}}%
+        \setcounter{figure}{0}
+        \renewcommand{\thefigure}{S\arabic{figure}}%
+}
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\FloatBarrier
+%\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[!hbtp]
+\centering
+\subfigure{\includegraphics[width=0.95\textwidth]{../plots/EucFACE_SW_obsved_dates_met_only_6__amb.png}}
+\caption{\small{Soil Water Content Profile in Default CABLE against Observation}}
+\label{}
+\end{figure}
+
+\begin{figure}[!hbtp]
+\centering
+\subfigure{\includegraphics[width=0.95\textwidth]{../plots/EucFACE_ET_met_only_6__amb.png}}
+\caption{\small{Transpiration and Soil Evaporation in Default CABLE against Observation}}
+\label{}
+\end{figure}
+
+\begin{figure}[!hbtp]
+\centering
+\subfigure{\includegraphics[width=0.95\textwidth]{../plots/EucFACE_SW_obsved_dates_met_LAI_vrt_swilt-watr-ssat_SM_31uni_GW-wb_SM-fix_or_fix_fw-hie-exp_amb.png}}
+\caption{\small{Soil Water Content Profile in Best CABLE against Observation}}
+\label{}
+\end{figure}
+
+\begin{figure}[!hbtp]
+\centering
+\subfigure{\includegraphics[width=0.95\textwidth]{../plots/EucFACE_ET_met_LAI_vrt_swilt-watr-ssat_SM_31uni_GW-wb_SM-fix_or_fix_fw-hie-exp_amb.png}}
+\caption{\small{Transpiration and Soil Evaporation in Best CABLE against Observation}}
+\label{}
+\end{figure}
+
+\begin{figure}[!hbtp]
+\centering
+\subfigure{\includegraphics[width=0.95\textwidth]{../plots/EucFACE_Rain_Fwsoil_amb.png}}
+\caption{\small{Rainfall and Fwsoil}}
+\label{}
+\end{figure}
+
+\begin{figure}[!hbtp]
+\centering
+\subfigure{\includegraphics[width=0.95\textwidth]{../plots/water_balance_2013_obs-def-best.png}}
+\caption{\small{Water Balance}}
+\label{}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\FloatBarrier
+\newpage
+\section*{Supplementary}
+\beginsupplement
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\FloatBarrier
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{figure}[!hbtp]
+%\centering
+%\subfigure{\includegraphics[width=0.95\textwidth]{figs/all_events_GPP_positive}}
+%\caption{\small{Evolution of GPP in the three days prior to and including a hot temperature extreme (daily maximum temperature exceeded 37$^\circ$C). Dark green lines represent events where the fitted slope was positive but not significant. Empty panels for Gingin, Whroo and Wombat State Forest indicates that we did not find any concomitant positive GPP and negative LE slopes. Note in both cases, we are not showing the fitted slopes, we simply use this approach to identify stronger positive or negative trends in these data (see methods). Events where the fitted slope was negative are shown in Figure 1.}}
+%\label{}
+%\end{figure}
+
+
+\end{document}
