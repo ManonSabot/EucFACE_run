@@ -148,15 +148,15 @@ def plot_profile(fcable, case_name, ring, contour, layer):
         img = ax1.imshow(grid_data, cmap=cmap, vmin=0, vmax=52, origin="upper", interpolation='nearest')
         Y_labels = Y
 
-    cbar = fig.colorbar(img, orientation="vertical", pad=0.1, shrink=.6) #"horizontal"
+    cbar = fig.colorbar(img, orientation="vertical", shrink=.6, pad=0.02)  #"horizontal" bbox_inches='tight', pad=0.1,
     cbar.set_label('VWC Obs (%)')#('Volumetric soil water content (%)')
     tick_locator = ticker.MaxNLocator(nbins=5)
     cbar.locator = tick_locator
     cbar.update_ticks()
 
     # every second tick
-    ax1.set_yticks(np.arange(len(Y))[::10])
-    ax1.set_yticklabels(Y_labels[::10])
+    ax1.set_yticks(np.arange(len(Y))[::20])
+    ax1.set_yticklabels(Y_labels[::20])
     plt.setp(ax1.get_xticklabels(), visible=False)
 
     #ax1.set_xticks(np.arange(len(X)))
@@ -273,15 +273,15 @@ def plot_profile(fcable, case_name, ring, contour, layer):
         img2 = ax2.imshow(grid_cable, cmap=cmap, vmin=0, vmax=52, origin="upper", interpolation='nearest')
         Y_labels2 = Y
 
-    cbar2 = fig.colorbar(img2, orientation="vertical", pad=0.1, shrink=.6)
+    cbar2 = fig.colorbar(img2, orientation="vertical", shrink=.6, pad=0.02) #  bbox_inches='tight', pad=0.1,
     cbar2.set_label('VWC CABLE (%)')#('Volumetric soil water content (%)')
     tick_locator2 = ticker.MaxNLocator(nbins=5)
     cbar2.locator = tick_locator2
     cbar2.update_ticks()
 
     # every second tick
-    ax2.set_yticks(np.arange(len(Y_cable))[::10])
-    ax2.set_yticklabels(Y_labels2[::10])
+    ax2.set_yticks(np.arange(len(Y_cable))[::20])
+    ax2.set_yticklabels(Y_labels2[::20])
     plt.setp(ax2.get_xticklabels(), visible=False)
 
     ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates)
@@ -304,15 +304,15 @@ def plot_profile(fcable, case_name, ring, contour, layer):
         Y_labels3 = Y
 
 
-    cbar3 = fig.colorbar(img3, orientation="vertical", pad=0.1, shrink=.6)
+    cbar3 = fig.colorbar(img3, orientation="vertical", shrink=.6, pad=0.02) # bbox_inches='tight', pad=0.1,
     cbar3.set_label('CABLE - Obs (%)')
     tick_locator3 = ticker.MaxNLocator(nbins=6)
     cbar3.locator = tick_locator3
     cbar3.update_ticks()
 
     # every second tick
-    ax3.set_yticks(np.arange(len(Y_cable))[::10])
-    ax3.set_yticklabels(Y_labels3[::10])
+    ax3.set_yticks(np.arange(len(Y_cable))[::20])
+    ax3.set_yticklabels(Y_labels3[::20])
 
     ax3.set_xticks(np.arange(len(X_cable)))
     cleaner_dates3 = X_cable

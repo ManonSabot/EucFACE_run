@@ -27,32 +27,82 @@ if __name__ == "__main__":
 
     contour = False
 
-    case_def = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_only_6_"
-    fcbl_def ="%s/EucFACE_%s_out.nc" % (case_def, ring)
+    case_1 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_6"
+    fcbl_1 ="%s/EucFACE_%s_out.nc" % (case_1, ring)
 
-    case_best = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_GW-wb_SM-fix_or_fix_fw-hie-exp"
-    fcbl_best ="%s/EucFACE_%s_out.nc" % (case_best, ring)
+    case_2 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_6_litter"
+    fcbl_2 ="%s/EucFACE_%s_out.nc" % (case_2, ring)
 
-    case_fw_std = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_GW-wb_SM-fix_or_fix"
-    fcbl_fw_std ="%s/EucFACE_%s_out.nc" % (case_fw_std, ring)
+    case_3 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_SM_6_litter"
+    fcbl_3 ="%s/EucFACE_%s_out.nc" % (case_3, ring)
 
-    #figure 1
-    plot_profile(fcbl_def, case_def, ring, contour, "6")
-    #figure 2
-    plot_ET(fcbl_def, case_def, ring)
-    #plot_tdr(fcbl_def, case_def, ring, "6")
+    case_4 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_31uni_litter"
+    fcbl_4 ="%s/EucFACE_%s_out.nc" % (case_4, ring)
 
-    #figure 3
-    plot_profile(fcbl_best, case_best, ring, contour, "31uni")
-    #figure 4
-    plot_ET(fcbl_best, case_best, ring)
-    #plot_tdr(fcbl_best, case_best, ring, "31uni")
+    case_5 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_litter"
+    fcbl_5 ="%s/EucFACE_%s_out.nc" % (case_5, ring)
 
-    #figure 5
-    plot_Rain_Fwsoil(fcbl_def, fcbl_fw_std, fcbl_best, ring)
-    #figure 6
-    calc_waterbal(fcbl_def, fcbl_best, "6", "31uni")
+    case_6 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter"
+    fcbl_6 ="%s/EucFACE_%s_out.nc" % (case_6, ring)
 
-    fwatbal_def = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/EucFACE_def_%s.csv" %(fcbl_def.split("/")[-2])
-    fwatbal_best= "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/EucFACE_best_%s.csv" %(fcbl_best.split("/")[-2])
-    plot_waterbal(fwatbal_def,fwatbal_best)
+    case_7 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter_hie-exp"
+    fcbl_7 ="%s/EucFACE_%s_out.nc" % (case_7, ring)
+
+    case_8 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter_Hvrd"
+    fcbl_8 ="%s/EucFACE_%s_out.nc" % (case_8, ring)
+
+    '''
+    plot_profile(fcbl_1, case_1, ring, contour, "6")
+    plot_ET(fcbl_1, case_1, ring)
+    plot_tdr(fcbl_1, case_1, ring, "6")
+
+    plot_profile(fcbl_2, case_2, ring, contour, "6")
+    plot_ET(fcbl_2, case_2, ring)
+    plot_tdr(fcbl_2, case_2, ring, "6")
+
+    plot_profile(fcbl_3, case_3, ring, contour, "6")
+    plot_ET(fcbl_3, case_3, ring)
+    plot_tdr(fcbl_3, case_3, ring, "6")
+
+    plot_profile(fcbl_4, case_4, ring, contour, "31uni")
+    plot_ET(fcbl_4, case_4, ring)
+    plot_tdr(fcbl_4, case_4, ring, "31uni")
+
+    plot_profile(fcbl_5, case_5, ring, contour, "31uni")
+    plot_ET(fcbl_5, case_5, ring)
+    plot_tdr(fcbl_5, case_5, ring, "31uni")
+
+    plot_profile(fcbl_6, case_6, ring, contour, "31uni")
+    plot_ET(fcbl_6, case_6, ring)
+    plot_tdr(fcbl_6, case_6, ring, "31uni")
+
+    plot_profile(fcbl_7, case_7, ring, contour, "31uni")
+    plot_ET(fcbl_7, case_7, ring)
+    plot_tdr(fcbl_7, case_7, ring, "31uni")
+
+    plot_profile(fcbl_8, case_8, ring, contour, "31uni")
+    plot_ET(fcbl_8, case_8, ring)
+    plot_tdr(fcbl_8, case_8, ring, "31uni")
+
+
+    plot_Rain_Fwsoil(fcbl_1, fcbl_2, fcbl_3, ring)
+    plot_Rain_Fwsoil(fcbl_4, fcbl_5, fcbl_6, ring)
+    plot_Rain_Fwsoil(fcbl_6, fcbl_7, fcbl_8, ring)
+
+    calc_waterbal(fcbl_1, fcbl_2, "6", "6")
+    calc_waterbal(fcbl_1, fcbl_3, "6", "6")
+
+    calc_waterbal(fcbl_4, fcbl_5, "31uni", "31uni")
+    calc_waterbal(fcbl_6, fcbl_7, "31uni", "31uni")
+    calc_waterbal(fcbl_7, fcbl_8, "31uni", "31uni")
+
+    '''
+
+    fwatbal_1 = "./EucFACE_met_LAI_6.csv"
+    #"/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/EucFACE_def_%s.csv" %(fcbl_1.split("/")[-1])#[-2])
+    fwatbal_2 = "./EucFACE_met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter_hie-exp.csv"
+    #"./EucFACE_met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter.csv"
+    #"./EucFACE_met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter_hie-exp.csv"
+    #"./EucFACE_met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter.csv"
+    #fwatbal_best= "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/EucFACE_best_%s.csv" %(fcbl_best.split("/")[-1])#[-2])
+    plot_waterbal(fwatbal_1,fwatbal_2)

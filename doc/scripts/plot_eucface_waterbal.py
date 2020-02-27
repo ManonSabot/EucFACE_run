@@ -16,12 +16,10 @@ def calc_waterbal(fcbl_def, fcbl_best, layer_def, layer_best):
     if layer_def == "6":
         zse_def = [ 0.022, 0.058, 0.154, 0.409, 1.085, 2.872 ]
     elif layer_def == "31uni":
-        zse_def = [ 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, \
-                      0.015, 0.015, 0.015, 0.015, 0.015, 0.015, \
-                      0.015, 0.015, 0.015, 0.015, 0.015, 0.015, \
-                      0.015, 0.015, 0.015, 0.015, 0.015, 0.015, \
-                      0.015, 0.015, 0.015, 0.015, 0.015, 0.015, \
-                      0.015 ]
+        zse_def = [ 0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
+                     0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
+                     0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
+                     0.15 ]
     elif layer_def == "31exp":
         zse_def = [ 0.020440, 0.001759, 0.003957, 0.007035, 0.010993, 0.015829,\
                       0.021546, 0.028141, 0.035616, 0.043971, 0.053205, 0.063318,\
@@ -40,12 +38,10 @@ def calc_waterbal(fcbl_def, fcbl_best, layer_def, layer_best):
     if layer_best == "6":
         zse_best = [ 0.022, 0.058, 0.154, 0.409, 1.085, 2.872 ]
     elif layer_best == "31uni":
-        zse_best = [ 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, \
-                      0.015, 0.015, 0.015, 0.015, 0.015, 0.015, \
-                      0.015, 0.015, 0.015, 0.015, 0.015, 0.015, \
-                      0.015, 0.015, 0.015, 0.015, 0.015, 0.015, \
-                      0.015, 0.015, 0.015, 0.015, 0.015, 0.015, \
-                      0.015 ]
+        zse_best = [ 0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
+                     0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
+                     0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
+                     0.15 ]
     elif layer_best == "31exp":
         zse_best = [ 0.020440, 0.001759, 0.003957, 0.007035, 0.010993, 0.015829,\
                       0.021546, 0.028141, 0.035616, 0.043971, 0.053205, 0.063318,\
@@ -176,8 +172,8 @@ def calc_waterbal(fcbl_def, fcbl_best, layer_def, layer_best):
         df_best['soil_storage_chg'][a] = df_SM_mth_laststep_best.iloc[b] - df_SM_mth_laststep_best.iloc[c]
 
     # output
-    df_def.to_csv("EucFACE_def_%s.csv" %(fcbl_def.split("/")[-2]))
-    df_best.to_csv("EucFACE_best_%s.csv" %(fcbl_best.split("/")[-2]))
+    df_def.to_csv("EucFACE_%s.csv" %(fcbl_def.split("/")[-2]))
+    df_best.to_csv("EucFACE_%s.csv" %(fcbl_best.split("/")[-2]))
 
 
 def plot_waterbal(fwatbal_def,fwatbal_best):
@@ -212,7 +208,7 @@ def plot_waterbal(fwatbal_def,fwatbal_best):
     print(np.sum(dfl.iloc[0:4].values,axis=0))
     print(np.sum(obs[1:5],axis=0))
 
-    title = 'Water Balance'
+    #title = 'Water Balance'
 
     # _____________ Make plot _____________
     fig = plt.figure(figsize=(8,6))
@@ -233,13 +229,23 @@ def plot_waterbal(fwatbal_def,fwatbal_best):
     x = np.arange(len(labels))  # the label locations
     width = 0.6                # the width of the bars
 
-    rects1 = ax.bar(x - 0.2, np.sum(obs[0:4],axis=0), width/3, color='blue', label='obs')
-    rects2 = ax.bar(x      , np.sum(dfl.iloc[1:5].values,axis=0), width/3, color='orange', label='def')
-    rects3 = ax.bar(x + 0.2, np.sum(ctl.iloc[1:5].values,axis=0), width/3, color='green', label='best')
+    # using CABLE met rainfall replace G 2015's rainfall
+    obs_data = np.sum(obs[0:4],axis=0)
+    sim_data = np.sum(dfl.iloc[1:5].values,axis=0)
+    obs_data[0] = sim_data[0]
+    print(obs_data)
+    print(sim_data)
+
+    sim_data_1     = np.sum(ctl.iloc[1:5].values,axis=0)
+    sim_data_1[-1] = sim_data_1[-1]*10.
+
+    rects1 = ax.bar(x - 0.2, obs_data, width/3, color='blue', label='Obs')
+    rects2 = ax.bar(x      , sim_data, width/3, color='orange', label='Ctl')
+    rects3 = ax.bar(x + 0.2, sim_data_1, width/3, color='green', label='Best')
 
     # Add some text for labels, title and custom x-axis tick labels, etc.
-    ax.set_ylabel('$mm y^{-1}$')
-    ax.set_title(title)
+    ax.set_ylabel('Water Balance Element $mm y^{-1}$')
+    #ax.set_title(title)
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
     ax.legend()

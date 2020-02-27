@@ -142,7 +142,31 @@ def plot_tdr(fcable, case_name, ring, layer):
                  + cable.variables['ssat'][6]*(0.5-0.420714))/0.5
 
 # ____________________ Plot obs _______________________
-    fig = plt.figure(figsize=[15,10])
+    fig = plt.figure(figsize=[9,4])
+
+    fig.subplots_adjust(hspace=0.1)
+    fig.subplots_adjust(wspace=0.05)
+    plt.rcParams['text.usetex'] = False
+    plt.rcParams['font.family'] = "sans-serif"
+    plt.rcParams['font.sans-serif'] = "Helvetica"
+    plt.rcParams['axes.labelsize'] = 14
+    plt.rcParams['font.size'] = 14
+    plt.rcParams['legend.fontsize'] = 12
+    plt.rcParams['xtick.labelsize'] = 14
+    plt.rcParams['ytick.labelsize'] = 14
+
+    almost_black = '#262626'
+    # change the tick colors also to the almost black
+    plt.rcParams['ytick.color'] = almost_black
+    plt.rcParams['xtick.color'] = almost_black
+
+    # change the text colors also to the almost black
+    plt.rcParams['text.color'] = almost_black
+
+    # Change the default axis colors from black to a slightly lighter black,
+    # and a little thinner (0.5 instead of 1)
+    plt.rcParams['axes.edgecolor'] = almost_black
+    plt.rcParams['axes.labelcolor'] = almost_black
 
     ax = fig.add_subplot(111)
 
@@ -191,9 +215,33 @@ def plot_Fwsoil(fcbl_def, fcbl_fw_def, fcbl_fw_hie, ring):
 
     ax  = fig.add_subplot(111)
 
+    fig.subplots_adjust(hspace=0.1)
+    fig.subplots_adjust(wspace=0.05)
+    plt.rcParams['text.usetex'] = False
+    plt.rcParams['font.family'] = "sans-serif"
+    plt.rcParams['font.sans-serif'] = "Helvetica"
+    plt.rcParams['axes.labelsize'] = 14
+    plt.rcParams['font.size'] = 14
+    plt.rcParams['legend.fontsize'] = 12
+    plt.rcParams['xtick.labelsize'] = 14
+    plt.rcParams['ytick.labelsize'] = 14
+
+    almost_black = '#262626'
+    # change the tick colors also to the almost black
+    plt.rcParams['ytick.color'] = almost_black
+    plt.rcParams['xtick.color'] = almost_black
+
+    # change the text colors also to the almost black
+    plt.rcParams['text.color'] = almost_black
+
+    # Change the default axis colors from black to a slightly lighter black,
+    # and a little thinner (0.5 instead of 1)
+    plt.rcParams['axes.edgecolor'] = almost_black
+    plt.rcParams['axes.labelcolor'] = almost_black
+
     x = fw1.index
 
-    ax.plot(x, fw1["cable"],   c="orange", lw=1.0, ls="-", label="Def_fw-std")
+    ax.plot(x, fw1["cable"],   c="orange", lw=1.0, ls="-", label="Default_fw-std")
     ax.plot(x, fw2["cable"],   c="blue", lw=1.0, ls="-", label="Best_fw-std")
     ax.plot(x, fw3["cable"],   c="forestgreen", lw=1.0, ls="-", label="Best_fw-hie")
 
@@ -202,9 +250,9 @@ def plot_Fwsoil(fcbl_def, fcbl_fw_def, fcbl_fw_hie, ring):
 
     plt.setp(ax.get_xticklabels(), visible=True)
     ax.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax.set_ylabel("Fwsoil (-)")
+    ax.set_ylabel("β")
     ax.axis('tight')
-    ax.set_ylim(0.,1.2)
+    ax.set_ylim(0.,1.1)
     ax.set_xlim(367,2739)
     ax.legend()
 
@@ -218,27 +266,50 @@ def plot_ET(fcable, case_name, ring):
     TVeg  = read_cable_var(fcable, "TVeg")
     ESoil = read_cable_var(fcable, "ESoil")
 
-    fig = plt.figure(figsize=[15,10])
+    fig = plt.figure(figsize=[9,5])
+    fig.subplots_adjust(hspace=0.1)
+    fig.subplots_adjust(wspace=0.05)
+    plt.rcParams['text.usetex'] = False
+    plt.rcParams['font.family'] = "sans-serif"
+    plt.rcParams['font.sans-serif'] = "Helvetica"
+    plt.rcParams['axes.labelsize'] = 14
+    plt.rcParams['font.size'] = 14
+    plt.rcParams['legend.fontsize'] = 12
+    plt.rcParams['xtick.labelsize'] = 14
+    plt.rcParams['ytick.labelsize'] = 14
+
+    almost_black = '#262626'
+    # change the tick colors also to the almost black
+    plt.rcParams['ytick.color'] = almost_black
+    plt.rcParams['xtick.color'] = almost_black
+
+    # change the text colors also to the almost black
+    plt.rcParams['text.color'] = almost_black
+
+    # Change the default axis colors from black to a slightly lighter black,
+    # and a little thinner (0.5 instead of 1)
+    plt.rcParams['axes.edgecolor'] = almost_black
+    plt.rcParams['axes.labelcolor'] = almost_black
 
     ax  = fig.add_subplot(111)
 
     x = TVeg.index
 
-    ax.plot(x, TVeg['cable'],     c="green", lw=1.0, ls="-", label="Trans") #.rolling(window=5).mean() .rolling(window=7).mean()
-    ax.plot(x, ESoil['cable'],    c="orange", lw=1.0, ls="-", label="ESoil") #.rolling(window=7).mean()
-    ax.scatter(subs_Trans.index, subs_Trans['obs'], marker='o', c='',edgecolors='blue', s = 2., label="Trans Obs") # subs['EfloorPred']
-    ax.scatter(subs_Esoil.index, subs_Esoil['obs'], marker='o', c='',edgecolors='red', s = 2., label="ESoil Obs") # subs['EfloorPred']
+    ax.plot(x, TVeg['cable'].rolling(window=7).mean(),     c="green", lw=1.0, ls="-", label="Trans") #.rolling(window=5).mean() .rolling(window=7).mean()
+    ax.plot(x, ESoil['cable'].rolling(window=7).mean(),    c="orange", lw=1.0, ls="-", label="ESoil") #.rolling(window=7).mean()
+    ax.scatter(subs_Trans.index, subs_Trans['obs'], marker='o', c='',edgecolors="green", s = 4., label="Trans Obs") # subs['EfloorPred'] 'blue'
+    ax.scatter(subs_Esoil.index, subs_Esoil['obs'], marker='o', c='',edgecolors="orange", s = 4., label="ESoil Obs") # subs['EfloorPred'] 'red'
 
     cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"]
     xtickslocs    = [367,732,1097,1462,1828,2193,2558]
 
     plt.setp(ax.get_xticklabels(), visible=True)
     ax.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
-    ax.set_ylabel("ET ($mm d^{-1}$)")
+    ax.set_ylabel("Trans, Esoil ($mm d^{-1}$)")
     ax.axis('tight')
-    ax.set_ylim(0.,4.5)
+    ax.set_ylim(0.,3.0)
     ax.set_xlim(367,1098)
-    ax.legend()
+    #ax.legend()
 
     fig.savefig("../plots/EucFACE_ET_%s_%s" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
 
@@ -246,6 +317,31 @@ def plot_Rain(fcable, case_name, ring):
 
     Rain  = read_cable_var(fcable, "Rainf")
     fig   = plt.figure(figsize=[15,10])
+
+    fig.subplots_adjust(hspace=0.1)
+    fig.subplots_adjust(wspace=0.05)
+    plt.rcParams['text.usetex'] = False
+    plt.rcParams['font.family'] = "sans-serif"
+    plt.rcParams['font.sans-serif'] = "Helvetica"
+    plt.rcParams['axes.labelsize'] = 14
+    plt.rcParams['font.size'] = 14
+    plt.rcParams['legend.fontsize'] = 12
+    plt.rcParams['xtick.labelsize'] = 14
+    plt.rcParams['ytick.labelsize'] = 14
+
+    almost_black = '#262626'
+    # change the tick colors also to the almost black
+    plt.rcParams['ytick.color'] = almost_black
+    plt.rcParams['xtick.color'] = almost_black
+
+    # change the text colors also to the almost black
+    plt.rcParams['text.color'] = almost_black
+
+    # Change the default axis colors from black to a slightly lighter black,
+    # and a little thinner (0.5 instead of 1)
+    plt.rcParams['axes.edgecolor'] = almost_black
+    plt.rcParams['axes.labelcolor'] = almost_black
+
     ax    = fig.add_subplot(111)
     x     = Rain.index
     width = 1.
@@ -276,6 +372,30 @@ def plot_Rain_Fwsoil(fcbl_def, fcbl_fw_def, fcbl_fw_hie, ring):
 
     fig = plt.figure(figsize=[15,10])
 
+    fig.subplots_adjust(hspace=0.1)
+    fig.subplots_adjust(wspace=0.05)
+    plt.rcParams['text.usetex'] = False
+    plt.rcParams['font.family'] = "sans-serif"
+    plt.rcParams['font.sans-serif'] = "Helvetica"
+    plt.rcParams['axes.labelsize'] = 14
+    plt.rcParams['font.size'] = 14
+    plt.rcParams['legend.fontsize'] = 12
+    plt.rcParams['xtick.labelsize'] = 14
+    plt.rcParams['ytick.labelsize'] = 14
+
+    almost_black = '#262626'
+    # change the tick colors also to the almost black
+    plt.rcParams['ytick.color'] = almost_black
+    plt.rcParams['xtick.color'] = almost_black
+
+    # change the text colors also to the almost black
+    plt.rcParams['text.color'] = almost_black
+
+    # Change the default axis colors from black to a slightly lighter black,
+    # and a little thinner (0.5 instead of 1)
+    plt.rcParams['axes.edgecolor'] = almost_black
+    plt.rcParams['axes.labelcolor'] = almost_black
+
     ax1  = fig.add_subplot(211)
     ax2  = fig.add_subplot(212)
 
@@ -284,7 +404,7 @@ def plot_Rain_Fwsoil(fcbl_def, fcbl_fw_def, fcbl_fw_hie, ring):
 
     ax1.bar(x, Rain['cable'], width, color='royalblue', label='Obs')
 
-    ax2.plot(x, fw1['cable'],   c="orange", lw=1.0, ls="-", label="Def_fw-std")
+    ax2.plot(x, fw1['cable'],   c="orange", lw=1.0, ls="-", label="Default_fw-std")
     ax2.plot(x, fw2['cable'],   c="blue", lw=1.0, ls="-", label="Best_fw-std")
     ax2.plot(x, fw3['cable'],   c="forestgreen", lw=1.0, ls="-", label="Best_fw-hie")
 
@@ -298,14 +418,14 @@ def plot_Rain_Fwsoil(fcbl_def, fcbl_fw_def, fcbl_fw_hie, ring):
     ax1.set_ylabel("Rain (mm/day)")
     ax1.axis('tight')
     ax1.set_ylim(0.,150.)
-    ax1.set_xlim(367,1098)
+    ax1.set_xlim(367,2739)#,1098)
 
     plt.setp(ax2.get_xticklabels(), visible=True)
     ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax2.set_ylabel("Fwsoil (-)")
+    ax2.set_ylabel("β")
     ax2.axis('tight')
-    ax2.set_ylim(0.,1.2)
-    ax2.set_xlim(367,1098)
+    ax2.set_ylim(0.,1.1)
+    ax2.set_xlim(367,2739)#,1098)
     ax2.legend()
 
     fig.savefig("../plots/EucFACE_Rain_Fwsoil_%s" % ring, bbox_inches='tight', pad_inches=0.1)
@@ -414,7 +534,7 @@ plt.rcParams['font.family'] = "sans-serif"
 plt.rcParams['font.sans-serif'] = "Helvetica"
 plt.rcParams['axes.labelsize'] = 14
 plt.rcParams['font.size'] = 14
-plt.rcParams['legend.fontsize'] = 10
+plt.rcParams['legend.fontsize'] = 12
 plt.rcParams['xtick.labelsize'] = 14
 plt.rcParams['ytick.labelsize'] = 14
 
