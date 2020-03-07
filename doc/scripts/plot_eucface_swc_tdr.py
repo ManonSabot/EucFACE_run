@@ -23,10 +23,11 @@ import netCDF4 as nc
 from scipy.interpolate import griddata
 import scipy.stats as stats
 from sklearn.metrics import mean_squared_error
+from plot_eucface_get_var import *
 
 def plot_tdr(fcable, case_name, ring, layer):
 
-    subset = read_obs_swc(ring)
+    subset = read_obs_swc_tdr(ring)
 
 # _________________________ CABLE ___________________________
     cable = nc.Dataset(fcable, 'r')
@@ -429,100 +430,6 @@ def plot_Rain_Fwsoil(fcbl_def, fcbl_fw_def, fcbl_fw_hie, ring):
     ax2.legend()
 
     fig.savefig("../plots/EucFACE_Rain_Fwsoil_%s" % ring, bbox_inches='tight', pad_inches=0.1)
-
-
-def read_cable_var(fcable, var_name):
-
-    """
-    read a var from CABLE output
-    """
-
-    print("carry on read_cable_var")
-    cable = nc.Dataset(fcable, 'r')
-    Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
-    if var_name in ["TVeg", "ESoil", "Rainf"]:
-        var = pd.DataFrame(cable.variables[var_name][:,0,0]*1800., columns=['cable'])
-    else:
-        var = pd.DataFrame(cable.variables[var_name][:,0,0], columns=['cable'])
-    var['Date'] = Time
-    var = var.set_index('Date')
-    if var_name in ["TVeg", "ESoil", "Rainf"]:
-        var = var.resample("D").agg('sum')
-    elif var_name in ["Fwsoil"]:
-        var = var.resample("D").agg('mean')
-    var.index = var.index - pd.datetime(2011,12,31)
-    var.index = var.index.days
-    var = var.sort_values(by=['Date'])
-
-    return var
-
-def read_obs_esoil(ring):
-
-    fobs_Esoil = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_underET.csv"
-
-    est_esoil = pd.read_csv(fobs_Esoil, usecols = ['Ring','Date','wuTP'])
-    est_esoil['Date'] = pd.to_datetime(est_esoil['Date'],format="%d/%m/%Y",infer_datetime_format=False)
-    est_esoil['Date'] = est_esoil['Date'] - pd.datetime(2011,12,31)
-    est_esoil['Date'] = est_esoil['Date'].dt.days
-    est_esoil = est_esoil.sort_values(by=['Date'])
-    # divide neo into groups
-    if ring == 'amb':
-       subs = est_esoil[(est_esoil['Ring'].isin(['R2','R3','R6'])) & (est_esoil.Date > 366)]
-    elif ring == 'ele':
-       subs = est_esoil[(est_esoil['Ring'].isin(['R1','R4','R5'])) & (est_esoil.Date > 366)]
-    else:
-       subs = est_esoil[(est_esoil['Ring'].isin([ring]))  & (est_esoil.Date > 366)]
-
-    subs = subs.groupby(by=["Date"]).mean()
-    subs['wuTP']   = subs['wuTP'].clip(lower=0.)
-    subs['wuTP']   = subs['wuTP'].replace(0., float('nan'))
-    subs = subs.rename({'wuTP' : 'obs'}, axis='columns')
-
-    return subs
-
-def read_obs_trans(ring):
-
-    fobs_Trans = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_sapflow.csv"
-
-    est_trans = pd.read_csv(fobs_Trans, usecols = ['Ring','Date','volRing'])
-    est_trans['Date'] = pd.to_datetime(est_trans['Date'],format="%d/%m/%Y",infer_datetime_format=False)
-    est_trans['Date'] = est_trans['Date'] - pd.datetime(2011,12,31)
-    est_trans['Date'] = est_trans['Date'].dt.days
-    est_trans = est_trans.sort_values(by=['Date'])
-    # divide neo into groups
-    if ring == 'amb':
-       subs = est_trans[(est_trans['Ring'].isin(['R2','R3','R6'])) & (est_trans.Date > 366)]
-    elif ring == 'ele':
-       subs = est_trans[(est_trans['Ring'].isin(['R1','R4','R5'])) & (est_trans.Date > 366)]
-    else:
-       subs = est_trans[(est_trans['Ring'].isin([ring]))  & (est_trans.Date > 366)]
-
-    subs = subs.groupby(by=["Date"]).mean()
-    subs['volRing']   = subs['volRing'].clip(lower=0.)
-    subs['volRing']   = subs['volRing'].replace(0., float('nan'))
-    subs = subs.rename({'volRing' : 'obs'}, axis='columns')
-
-    return subs
-
-def read_obs_swc(ring):
-
-    fobs   = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
-    tdr = pd.read_csv(fobs, usecols = ['Ring','Date','swc.tdr'])
-    tdr['Date'] = pd.to_datetime(tdr['Date'],format="%Y-%m-%d",infer_datetime_format=False)
-    tdr['Date'] = tdr['Date'] - pd.datetime(2011,12,31)
-    tdr['Date'] = tdr['Date'].dt.days
-    tdr = tdr.sort_values(by=['Date'])
-    # divide neo into groups
-    if ring == 'amb':
-        subset = tdr[(tdr['Ring'].isin(['R2','R3','R6'])) & (tdr.Date > 366)]
-    elif ring == 'ele':
-        subset = tdr[(tdr['Ring'].isin(['R1','R4','R5'])) & (tdr.Date > 366)]
-    else:
-        subset = tdr[(tdr['Ring'].isin([ring]))  & (tdr.Date > 366)]
-
-    subset = subset.groupby(by=["Date"]).mean()/100.
-    subset = subset.rename({'swc.tdr' : 'obs'}, axis='columns')
-    return subset
 
 
 '''

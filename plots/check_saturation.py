@@ -22,7 +22,7 @@ import datetime as dt
 import netCDF4 as nc
 from scipy.interpolate import griddata
 
-def plot_profile(fcable, case_name, ring, contour, layer):
+def plot_profile(fcable, ring, contour, layer):
 
     fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
     neo = pd.read_csv(fobs, usecols = ['Ring','Depth','Date','VWC'])
@@ -138,7 +138,7 @@ def plot_profile(fcable, case_name, ring, contour, layer):
 
     ax1 = fig.add_subplot(311) #(nrows=2, ncols=2, index=1)
 
-    cmap = plt.cm.viridis_r
+    cmap = plt.cm.PiYG_r
 
     if contour:
         levels = np.arange(0.,52.,2.)
@@ -214,6 +214,13 @@ def plot_profile(fcable, case_name, ring, contour, layer):
                      297.512 , 319.0693, 339.8151, 359.5464, 378.0603, 395.154 , \
                      410.6246, 424.2691, 435.8847, 445.2685, 452.2176, 456.5291, \
                      459.0001 ])
+    clm_name = [7.5,   22.5 , 37.5 , 52.5 , 67.5 , 82.5 , 97.5 , \
+                 112.5, 127.5, 142.5, 157.5, 172.5, 187.5, 202.5, \
+                 217.5, 232.5, 247.5, 262.5, 277.5, 292.5, 307.5, \
+                 322.5, 337.5, 352.5, 367.5, 382.5, 397.5, 412.5, \
+                 427.5, 442.5, 457.5 ]
+    for i in np.arange(31):
+        SoilMoist[clm_name[i]][:] = SoilMoist[clm_name[i]][:] - cable.variables['ssat'][i,0,0]
     SoilMoist['dates'] = Time
     SoilMoist = SoilMoist.set_index('dates')
     SoilMoist = SoilMoist.resample("D").agg('mean')
@@ -273,7 +280,7 @@ def plot_profile(fcable, case_name, ring, contour, layer):
         img2 = ax2.contourf(grid_cable, cmap=cmap, origin="upper", levels=levels,interpolation='nearest')
         Y_labels2 = np.flipud(Y)
     else:
-        img2 = ax2.imshow(grid_cable, cmap=cmap, vmin=0, vmax=52, origin="upper", interpolation='nearest')
+        img2 = ax2.imshow(grid_cable, cmap=cmap, vmin=-30, vmax=30, origin="upper", interpolation='nearest')
         Y_labels2 = Y
 
     cbar2 = fig.colorbar(img2, orientation="vertical", pad=0.1, shrink=.6)
@@ -326,14 +333,16 @@ def plot_profile(fcable, case_name, ring, contour, layer):
     ax3.set_ylabel("Depth (cm)")
     ax3.axis('tight')
     if contour == True:
-        fig.savefig("EucFACE_SW_obsved_dates_contour_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("check_swc_ssat", bbox_inches='tight', pad_inches=0.1)
     else:
-        fig.savefig("EucFACE_SW_obsved_dates_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
-'''
+        fig.savefig("check_swc_ssat", bbox_inches='tight', pad_inches=0.1)
+
 if __name__ == "__main__":
 
     contour = False
     #  True for contour
     #  False for raster
     layer =  "31uni"
-'''
+    fname = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_GW-wb_SM-fix_or_fix_fw-hie-exp/EucFACE_amb_out.nc"
+    ring = "amb"
+    plot_profile(fname, ring, contour, layer)

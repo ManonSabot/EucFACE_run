@@ -22,6 +22,9 @@ import datetime as dt
 import netCDF4 as nc
 from sklearn.metrics import mean_squared_error
 from cable_get_var import *
+from plot_eucface_swc_cable_vs_obs_neo import *
+from plot_eucface_swc_cable_vs_obs_tdr import *
+from plot_eucface_swc_cable_vs_obs_obsved_dates import *
 
 def plot_2d(x, rmse, ref_var, case_name, txt_info):
     # _____________ Make plot _____________
@@ -136,7 +139,7 @@ if __name__ == "__main__":
     layer    = "31uni"
     ring     = "amb"
     ref_var  = 'swc_all'
-
+    contour = False
     if dim_info == "2d":
         var_names  = ["hyds"] # ['bch']#
         case_name  = "EucFACE_run_opt_31uni_hyds-bot"
@@ -170,7 +173,7 @@ if __name__ == "__main__":
 
     if dim_info == "3d":
         var_names  = ["bch","hyds"]
-        case_name  = "hie_exp" #"EucFACE_run_sen_31uni_2bch-mid-bot"
+        case_name  = "fix_std" #"EucFACE_run_sen_31uni_2bch-mid-bot"
         var_values1 = ["20","30","40","50","60","70","80","90","100","110","120","130"]
         var_values2 = ["-80","-75","-70","-65","-60","-55","-50","-45","-40","-35","-30","-25","-20","-15","-10","-05",
                       "00","05","10","15","20"]
@@ -188,8 +191,8 @@ if __name__ == "__main__":
                 for j in np.arange(len(var_values2)):
                     #output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=%s-%s_fw-hie-exp_fix/EucFACE_amb_out.nc"\
                     #  % (case_name, var_values1[i],var_values2[j])
-                    output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_31uni_bch-hyds-top1/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=%s-hyds^%s_fw-hie-exp/EucFACE_amb_out.nc"\
-                                   % (case_name, var_values1[i],var_values2[j])
+                    output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_31uni_bch-hyds-top1/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=%s-hyds^%s_std_fix/EucFACE_amb_out.nc"\
+                                   % (case_name, var_values1[i], var_values2[j])
 
                     cable_var, obs_var = get_var_value(ref_var[k], output_file, layer, ring)
                     rmse[i,j] = np.sqrt(np.mean((obs_var - cable_var)**2))
@@ -202,20 +205,29 @@ if __name__ == "__main__":
             print("txt_info is ", txt_info)
             plot_3d(x, y, rmse, var_names, ref_var[k], case_name, txt_info)
 
-    if dim_info == "4d":
-        var_names  = ["bch","bch","bch"] # ["hyds","hyds","hyds"]
-        case_name  = "EucFACE_run_sen_31uni_3bch" # "EucFACE_run_sen_31uni_3hyds-top50" # "EucFACE_run_sen_31uni_3bch-top50"
+            output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_31uni_bch-hyds-top1/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=%s-hyds^%s_std_fix/EucFACE_amb_out.nc"\
+                           % (case_name, var_values1[min_i] ,var_values2[min_j])
+            case_info   = "/%s_bch=%s-hyds^%s_%s"\
+                           % (case_name, var_values1[min_i] ,var_values2[min_j],ref_var[k])
+            plot_profile(output_file, case_info, ring, contour, layer)
+            plot_neo(output_file, case_info, ring, layer)
+            plot_tdr(output_file, case_info, ring, layer)
 
-        var_values1 = ["2","3","4","5","6","7","8","9","10","11","12","13"] # ["-8","-7","-6","-5","-4","-3","-2","-1","0","1","2"]
-        var_values2 = ["2","3","4","5","6","7","8","9","10","11","12","13"] # ["-8","-7","-6","-5","-4","-3","-2","-1","0","1","2"]
-        var_values3 = ["2","3","4","5","6","7","8","9","10","11","12","13"]
+    if dim_info == "4d":
+        var_names  = ["hyds","hyds","hyds"] # ["bch","bch","bch"] #
+        case_name  = "EucFACE_run_sen_31uni_3hyds" #"EucFACE_run_sen_31uni_3bch" # "EucFACE_run_sen_31uni_3hyds-top50" # "EucFACE_run_sen_31uni_3bch-top50"
+
+        var_values1 = ["-8","-7","-6","-5","-4","-3","-2","-1","0","1","2"]
+        var_values2 = ["-8","-7","-6","-5","-4","-3","-2","-1","0","1","2"]
+        var_values3 = ["-8","-7","-6","-5","-4","-3","-2","-1","0","1","2"]
         #["2","3","4","5","6","7","8","9","10","11","12","13"]
         #["2","3","4","5","6","7","8"]
         #["-8","-7","-6","-5","-4","-3","-2","-1","0","1","2"]
 
-        x = np.linspace(2.,13.,12) #np.linspace(2.,8.,7) # np.linspace(2.,13.,12) # np.linspace(-8.,2.,11)
-        y = np.linspace(2.,13.,12)
-        z = np.linspace(2.,13.,12)
+        x = np.linspace(-8.,2.,11)
+        y = np.linspace(-8.,2.,11)
+        z = np.linspace(-8.,2.,11)
+        #np.linspace(2.,8.,7) # np.linspace(2.,13.,12) # np.linspace(-8.,2.,11)
 
         rmse     = np.zeros((len(var_values1), len(var_values2),len(var_values3)))
         min_rmse = 9999.
@@ -226,8 +238,8 @@ if __name__ == "__main__":
         for i in np.arange(len(var_values1)):
             for j in np.arange(len(var_values2)):
                 for k in np.arange(len(var_values3)):
-
-                    output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=%s-%s-%s_fw-hie-exp_fix/EucFACE_amb_out.nc"\
+                    print("i = ", i, " j = ",j , " k = ", k)
+                    output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^%s-%s-%s_fw-hie-exp_fix/EucFACE_amb_out.nc"\
                                   % (case_name, var_values1[i],var_values2[j],var_values3[k])
                     cable_var, obs_var = get_var_value(ref_var, output_file, layer, ring)
 

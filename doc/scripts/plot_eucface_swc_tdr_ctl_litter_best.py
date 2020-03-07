@@ -24,7 +24,6 @@ from scipy.interpolate import griddata
 import scipy.stats as stats
 from sklearn.metrics import mean_squared_error
 
-
 def plot_ET(fctl, flit, fbest, ring):
 
     subs_Esoil = read_obs_esoil(ring)
@@ -112,6 +111,197 @@ def plot_ET(fctl, flit, fbest, ring):
 
     fig.savefig("../plots/EucFACE_ET_ctl-lit-best" , bbox_inches='tight', pad_inches=0.1)
 
+def plot_EF_SM(fstd, fhvrd, fexp, fwatpot, ring):
+
+    lh1 = read_cable_var(fstd, "Qle")
+    lh2 = read_cable_var(fhvrd, "Qle")
+    lh3 = read_cable_var(fexp, "Qle")
+    lh4 = read_cable_var(fwatpot, "Qle")
+
+    r1 = read_cable_var(fstd, "Rnet")
+    r2 = read_cable_var(fhvrd, "Rnet")
+    r3 = read_cable_var(fexp, "Rnet")
+    r4 = read_cable_var(fwatpot, "Rnet")
+
+    EF1 = lh1/r1
+    EF2 = lh2/r2
+    EF3 = lh3/r3
+    EF4 = lh4/r4
+
+    fig = plt.figure(figsize=[15,17])
+
+    fig.subplots_adjust(hspace=0.1)
+    fig.subplots_adjust(wspace=0.05)
+    plt.rcParams['text.usetex'] = False
+    plt.rcParams['font.family'] = "sans-serif"
+    plt.rcParams['font.sans-serif'] = "Helvetica"
+    plt.rcParams['axes.labelsize'] = 14
+    plt.rcParams['font.size'] = 14
+    plt.rcParams['legend.fontsize'] = 12
+    plt.rcParams['xtick.labelsize'] = 14
+    plt.rcParams['ytick.labelsize'] = 14
+
+    almost_black = '#262626'
+    # change the tick colors also to the almost black
+    plt.rcParams['ytick.color'] = almost_black
+    plt.rcParams['xtick.color'] = almost_black
+
+    # change the text colors also to the almost black
+    plt.rcParams['text.color'] = almost_black
+
+    # Change the default axis colors from black to a slightly lighter black,
+    # and a little thinner (0.5 instead of 1)
+    plt.rcParams['axes.edgecolor'] = almost_black
+    plt.rcParams['axes.labelcolor'] = almost_black
+
+    ax1  = fig.add_subplot(511)
+    ax2  = fig.add_subplot(512)
+    ax3  = fig.add_subplot(513)
+    ax4  = fig.add_subplot(514)
+    ax5  = fig.add_subplot(515)
+
+    day_start = 1828
+    x    = Rain.index[Rain.index >= day_start]
+    width= 1.
+
+    ax1.plot(x, Rain['cable'][Rain.index >= day_start].rolling(window=30).sum(), width, color='royalblue', label='Obs') # bar   .cumsum()
+
+    ax2.plot(x, fw1['cable'][fw1.index >= day_start].rolling(window=30).mean(),   c="orange", lw=1.0, ls="-", label="β-std")#.rolling(window=30).mean()
+    ax2.plot(x, fw2['cable'][fw2.index >= day_start].rolling(window=30).mean(),   c="blue", lw=1.0, ls="-", label="β-hvrd")
+    ax2.plot(x, fw3['cable'][fw3.index >= day_start].rolling(window=30).mean(),   c="green", lw=1.0, ls="-", label="β-exp")
+    ax2.plot(x, fw4['cable'][fw4.index >= day_start].rolling(window=30).mean(),   c="red", lw=1.0, ls="-", label="β-watpot")
+
+    ax3.plot(x, t1['cable'][t1.index >= day_start].rolling(window=30).sum(),   c="orange", lw=1.0, ls="-", label="β-std")
+    ax3.plot(x, t2['cable'][t2.index >= day_start].rolling(window=30).sum(),   c="blue", lw=1.0, ls="-", label="β-hvrd")
+    ax3.plot(x, t3['cable'][t3.index >= day_start].rolling(window=30).sum(),   c="green", lw=1.0, ls="-", label="β-exp")
+    ax3.plot(x, t4['cable'][t4.index >= day_start].rolling(window=30).sum(),   c="red", lw=1.0, ls="-", label="β-watpot")
+
+    cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"]
+    xtickslocs    = [367,732,1097,1462,1828,2193,2558]
+
+    plt.setp(ax1.get_xticklabels(), visible=False)
+    ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
+    ax1.yaxis.tick_left()
+    ax1.yaxis.set_label_position("left")
+    ax1.set_ylabel("Rainfall ($mm$ $mon^{-1}$)")
+    ax1.axis('tight')
+    #ax1.set_ylim(0.,120.)
+    #ax1.set_xlim(367,2739)#,1098)
+    ax1.set_xlim(day_start,2739)
+
+    plt.setp(ax2.get_xticklabels(), visible=False)
+    ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+    ax2.set_ylabel("β")
+    ax2.axis('tight')
+    ax2.set_ylim(0.,1.1)
+    #ax2.set_xlim(367,2739)#,1098)
+    ax2.set_xlim(day_start,2739)
+    ax2.legend()
+
+    plt.setp(ax3.get_xticklabels(), visible=True)
+    ax3.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+    ax3.set_ylabel("Transpiration ($mm$ $mon^{-1}$)")
+    ax3.axis('tight')
+    #ax3.set_ylim(0.,2.5)
+    #ax3.set_ylim(0.,1000.)
+    #ax3.set_xlim(367,2739)#,1098)
+    ax3.set_xlim(day_start,2739)
+    ax3.legend()
+    fig.savefig("../plots/EucFACE_Rain_Fwsoil_Trans" , bbox_inches='tight', pad_inches=0.1)
+
+
+def plot_Rain_Fwsoil_Trans(fstd, fhvrd, fexp, fwatpot, ring):
+
+    Rain= read_cable_var(fstd, "Rainf")
+
+    fw1 = read_cable_var(fstd, "Fwsoil")
+    fw2 = read_cable_var(fhvrd, "Fwsoil")
+    fw3 = read_cable_var(fexp, "Fwsoil")
+    fw4 = read_cable_var(fwatpot, "Fwsoil")
+
+    t1 = read_cable_var(fstd, "TVeg")
+    t2 = read_cable_var(fhvrd, "TVeg")
+    t3 = read_cable_var(fexp, "TVeg")
+    t4 = read_cable_var(fwatpot, "TVeg")
+
+    fig = plt.figure(figsize=[15,10])
+
+    fig.subplots_adjust(hspace=0.1)
+    fig.subplots_adjust(wspace=0.05)
+    plt.rcParams['text.usetex'] = False
+    plt.rcParams['font.family'] = "sans-serif"
+    plt.rcParams['font.sans-serif'] = "Helvetica"
+    plt.rcParams['axes.labelsize'] = 14
+    plt.rcParams['font.size'] = 14
+    plt.rcParams['legend.fontsize'] = 12
+    plt.rcParams['xtick.labelsize'] = 14
+    plt.rcParams['ytick.labelsize'] = 14
+
+    almost_black = '#262626'
+    # change the tick colors also to the almost black
+    plt.rcParams['ytick.color'] = almost_black
+    plt.rcParams['xtick.color'] = almost_black
+
+    # change the text colors also to the almost black
+    plt.rcParams['text.color'] = almost_black
+
+    # Change the default axis colors from black to a slightly lighter black,
+    # and a little thinner (0.5 instead of 1)
+    plt.rcParams['axes.edgecolor'] = almost_black
+    plt.rcParams['axes.labelcolor'] = almost_black
+
+    ax1  = fig.add_subplot(311)
+    ax2  = fig.add_subplot(312)
+    ax3  = fig.add_subplot(313)
+
+    day_start = 1828
+    x    = Rain.index[Rain.index >= day_start]
+    width= 1.
+
+    ax1.plot(x, Rain['cable'][Rain.index >= day_start].rolling(window=30).sum(), width, color='royalblue', label='Obs') # bar   .cumsum()
+
+    ax2.plot(x, fw1['cable'][fw1.index >= day_start].rolling(window=30).mean(),   c="orange", lw=1.0, ls="-", label="β-std")#.rolling(window=30).mean()
+    ax2.plot(x, fw2['cable'][fw2.index >= day_start].rolling(window=30).mean(),   c="blue", lw=1.0, ls="-", label="β-hvrd")
+    ax2.plot(x, fw3['cable'][fw3.index >= day_start].rolling(window=30).mean(),   c="green", lw=1.0, ls="-", label="β-exp")
+    ax2.plot(x, fw4['cable'][fw4.index >= day_start].rolling(window=30).mean(),   c="red", lw=1.0, ls="-", label="β-watpot")
+
+    ax3.plot(x, t1['cable'][t1.index >= day_start].rolling(window=30).sum(),   c="orange", lw=1.0, ls="-", label="β-std")
+    ax3.plot(x, t2['cable'][t2.index >= day_start].rolling(window=30).sum(),   c="blue", lw=1.0, ls="-", label="β-hvrd")
+    ax3.plot(x, t3['cable'][t3.index >= day_start].rolling(window=30).sum(),   c="green", lw=1.0, ls="-", label="β-exp")
+    ax3.plot(x, t4['cable'][t4.index >= day_start].rolling(window=30).sum(),   c="red", lw=1.0, ls="-", label="β-watpot")
+
+    cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"]
+    xtickslocs    = [367,732,1097,1462,1828,2193,2558]
+
+    plt.setp(ax1.get_xticklabels(), visible=False)
+    ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
+    ax1.yaxis.tick_left()
+    ax1.yaxis.set_label_position("left")
+    ax1.set_ylabel("Rainfall ($mm$ $mon^{-1}$)")
+    ax1.axis('tight')
+    #ax1.set_ylim(0.,120.)
+    #ax1.set_xlim(367,2739)#,1098)
+    ax1.set_xlim(day_start,2739)
+
+    plt.setp(ax2.get_xticklabels(), visible=False)
+    ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+    ax2.set_ylabel("β")
+    ax2.axis('tight')
+    ax2.set_ylim(0.,1.1)
+    #ax2.set_xlim(367,2739)#,1098)
+    ax2.set_xlim(day_start,2739)
+    ax2.legend()
+
+    plt.setp(ax3.get_xticklabels(), visible=True)
+    ax3.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+    ax3.set_ylabel("Transpiration ($mm$ $mon^{-1}$)")
+    ax3.axis('tight')
+    #ax3.set_ylim(0.,2.5)
+    #ax3.set_ylim(0.,1000.)
+    #ax3.set_xlim(367,2739)#,1098)
+    ax3.set_xlim(day_start,2739)
+    ax3.legend()
+    fig.savefig("../plots/EucFACE_Rain_Fwsoil_Trans" , bbox_inches='tight', pad_inches=0.1)
 
 def read_cable_var(fcable, var_name):
 

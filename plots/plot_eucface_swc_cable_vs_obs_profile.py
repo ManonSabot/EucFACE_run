@@ -57,22 +57,22 @@ def plot_profile(fcable, case_name, ring, contour, layer):
     # get_level_values(1) : Return an Index of values for requested level.
     # add Depth = 0 and Depth = 460
 
-    print(subset[(25)].index.values)
+    #print(subset[(25)].index.values)
     # add the 12 depths to 0
     X     = subset[(25)].index.values[20:] #np.arange(date_start,date_end,1) # 2012-4-30 to 2019-5-11
     Y     = np.arange(0,465,5)
 
     grid_X, grid_Y = np.meshgrid(X,Y)
-    print(grid_X.shape)
+    #print(grid_X.shape)
     # interpolate
     if contour:
         grid_data = griddata((x, y) , value, (grid_X, grid_Y), method='cubic')
     else:
         grid_data = griddata((x, y) , value, (grid_X, grid_Y), method='nearest')
-    print(grid_data.shape)
+    print(type(grid_data))
 
 # ____________________ Plot obs _______________________
-    fig = plt.figure(figsize=[15,10])
+    fig = plt.figure(figsize=[12,12])
     fig.subplots_adjust(hspace=0.1)
     fig.subplots_adjust(wspace=0.05)
     plt.rcParams['text.usetex'] = False
@@ -109,15 +109,15 @@ def plot_profile(fcable, case_name, ring, contour, layer):
         img = ax1.imshow(grid_data, cmap=cmap, vmin=0, vmax=52, origin="upper", interpolation='nearest')
         Y_labels = Y
 
-    cbar = fig.colorbar(img, orientation="vertical", shrink=.6, pad=0.02)  #"horizontal" bbox_inches='tight', pad=0.1,
+    cbar = fig.colorbar(img, orientation="vertical", pad=0.02, shrink=.6) #"horizontal"
     cbar.set_label('VWC Obs (%)')#('Volumetric soil water content (%)')
     tick_locator = ticker.MaxNLocator(nbins=5)
     cbar.locator = tick_locator
     cbar.update_ticks()
 
     # every second tick
-    ax1.set_yticks(np.arange(len(Y))[::20])
-    ax1.set_yticklabels(Y_labels[::20])
+    ax1.set_yticks(np.arange(len(Y))[::10])
+    ax1.set_yticklabels(Y_labels[::10])
     plt.setp(ax1.get_xticklabels(), visible=False)
 
     #ax1.set_xticks(np.arange(len(X)))
@@ -127,8 +127,8 @@ def plot_profile(fcable, case_name, ring, contour, layer):
     #datemark = np.arange(np.datetime64('2013-01-01','D'), np.datetime64('2017-01-01','D'))
     #xtickslocs = ax1.get_xticks()
 
-    for i in range(len(datemark)):
-        print(i, datemark[i]) # xtickslocs[i]
+    #for i in range(len(datemark)):
+    #    print(i, datemark[i]) # xtickslocs[i]
 
     cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"]
                     #["2012","2013","2014","2015","2016","2017","2018","2019"]
@@ -196,15 +196,15 @@ def plot_profile(fcable, case_name, ring, contour, layer):
         img2 = ax2.imshow(grid_cable, cmap=cmap, vmin=0, vmax=52, origin="upper", interpolation='nearest')
         Y_labels2 = Y
 
-    cbar2 = fig.colorbar(img2, orientation="vertical", shrink=.6, pad=0.02) #  bbox_inches='tight', pad=0.1,
+    cbar2 = fig.colorbar(img2, orientation="vertical", pad=0.02, shrink=.6)
     cbar2.set_label('VWC CABLE (%)')#('Volumetric soil water content (%)')
     tick_locator2 = ticker.MaxNLocator(nbins=5)
     cbar2.locator = tick_locator2
     cbar2.update_ticks()
 
     # every second tick
-    ax2.set_yticks(np.arange(len(Y_cable))[::20])
-    ax2.set_yticklabels(Y_labels2[::20])
+    ax2.set_yticks(np.arange(len(Y_cable))[::10])
+    ax2.set_yticklabels(Y_labels2[::10])
     plt.setp(ax2.get_xticklabels(), visible=False)
 
     ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates)
@@ -227,15 +227,15 @@ def plot_profile(fcable, case_name, ring, contour, layer):
         Y_labels3 = Y
 
 
-    cbar3 = fig.colorbar(img3, orientation="vertical", shrink=.6, pad=0.02) # bbox_inches='tight', pad=0.1,
+    cbar3 = fig.colorbar(img3, orientation="vertical", pad=0.02, shrink=.6)
     cbar3.set_label('CABLE - Obs (%)')
     tick_locator3 = ticker.MaxNLocator(nbins=6)
     cbar3.locator = tick_locator3
     cbar3.update_ticks()
 
     # every second tick
-    ax3.set_yticks(np.arange(len(Y_cable))[::20])
-    ax3.set_yticklabels(Y_labels3[::20])
+    ax3.set_yticks(np.arange(len(Y_cable))[::10])
+    ax3.set_yticklabels(Y_labels3[::10])
 
     ax3.set_xticks(np.arange(len(X_cable)))
     cleaner_dates3 = X_cable
@@ -246,6 +246,137 @@ def plot_profile(fcable, case_name, ring, contour, layer):
     ax3.set_ylabel("Depth (cm)")
     ax3.axis('tight')
     if contour == True:
-        fig.savefig("../plots/EucFACE_SW_obsved_dates_contour_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("EucFACE_SW_obsved_dates_contour_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
     else:
-        fig.savefig("../plots/EucFACE_SW_obsved_dates_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("EucFACE_SW_obsved_dates_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
+
+def plot_dry_down(fcable, case_name, ring, layer):
+
+    subset = read_obs_swc_neo(ring)
+
+# ___________________ From Pandas to Numpy __________________________
+#    date_start = pd.datetime(2013,1,1) - pd.datetime(2011,12,31)
+#    date_end   = pd.datetime(2017,1,1) - pd.datetime(2011,12,31)
+#    date_start = pd.datetime(2012,4,30) - pd.datetime(2011,12,31)
+#    date_end   = pd.datetime(2019,5,11) - pd.datetime(2011,12,31)
+#    date_start = date_start.days
+#    date_end   = date_end.days
+
+    # Interpolate
+    x     = subset.index.get_level_values(1).values
+    y     = subset.index.get_level_values(0).values
+    value = subset.values
+
+    print(subset[(25)].index.values)
+    # add the 12 depths to 0
+    X     = subset[(25)].index.values[20:]
+    Y     = np.arange(0,465,5)
+
+    grid_X, grid_Y = np.meshgrid(X,Y)
+    print(grid_X.shape)
+    # interpolate
+    grid_data = griddata((x, y) , value, (grid_X, grid_Y), method='nearest')
+    print(grid_data.shape)
+
+    top_obs = np.mean(grid_data[0:7,:],axis=0)/100.#*5.
+    mid_obs = np.mean(grid_data[7:31,:],axis=0)/100.#*5.
+    bot_obs = np.mean(grid_data[31:,:],axis=0)/100.#*5.
+    print(top_obs)
+    print(mid_obs)
+    print(bot_obs)
+
+# _________________________ CABLE ___________________________
+    SoilMoist = read_cable_SM(fcable, layer)
+
+    ntimes      = len(np.unique(SoilMoist['dates']))
+    dates       = np.unique(SoilMoist['dates'].values)
+    x_cable     = SoilMoist['dates'].values
+    y_cable     = SoilMoist['Depth'].values
+    value_cable = SoilMoist.iloc[:,2].values
+
+    # add the 12 depths to 0
+    X_cable     = X #np.arange(date_start_cable,date_end_cable,1) # 2013-1-1 to 2016-12-31
+    Y_cable     = np.arange(0,465,5)
+    grid_X_cable, grid_Y_cable = np.meshgrid(X_cable,Y_cable)
+
+    grid_cable = griddata((x_cable, y_cable) , value_cable, (grid_X_cable, grid_Y_cable),\
+                 method='nearest')
+
+    top_cable = np.mean(grid_cable[0:7,:],axis=0)
+    mid_cable = np.mean(grid_cable[7:31,:],axis=0)
+    bot_cable = np.mean(grid_cable[31:,:],axis=0)
+    print(top_cable)
+    print(mid_cable)
+    print(bot_cable)
+
+# _________________________ Plotting ___________________________
+    fig = plt.figure(figsize=[12,12])
+    fig.subplots_adjust(hspace=0.1)
+    fig.subplots_adjust(wspace=0.05)
+    plt.rcParams['text.usetex'] = False
+    plt.rcParams['font.family'] = "sans-serif"
+    plt.rcParams['font.sans-serif'] = "Helvetica"
+    plt.rcParams['axes.labelsize'] = 14
+    plt.rcParams['font.size'] = 14
+    plt.rcParams['legend.fontsize'] = 10
+    plt.rcParams['xtick.labelsize'] = 14
+    plt.rcParams['ytick.labelsize'] = 14
+
+    almost_black = '#262626'
+    # change the tick colors also to the almost black
+    plt.rcParams['ytick.color'] = almost_black
+    plt.rcParams['xtick.color'] = almost_black
+
+    # change the text colors also to the almost black
+    plt.rcParams['text.color'] = almost_black
+
+    # Change the default axis colors from black to a slightly lighter black,
+    # and a little thinner (0.5 instead of 1)
+    plt.rcParams['axes.edgecolor'] = almost_black
+    plt.rcParams['axes.labelcolor'] = almost_black
+
+    ax1 = fig.add_subplot(311)
+    ax2 = fig.add_subplot(312)
+    ax3 = fig.add_subplot(313)
+
+    ax1.plot(top_obs,     c="orange", lw=1.0, ls="-", label="Obs")
+    ax1.plot(top_cable,   c="green", lw=1.0, ls="-", label="CABLE")
+    ax2.plot(mid_obs,     c="orange", lw=1.0, ls="-", label="Obs")
+    ax2.plot(mid_cable,   c="green", lw=1.0, ls="-", label="CABLE")
+    ax3.plot(bot_obs,     c="orange", lw=1.0, ls="-", label="Obs")
+    ax3.plot(bot_cable,   c="green", lw=1.0, ls="-", label="CABLE")
+
+    cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"]
+    xtickslocs    = [0,19,37,52,66,74,86]
+
+    plt.setp(ax1.get_xticklabels(), visible=False)
+    ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
+    ax1.set_ylabel("0 - 30cm")
+    ax1.axis('tight')
+    ax1.set_ylim(0,0.5)
+    ax1.legend()
+
+    plt.setp(ax2.get_xticklabels(), visible=False)
+    ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
+    ax2.set_ylabel("30cm - 1.5m")
+    ax2.axis('tight')
+    ax2.set_ylim(0,0.5)
+
+    plt.setp(ax3.get_xticklabels(), visible=True)
+    ax3.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
+    ax3.set_ylabel("1.5 - 4.65m")
+    ax3.axis('tight')
+    ax3.set_ylim(0,0.5)
+
+    fig.savefig("EucFACE_SW_top-mid-bot_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
+
+
+
+'''
+if __name__ == "__main__":
+
+    contour = False
+    #  True for contour
+    #  False for raster
+    layer =  "31uni"
+'''

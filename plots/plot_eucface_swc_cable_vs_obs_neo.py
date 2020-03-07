@@ -118,7 +118,7 @@ def plot_neo(fcable, case_name, ring, layer):
     print(grid_cable.shape)
 
 # ____________________ Plot obs _______________________
-    fig = plt.figure(figsize=[30,15],constrained_layout=True)
+    fig = plt.figure(figsize=[20,12],constrained_layout=True)
     fig.subplots_adjust(hspace=0.1)
     fig.subplots_adjust(wspace=0.05)
     plt.rcParams['text.usetex'] = False
@@ -164,18 +164,18 @@ def plot_neo(fcable, case_name, ring, layer):
     ax11.plot(X_cable, grid_cable[10,:],c="green", lw=1.0, ls="-", label="CABLE")
     ax12.plot(X_cable, grid_cable[11,:],c="green", lw=1.0, ls="-", label="CABLE")
 
-    ax1.scatter(subset[(25)].index.values, subset[(25)].values, marker='.', label="obs")
-    ax2.scatter(subset[(50)].index.values, subset[(50)].values, marker='.', label="obs")
-    ax3.scatter(subset[(75)].index.values, subset[(75)].values, marker='.', label="obs")
-    ax4.scatter(subset[(100)].index.values, subset[(100)].values, marker='.', label="obs")
-    ax5.scatter(subset[(125)].index.values, subset[(125)].values, marker='.', label="obs")
-    ax6.scatter(subset[(150)].index.values, subset[(150)].values, marker='.', label="obs")
-    ax7.scatter(subset[(200)].index.values, subset[(200)].values, marker='.', label="obs")
-    ax8.scatter(subset[(250)].index.values, subset[(250)].values, marker='.', label="obs")
-    ax9.scatter(subset[(300)].index.values, subset[(300)].values, marker='.', label="obs")
-    ax10.scatter(subset[(350)].index.values,subset[(350)].values, marker='.', label="obs")
-    ax11.scatter(subset[(400)].index.values,subset[(400)].values, marker='.', label="obs")
-    ax12.scatter(subset[(450)].index.values,subset[(450)].values, marker='.', label="obs")
+    ax1.scatter(subset[(25)].index.values, subset[(25)].values,  c="orange", marker='.', label="obs")
+    ax2.scatter(subset[(50)].index.values, subset[(50)].values,  c="orange",marker='.', label="obs")
+    ax3.scatter(subset[(75)].index.values, subset[(75)].values,  c="orange",marker='.', label="obs")
+    ax4.scatter(subset[(100)].index.values, subset[(100)].values,c="orange", marker='.', label="obs")
+    ax5.scatter(subset[(125)].index.values, subset[(125)].values,c="orange", marker='.', label="obs")
+    ax6.scatter(subset[(150)].index.values, subset[(150)].values,c="orange", marker='.', label="obs")
+    ax7.scatter(subset[(200)].index.values, subset[(200)].values,c="orange", marker='.', label="obs")
+    ax8.scatter(subset[(250)].index.values, subset[(250)].values,c="orange", marker='.', label="obs")
+    ax9.scatter(subset[(300)].index.values, subset[(300)].values,c="orange",marker='.', label="obs")
+    ax10.scatter(subset[(350)].index.values,subset[(350)].values,c="orange",marker='.', label="obs")
+    ax11.scatter(subset[(400)].index.values,subset[(400)].values,c="orange", marker='.', label="obs")
+    ax12.scatter(subset[(450)].index.values,subset[(450)].values,c="orange", marker='.', label="obs")
 
     cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"]
     xtickslocs    = [1,365,730,1095,1461,1826,2191]

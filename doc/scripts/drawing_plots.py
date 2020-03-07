@@ -17,9 +17,11 @@ import netCDF4 as nc
 from scipy.interpolate import griddata
 import scipy.stats as stats
 from sklearn.metrics import mean_squared_error
+from plot_eucface_swc_tdr_ctl_litter_best import *
+from plot_eucface_swc_profile_obs_ctl_best import *
 from plot_eucface_waterbal import *
-from plot_eucface_swc_tdr import *
-from plot_eucface_swc_profile import *
+#from plot_eucface_swc_tdr import *
+#from plot_eucface_swc_profile import *
 
 if __name__ == "__main__":
 
@@ -50,6 +52,19 @@ if __name__ == "__main__":
 
     case_8 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter_Hvrd"
     fcbl_8 ="%s/EucFACE_%s_out.nc" % (case_8, ring)
+
+    case_9 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter_hie-watpot"
+    fcbl_9 ="%s/EucFACE_%s_out.nc" % (case_9, ring)
+
+    #plot_profile(fcbl_1, fcbl_7, ring, contour)
+    #plot_ET(fcbl_1, fcbl_2, fcbl_7, ring)
+    #plot_Rain_Fwsoil_Trans(fcbl_1, fcbl_6, fcbl_7, ring)
+    plot_Rain_Fwsoil_Trans(fcbl_6, fcbl_8, fcbl_7, fcbl_9, ring)
+    fwatbal_1 = "./csv/EucFACE_met_LAI_6.csv"
+    fwatbal_6 = "./csv/EucFACE_met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter.csv"
+    fwatbal_7 = "./csv/EucFACE_met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter_hie-exp.csv"
+
+    #plot_waterbal(fwatbal_1,fwatbal_6,fwatbal_7)
 
     '''
     plot_profile(fcbl_1, case_1, ring, contour, "6")
@@ -97,12 +112,3 @@ if __name__ == "__main__":
     calc_waterbal(fcbl_7, fcbl_8, "31uni", "31uni")
 
     '''
-
-    fwatbal_1 = "./EucFACE_met_LAI_6.csv"
-    #"/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/EucFACE_def_%s.csv" %(fcbl_1.split("/")[-1])#[-2])
-    fwatbal_2 = "./EucFACE_met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter_hie-exp.csv"
-    #"./EucFACE_met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter.csv"
-    #"./EucFACE_met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter_hie-exp.csv"
-    #"./EucFACE_met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter.csv"
-    #fwatbal_best= "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/EucFACE_best_%s.csv" %(fcbl_best.split("/")[-1])#[-2])
-    plot_waterbal(fwatbal_1,fwatbal_2)

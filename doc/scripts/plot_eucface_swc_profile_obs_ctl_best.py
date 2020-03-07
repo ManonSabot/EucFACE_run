@@ -200,7 +200,7 @@ def plot_profile(fctl, fbest, ring, contour):
         Y_labels2 = Y
 
     cbar2 = fig.colorbar(img2, orientation="vertical", shrink=.6, pad=0.02) #  bbox_inches='tight', pad=0.1,
-    cbar2.set_label('VWC CABLE CTL (%)')#('Volumetric soil water content (%)')
+    cbar2.set_label('VWC CABLE Ctl (%)')#('Volumetric soil water content (%)')
     tick_locator2 = ticker.MaxNLocator(nbins=5)
     cbar2.locator = tick_locator2
     cbar2.update_ticks()
@@ -264,7 +264,7 @@ def plot_profile(fctl, fbest, ring, contour):
         grid_best = griddata((x_best, y_best) , value_best, (grid_X_best, grid_Y_best),\
                  method='nearest')
 
-    ax3 = fig.add_subplot(312)#, sharey = ax1)#(nrows=2, ncols=2, index=2, sharey=ax1)
+    ax3 = fig.add_subplot(313)#, sharey = ax1)#(nrows=2, ncols=2, index=2, sharey=ax1)
 
     if contour:
         img3 = ax3.contourf(grid_best, cmap=cmap, origin="upper", levels=levels,interpolation='nearest')
@@ -274,7 +274,7 @@ def plot_profile(fctl, fbest, ring, contour):
         Y_labels3 = Y
 
     cbar3 = fig.colorbar(img3, orientation="vertical", shrink=.6, pad=0.02) #  bbox_inches='tight', pad=0.1,
-    cbar3.set_label('VWC CABLE BEST (%)')#('Volumetric soil water content (%)')
+    cbar3.set_label('VWC CABLE Best (%)')#('Volumetric soil water content (%)')
     tick_locator3 = ticker.MaxNLocator(nbins=5)
     cbar3.locator = tick_locator3
     cbar3.update_ticks()
@@ -282,7 +282,7 @@ def plot_profile(fctl, fbest, ring, contour):
     # every second tick
     ax3.set_yticks(np.arange(len(Y_ctl))[::20])
     ax3.set_yticklabels(Y_labels3[::20])
-    plt.setp(ax3.get_xticklabels(), visible=False)
+    plt.setp(ax3.get_xticklabels(), visible=True)
 
     ax3.set(xticks=xtickslocs, xticklabels=cleaner_dates)
     ax3.set_ylabel("Depth (cm)")

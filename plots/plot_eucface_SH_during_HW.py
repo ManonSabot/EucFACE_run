@@ -110,11 +110,12 @@ def main(fobs, fcable, case_name, ring, term):
 
 if __name__ == "__main__":
 
-    case_name = ["ctl_met_LAI_vrt_SM_swilt-watr_31uni_HDM_or-off-litter_Hvrd",\
-                 "default-met_only_or-off"]
+    case_name = ["met_LAI_6",
+                 "met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter",
+                 "met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter_hie-exp"]
 
     rings = ["amb"] #["R1","R2","R3","R4","R5","R6","amb","ele"]
-    term  = "Qle" # "Qh" #"Qle"
+    term  = "Qh" #"Qle" # "Qle" #
     for ring in rings:
         fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
         fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" \
@@ -124,6 +125,10 @@ if __name__ == "__main__":
         fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" \
                     % (case_name[1], ring)
         v2,lct2 = main(fobs, fcable, case_name[1], ring, term)
+
+        fcable ="/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/%s/EucFACE_%s_out.nc" \
+                    % (case_name[2], ring)
+        v3,lct3 = main(fobs, fcable, case_name[2], ring, term)
 
         fig = plt.figure(figsize=[10,7])
         fig.subplots_adjust(hspace=0.1)
@@ -160,13 +165,16 @@ if __name__ == "__main__":
         #qh_mean1 = np.mean(v1, axis=0)
         #qh_mean2 = np.mean(v2, axis=0)
         #for i in np.arange(0,8):
-
-        ax1.plot(lct1[1,:], v1[1,:], c='orange', ls= '-', label="HW1-CTL")
-        ax1.plot(lct2[1,:], v2[1,:], c='green', ls= '-',  label="HW1-NEW")
-        ax1.plot(lct1[6,:], v1[6,:], c='orange', ls= '--', label="HW2-CTL")
-        ax1.plot(lct2[6,:], v2[6,:], c='green', ls= '--',  label="HW2-NEW")
-        ax1.plot(lct1[7,:], v1[7,:], c='orange', ls= ':', label="HW3-CTL")
-        ax1.plot(lct2[7,:], v2[7,:], c='green', ls= ':',  label="HW3-NEW")
+        '''
+        ax1.plot(lct1[1,:], v1[1,:], c='orange', ls= '-', label="HW1_Ctl")
+        ax1.plot(lct2[1,:], v2[1,:], c='royalblue', ls= '-',  label="HW1_Best_β-std")
+        ax1.plot(lct3[1,:], v3[1,:], c='forestgreen', ls= '-',  label="HW1_Best_β-site")
+        ax1.plot(lct1[6,:], v1[6,:], c='orange', ls= '--', label="HW2_Ctl")
+        ax1.plot(lct2[6,:], v2[6,:], c='royalblue', ls= '--',  label="HW2_Best_β-std")
+        ax1.plot(lct3[6,:], v3[6,:], c='forestgreen', ls= '--',  label="HW2_Best_β-site")
+        ax1.plot(lct1[7,:], v1[7,:], c='orange', ls= ':', label="HW3_Ctl")
+        ax1.plot(lct2[7,:], v2[7,:], c='royalblue', ls= ':',  label="HW3_Best_β-std")
+        ax1.plot(lct3[7,:], v3[7,:], c='forestgreen', ls= ':',  label="HW3_Best_β-site")
         '''
         ax1.plot(lct1[0,:], v1[0,:], c='orange', ls= ':', label="HW1-CTL")
         ax1.plot(lct2[0,:], v2[0,:], c='green', ls= ':',  label="HW1-NEW")
@@ -184,7 +192,7 @@ if __name__ == "__main__":
         ax1.plot(lct2[6,:], v2[6,:], c='blue', ls= '--',  label="HW7-NEW")
         ax1.plot(lct1[7,:], v1[7,:], c='red', ls= '-.', label="HW8-CTL")
         ax1.plot(lct2[7,:], v2[7,:], c='blue', ls= '-.',  label="HW8-NEW")
-        '''
+
         ax1.set_xlim(0.5,5.5)
 
         ax1.set_title('')
@@ -237,6 +245,6 @@ if __name__ == "__main__":
         #ax1.set_xlim(-0.5,2.5)
         # ax1.set_ylim(-0.1,1.)
 
-        fig.savefig("EucFACE_%s_during_HW_%s.png" % (term,ring),bbox_inches='tight')#, pad_inches=0.1)
+        fig.savefig("EucFACE_%s_during_HW_%s_1.png" % (term,ring),bbox_inches='tight')#, pad_inches=0.1)
         #ax1.set_ylim(-100,200)
         #fig.savefig("EucFACE_Rnet-G_during_HW_%s.png" % (ring),bbox_inches='tight')#, pad_inches=0.1)

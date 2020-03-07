@@ -240,7 +240,7 @@ def plot_tdr(fcable, case_name, ring, layer):
                  + cable.variables['ssat'][6]*(0.5-0.420714))/0.5
 
 # ____________________ Plot obs _______________________
-    fig = plt.figure(figsize=[15,10])
+    fig = plt.figure(figsize=[12,12])
     fig.subplots_adjust(hspace=0.1)
     fig.subplots_adjust(wspace=0.05)
     plt.rcParams['text.usetex'] = False
@@ -280,8 +280,8 @@ def plot_tdr(fcable, case_name, ring, layer):
     #print(x)
     #print(Rainf.values)
 
-    ax1.plot(subset.index, subset.values,   c="green", lw=1.0, ls="-", label="tdr")
-    ax1.plot(x, SoilMoist.values,c="orange", lw=1.0, ls="-", label="swc")
+    ax1.plot(subset.index, subset.values, c="orange", lw=1.0, ls="-", label="Obs")
+    ax1.plot(x, SoilMoist.values,         c="green", lw=1.0, ls="-", label="CABLE")
 
     tmp1 = SoilMoist['SoilMoist'].loc[SoilMoist.index.isin(subset.index)]
     tmp2 = subset.loc[subset.index.isin(SoilMoist.index)]
@@ -299,7 +299,7 @@ def plot_tdr(fcable, case_name, ring, layer):
     ax1.plot(x, swilt,           c="black", lw=1.0, ls="-", label="swilt")
     ax1.plot(x, sfc,             c="black", lw=1.0, ls="-.", label="sfc")
     ax1.plot(x, ssat,            c="black", lw=1.0, ls=":", label="ssat")
-    ax3.plot(x, Fwsoil.values,   c="forestgreen", lw=1.0, ls="-", label="Fwsoil")
+    ax3.plot(x, Fwsoil.values,   c="green", lw=1.0, ls="-", label="Fwsoil")
     ax5.plot(x, TVeg['TVeg'].rolling(window=5).mean(),     c="green", lw=1.0, ls="-", label="Trans") #.rolling(window=7).mean()
     ax5.plot(x, ESoil['ESoil'].rolling(window=5).mean(),    c="orange", lw=1.0, ls="-", label="ESoil") #.rolling(window=7).mean()
     ax5.scatter(subs_Trans.index, subs_Trans['volRing'], marker='o', c='',edgecolors='blue', s = 2., label="Trans Obs") # subs['EfloorPred']
@@ -391,6 +391,154 @@ def plot_tdr(fcable, case_name, ring, layer):
     fig.savefig("EucFACE_tdr_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
     #fig.savefig("EucFACE_tdr_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
 
+def plot_tdr_ET(fcable, case_name, ring, layer):
+
+    fobs_Esoil = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_underET.csv"
+    fobs_Trans = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_sapflow.csv"
+    fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
+
+    subs_Esoil = read_obs_esoil(fobs_Esoil, ring)
+    subs_Trans = read_obs_trans(fobs_Trans, ring)
+    subset     = read_obs_swc(fobs, ring)
+
+# _________________________ CABLE ___________________________
+    cable = nc.Dataset(fcable, 'r')
+    Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
+    SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,0,0,0], columns=['SoilMoist'])
+
+    if layer == "6":
+        SoilMoist['SoilMoist'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.022 \
+                                 + cable.variables['SoilMoist'][:,1,0,0]*0.058 \
+                                 + cable.variables['SoilMoist'][:,2,0,0]*0.154 \
+                                 + cable.variables['SoilMoist'][:,3,0,0]*(0.5-0.022-0.058-0.154) )/0.5
+    elif layer == "31uni":
+        SoilMoist['SoilMoist'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.15 \
+                                 + cable.variables['SoilMoist'][:,1,0,0]*0.15 \
+                                 + cable.variables['SoilMoist'][:,2,0,0]*0.15 \
+                                 + cable.variables['SoilMoist'][:,3,0,0]*0.05 )/0.5
+
+    SoilMoist['dates'] = Time
+    SoilMoist = SoilMoist.set_index('dates')
+    SoilMoist = SoilMoist.resample("D").agg('mean')
+    SoilMoist.index = SoilMoist.index - pd.datetime(2011,12,31)
+    SoilMoist.index = SoilMoist.index.days
+    SoilMoist = SoilMoist.sort_values(by=['dates'])
+
+    TVeg = pd.DataFrame(cable.variables['TVeg'][:,0,0],columns=['TVeg'])
+    TVeg = TVeg*1800.
+    TVeg['dates'] = Time
+    TVeg = TVeg.set_index('dates')
+    TVeg = TVeg.resample("D").agg('sum')
+    TVeg.index = TVeg.index - pd.datetime(2011,12,31)
+    TVeg.index = TVeg.index.days
+
+    ESoil = pd.DataFrame(cable.variables['ESoil'][:,0,0],columns=['ESoil'])
+    ESoil = ESoil*1800.
+    ESoil['dates'] = Time
+    ESoil = ESoil.set_index('dates')
+    ESoil = ESoil.resample("D").agg('sum')
+    ESoil.index = ESoil.index - pd.datetime(2011,12,31)
+    ESoil.index = ESoil.index.days
+
+    Fwsoil = pd.DataFrame(cable.variables['Fwsoil'][:,0,0],columns=['Fwsoil'])
+    Fwsoil['dates'] = Time
+    Fwsoil = Fwsoil.set_index('dates')
+    Fwsoil = Fwsoil.resample("D").agg('mean')
+    Fwsoil.index = Fwsoil.index - pd.datetime(2011,12,31)
+    Fwsoil.index = Fwsoil.index.days
+
+    swilt = np.zeros(len(TVeg))
+    sfc = np.zeros(len(TVeg))
+    ssat = np.zeros(len(TVeg))
+
+    if layer == "6":
+        swilt[:] = ( cable.variables['swilt'][0]*0.022 + cable.variables['swilt'][1]*0.058 \
+                   + cable.variables['swilt'][2]*0.154 + cable.variables['swilt'][3]*(0.5-0.022-0.058-0.154) )/0.5
+        sfc[:] = ( cable.variables['sfc'][0]*0.022   + cable.variables['sfc'][1]*0.058 \
+                   + cable.variables['sfc'][2]*0.154 + cable.variables['sfc'][3]*(0.5-0.022-0.058-0.154) )/0.5
+        ssat[:] = ( cable.variables['ssat'][0]*0.022 + cable.variables['ssat'][1]*0.058 \
+                   + cable.variables['ssat'][2]*0.154+ cable.variables['ssat'][3]*(0.5-0.022-0.058-0.154) )/0.5
+    elif layer == "31uni":
+        swilt[:] =(cable.variables['swilt'][0]*0.15 + cable.variables['swilt'][1]*0.15 \
+                  + cable.variables['swilt'][2]*0.15 + cable.variables['swilt'][3]*0.05 )/0.5
+        sfc[:] =(cable.variables['sfc'][0]*0.15 + cable.variables['sfc'][1]*0.15 \
+                + cable.variables['sfc'][2]*0.15 + cable.variables['sfc'][3]*0.05 )/0.5
+        ssat[:] =(cable.variables['ssat'][0]*0.15 + cable.variables['ssat'][1]*0.15 \
+                 + cable.variables['ssat'][2]*0.15 + cable.variables['ssat'][3]*0.05 )/0.5
+
+# ____________________ Plot obs _______________________
+    fig = plt.figure(figsize=[12,8])
+    fig.subplots_adjust(hspace=0.1)
+    fig.subplots_adjust(wspace=0.05)
+    plt.rcParams['text.usetex'] = False
+    plt.rcParams['font.family'] = "sans-serif"
+    plt.rcParams['font.sans-serif'] = "Helvetica"
+    plt.rcParams['axes.labelsize'] = 14
+    plt.rcParams['font.size'] = 14
+    plt.rcParams['legend.fontsize'] = 10
+    plt.rcParams['xtick.labelsize'] = 14
+    plt.rcParams['ytick.labelsize'] = 14
+
+    almost_black = '#262626'
+    # change the tick colors also to the almost black
+    plt.rcParams['ytick.color'] = almost_black
+    plt.rcParams['xtick.color'] = almost_black
+
+    # change the text colors also to the almost black
+    plt.rcParams['text.color'] = almost_black
+
+    # Change the default axis colors from black to a slightly lighter black,
+    # and a little thinner (0.5 instead of 1)
+    plt.rcParams['axes.edgecolor'] = almost_black
+    plt.rcParams['axes.labelcolor'] = almost_black
+
+    ax1 = fig.add_subplot(211)
+    ax5 = fig.add_subplot(212)
+
+    width = 1.
+    x = TVeg.index
+
+    ax1.plot(subset.index, subset.values, c="orange", lw=1.0, ls="-", label="Obs")
+    ax1.plot(x, SoilMoist.values,         c="green", lw=1.0, ls="-", label="CABLE")
+
+    tmp1 = SoilMoist['SoilMoist'].loc[SoilMoist.index.isin(subset.index)]
+    tmp2 = subset.loc[subset.index.isin(SoilMoist.index)]
+    mask = np.isnan(tmp2)
+    tmp1 = tmp1[mask == False]
+    tmp2 = tmp2[mask == False]
+
+    cor_tdr = stats.pearsonr(tmp1,tmp2)
+    mse_tdr = mean_squared_error(tmp2, tmp1)
+    ax1.set_title("r = % 5.3f , MSE = % 5.3f" %(cor_tdr[0], np.sqrt(mse_tdr)))
+    print("-----------------------------------------------")
+    print(mse_tdr)
+    ax1.plot(x, swilt,           c="black", lw=1.0, ls="-", label="swilt")
+    ax1.plot(x, sfc,             c="black", lw=1.0, ls="-.", label="sfc")
+    ax1.plot(x, ssat,            c="black", lw=1.0, ls=":", label="ssat")
+    ax5.plot(x, TVeg['TVeg'].rolling(window=5).mean(),     c="green", lw=1.0, ls="-", label="Trans") #.rolling(window=7).mean()
+    ax5.plot(x, ESoil['ESoil'].rolling(window=5).mean(),    c="orange", lw=1.0, ls="-", label="ESoil") #.rolling(window=7).mean()
+    ax5.scatter(subs_Trans.index, subs_Trans['volRing'], marker='o', c='',edgecolors='blue', s = 2., label="Trans Obs") # subs['EfloorPred']
+    ax5.scatter(subs_Esoil.index, subs_Esoil['wuTP'], marker='o', c='',edgecolors='red', s = 2., label="ESoil Obs") # subs['EfloorPred']
+
+    cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"]
+    xtickslocs    = [367,732,1097,1462,1828,2193,2558]
+
+    plt.setp(ax1.get_xticklabels(), visible=False)
+    ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
+    ax1.set_ylabel("VWC (m3/m3)")
+    ax1.axis('tight')
+    ax1.set_ylim(0,0.5)
+    ax1.set_xlim(367,1097)
+    ax1.legend()
+
+    ax5.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
+    ax5.set_ylabel("ET ($mm$ $d^{-1}$)")
+    ax5.axis('tight')
+    ax5.set_ylim(0.,4.5)
+    ax5.set_xlim(367,1097)
+    ax5.legend()
+
+    fig.savefig("EucFACE_tdr_ET_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
 
 def read_obs_esoil(fobs_Esoil, ring):
 
