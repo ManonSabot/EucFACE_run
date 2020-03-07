@@ -19,6 +19,7 @@ doc/*.o
 doc/*.pdf
 doc/*.png
 doc/*.jpg
+doc/csv/*
 doc/scripts/*nc
 doc/scripts/*o
 doc/scripts/*pdf
