@@ -59,7 +59,9 @@ if __name__ == "__main__":
     #plot_profile(fcbl_1, fcbl_7, ring, contour)
     #plot_ET(fcbl_1, fcbl_2, fcbl_7, ring)
     #plot_Rain_Fwsoil_Trans(fcbl_1, fcbl_6, fcbl_7, ring)
-    plot_Rain_Fwsoil_Trans(fcbl_6, fcbl_8, fcbl_7, fcbl_9, ring)
+    #plot_Rain_Fwsoil_Trans(fcbl_6, fcbl_8, fcbl_7, fcbl_9, ring)
+    plot_EF_SM(fcbl_6, fcbl_8, fcbl_7, fcbl_9, ring, "31uni")
+    #plot_EF_SM_HW(fcbl_6, fcbl_8, fcbl_7, fcbl_9, ring, "31uni")
     fwatbal_1 = "./csv/EucFACE_met_LAI_6.csv"
     fwatbal_6 = "./csv/EucFACE_met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter.csv"
     fwatbal_7 = "./csv/EucFACE_met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter_hie-exp.csv"
