@@ -17,11 +17,9 @@ import netCDF4 as nc
 from scipy.interpolate import griddata
 import scipy.stats as stats
 from sklearn.metrics import mean_squared_error
-from plot_eucface_swc_tdr_ctl_litter_best import *
-from plot_eucface_swc_profile_obs_ctl_best import *
+from plot_eucface_swc_tdr import *
+from plot_eucface_swc_profile import *
 from plot_eucface_waterbal import *
-#from plot_eucface_swc_tdr import *
-#from plot_eucface_swc_profile import *
 
 if __name__ == "__main__":
 
@@ -44,29 +42,43 @@ if __name__ == "__main__":
     case_5 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_litter"
     fcbl_5 ="%s/EucFACE_%s_out.nc" % (case_5, ring)
 
-    case_6 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter"
+    case_6 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x1-x1_litter"
     fcbl_6 ="%s/EucFACE_%s_out.nc" % (case_6, ring)
 
-    case_7 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter_hie-exp"
+    case_7 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter"
     fcbl_7 ="%s/EucFACE_%s_out.nc" % (case_7, ring)
 
-    case_8 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter_Hvrd"
+    case_8 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_Hvrd"
     fcbl_8 ="%s/EucFACE_%s_out.nc" % (case_8, ring)
 
-    case_9 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter_hie-watpot"
+    case_9 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_hie-exp"
     fcbl_9 ="%s/EucFACE_%s_out.nc" % (case_9, ring)
+
+    case_10 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_hie-watpot"
+    fcbl_10 ="%s/EucFACE_%s_out.nc" % (case_10, ring)
 
     #plot_profile(fcbl_1, fcbl_7, ring, contour)
     #plot_ET(fcbl_1, fcbl_2, fcbl_7, ring)
     #plot_Rain_Fwsoil_Trans(fcbl_1, fcbl_6, fcbl_7, ring)
     #plot_Rain_Fwsoil_Trans(fcbl_6, fcbl_8, fcbl_7, fcbl_9, ring)
-    plot_EF_SM(fcbl_6, fcbl_8, fcbl_7, fcbl_9, ring, "31uni")
-    #plot_EF_SM_HW(fcbl_6, fcbl_8, fcbl_7, fcbl_9, ring, "31uni")
-    fwatbal_1 = "./csv/EucFACE_met_LAI_6.csv"
-    fwatbal_6 = "./csv/EucFACE_met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter.csv"
-    fwatbal_7 = "./csv/EucFACE_met_LAI_vrt_swilt-watr-ssat_SM_hydsx10_31uni_litter_hie-exp.csv"
+    #plot_EF_SM(fcbl_6, fcbl_8, fcbl_7, fcbl_9, ring, "31uni")
+    #plot_Rain_Fwsoil_Trans_EF_SM(fcbl_7, fcbl_8, fcbl_9, fcbl_1, ring, "31uni")
+    #plot_EF_SM_HW(fcbl_7, fcbl_8, fcbl_9, fcbl_1, ring, "31uni")
+    #calc_waterbal(fcbl_1, "6")
+    #calc_waterbal(fcbl_7, "31uni")
+    #calc_waterbal(fcbl_9, "31uni")
+    fcables     = [fcbl_1, fcbl_2, fcbl_5,   fcbl_6,    fcbl_7, fcbl_8,  fcbl_9 ]
+    case_labels = ["Ctl",  "Lit",  "Hi-Res", "Opt-top", "Opt",  "β-hvrd","β-exp"]
+    layers      = ["6",    "6",    "31uni",  "31uni",   "31uni","31uni", "31uni"]
+    time_scale  = "hourly"
+    plot_EF_SM_HW(fcables, ring, layers, case_labels, time_scale)
 
-    #plot_waterbal(fwatbal_1,fwatbal_6,fwatbal_7)
+
+    # f1 = "./csv/EucFACE_amb_met_LAI_6.csv"
+    # f2 = "./csv/EucFACE_amb_met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter.csv"
+    # f3 = "./csv/EucFACE_amb_met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_hie-exp.csv"
+    #
+    # plot_waterbal(f1,f2,f3)
 
     '''
     plot_profile(fcbl_1, case_1, ring, contour, "6")

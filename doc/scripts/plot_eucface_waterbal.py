@@ -1,5 +1,19 @@
 #!/usr/bin/env python
 
+"""
+Calculate water cycle items and make water budget bar plot
+
+Include functions :
+
+    plot_waterbal
+    calc_waterbal_year
+    calc_waterbal
+
+"""
+
+__author__ = "MU Mengyuan"
+__version__ = "2020-03-10"
+
 import os
 import sys
 import numpy as np
@@ -51,11 +65,11 @@ def plot_waterbal(fwatbal_ctl, fwatbal_best_std, fwatbal_best_site):
     plt.rcParams['text.usetex'] = False
     plt.rcParams['font.family'] = "sans-serif"
     plt.rcParams['font.sans-serif'] = "Helvetica"
-    plt.rcParams['axes.labelsize'] = 12
-    plt.rcParams['font.size'] = 12
-    plt.rcParams['legend.fontsize'] = 12
-    plt.rcParams['xtick.labelsize'] = 12
-    plt.rcParams['ytick.labelsize'] = 12
+    plt.rcParams['axes.labelsize'] = 14
+    plt.rcParams['font.size'] = 14
+    plt.rcParams['legend.fontsize'] = 14
+    plt.rcParams['xtick.labelsize'] = 14
+    plt.rcParams['ytick.labelsize'] = 14
 
     ax = fig.add_subplot(111)
 
@@ -71,15 +85,15 @@ def plot_waterbal(fwatbal_ctl, fwatbal_best_std, fwatbal_best_site):
     print(sim_data)
 
     sim_data_std     = np.sum(best_std.iloc[1:5].values,axis=0)
-    sim_data_std[-1] = sim_data_std[-1]*10.
+    sim_data_std[-1] = sim_data_std[-1]
 
     sim_data_site     = np.sum(best_site.iloc[1:5].values,axis=0)
-    sim_data_site[-1] = sim_data_site[-1]*10.
+    sim_data_site[-1] = sim_data_site[-1]
 
-    rects1 = ax.bar(x - 0.3, obs_data,      width/4, color='red', label='Obs')
-    rects2 = ax.bar(x - 0.1, sim_data,      width/4, color='orange', label='Ctl')
-    rects3 = ax.bar(x + 0.1, sim_data_std,  width/4, color='green', label='Best_β-std')
-    rects4 = ax.bar(x + 0.3, sim_data_site, width/4, color='blue', label='Best_β-site')
+    rects1 = ax.bar(x - 0.3, obs_data,      width/4, color='blue', label='Obs')
+    rects2 = ax.bar(x - 0.1, sim_data,      width/4, color='red', label='Ctl')
+    rects3 = ax.bar(x + 0.1, sim_data_std,  width/4, color='orange', label='β-std')
+    rects4 = ax.bar(x + 0.3, sim_data_site, width/4, color='green', label='β-exp')
 
     # Add some text for labels, title and custom x-axis tick labels, etc.
     ax.set_ylabel('Water Budget $mm y^{-1}$')
@@ -88,4 +102,141 @@ def plot_waterbal(fwatbal_ctl, fwatbal_best_std, fwatbal_best_site):
     ax.set_xticklabels(labels)
     ax.legend()
 
-    fig.savefig('../plots/water_balance_2013_obs-ctl-best-site', bbox_inches='tight',pad_inches=0.1)
+    fig.savefig('../plots/water_balance_2013_obs-ctl-std-exp', bbox_inches='tight',pad_inches=0.1)
+
+def calc_waterbal_year(fcbl, layer):
+
+    if layer == "6":
+        zse = [ 0.022, 0.058, 0.154, 0.409, 1.085, 2.872 ]
+    elif layer == "31uni":
+        zse = [ 0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
+                0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
+                0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
+                0.15 ]
+
+    cable  = nc.Dataset(fcbl, 'r')
+    step_2_sec = 30.*60.
+
+    df              = pd.DataFrame(cable.variables['Rainf'][:,0,0]*step_2_sec, columns=['Rainf']) # 'Rainfall+snowfall'
+    df['Evap']      = cable.variables['Evap'][:,0,0]*step_2_sec   # 'Total evaporation'
+    df['TVeg']      = cable.variables['TVeg'][:,0,0]*step_2_sec   # 'Vegetation transpiration'
+    df['ESoil']     = cable.variables['ESoil'][:,0,0]*step_2_sec  # 'evaporation from soil'
+    df['ECanop']    = cable.variables['ECanop'][:,0,0]*step_2_sec # 'Wet canopy evaporation'
+    df['Qs']        = cable.variables['Qs'][:,0,0]*step_2_sec     # 'Surface runoff'
+    df['Qsb']       = cable.variables['Qsb'][:,0,0]*step_2_sec    # 'Subsurface runoff'
+    df['Qrecharge'] = cable.variables['Qrecharge'][:,0,0]*step_2_sec
+    df['dates']     = nc.num2date(cable.variables['time'][:], cable.variables['time'].units)
+    df              = df.set_index('dates')
+
+    df              = df.resample("Y").agg('sum')
+    print(df)
+    #df              = df.drop(df.index[len(df)-1])
+    #df.index        = df.index.strftime('%Y-%m-%d')
+    #turn DatetimeIndex into the formatted strings specified by date_format
+
+    df['soil_storage_chg']  = np.zeros(len(df))
+    # Soil Moisture
+    df_SM               = pd.DataFrame(cable.variables['SoilMoist'][:,0,0,0], columns=['SoilMoist'])
+    df_SM['SoilMoist']  = 0.0
+    print(zse)
+    for i in np.arange(len(zse)):
+        df_SM['SoilMoist']  = df_SM['SoilMoist'] + cable.variables['SoilMoist'][:,i,0,0]*zse[i]*1000.
+
+
+    df_SM['dates']     = nc.num2date(cable.variables['time'][:], cable.variables['time'].units)
+    df_SM              = df_SM.set_index('dates')
+    df_SM              = df_SM.resample("D").agg('mean')
+
+    # monthly soil water content and monthly changes
+    df_SM_year_start  = df_SM[df_SM.index.is_year_start]
+    print(df_SM_year_start)
+
+    df_SM_year_end  = df_SM[df_SM.index.is_year_end]
+    print(df_SM_year_end)
+    print(df_SM_year_end['SoilMoist'])
+    df.soil_storage_chg[0:6] = df_SM_year_end.SoilMoist.values[0:6] - df_SM_year_start.SoilMoist[0:6]
+    # output
+    df.to_csv("EucFACE_year_%s.csv" %(fcbl.split("/")[-2]))
+
+def calc_waterbal(fcbl, layer):
+
+    if layer == "6":
+        zse = [ 0.022, 0.058, 0.154, 0.409, 1.085, 2.872 ]
+    elif layer == "31uni":
+        zse = [ 0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
+                0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
+                0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
+                0.15 ]
+
+    cable  = nc.Dataset(fcbl, 'r')
+
+    step_2_sec = 30.*60.
+
+    df_cable              = pd.DataFrame(cable.variables['Rainf'][:,0], columns=['Rainf']) # 'Rainfall+snowfall'
+    df_cable['Evap']      = cable.variables['Evap'][:,0]   # 'Total evaporation'
+    df_cable['TVeg']      = cable.variables['TVeg'][:,0]   # 'Vegetation transpiration'
+    df_cable['ESoil']     = cable.variables['ESoil'][:,0]  # 'evaporation from soil'
+    df_cable['ECanop']    = cable.variables['ECanop'][:,0] # 'Wet canopy evaporation'
+    df_cable['Qs']        = cable.variables['Qs'][:,0]     # 'Surface runoff'
+    df_cable['Qsb']       = cable.variables['Qsb'][:,0]    # 'Subsurface runoff'
+    df_cable['Qrecharge'] = cable.variables['Qrecharge'][:,0]
+    df_cable['dates']     = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
+    df_cable              = df_cable.set_index('dates')
+
+    df_cable              = df_cable*step_2_sec
+    df_cable              = df_cable.resample("M").agg('sum')
+    df_cable              = df_cable.drop(df_cable.index[len(df_cable)-1])
+    df_cable.index        = df_cable.index.strftime('%Y-%m-%d')
+    #turn DatetimeIndex into the formatted strings specified by date_format
+
+    df_cable['Season']    = np.zeros(len(df_cable))
+    df_cable['Year']      = np.zeros(len(df_cable))
+    for i in np.arange(0,len(df_cable),1):
+        df_cable['Year'][i] = df_cable.index[i][0:4]
+        if df_cable.index[i][5:7] in ['01','02','12']:
+            df_cable['Season'][i] = 1
+        elif df_cable.index[i][5:7] in ['03','04','05']:
+            df_cable['Season'][i] = 2
+        elif df_cable.index[i][5:7] in ['06','07','08']:
+            df_cable['Season'][i] = 3
+        elif df_cable.index[i][5:7] in ['09','10','11']:
+            df_cable['Season'][i] = 4
+
+    df_cable['Year'][0:-1] = df_cable['Year'][1:]
+
+    df_cable = df_cable.groupby(by=['Year','Season']).sum()
+
+    df_cable['soil_storage_chg'] = np.zeros(len(df_cable))
+
+    # Soil Moisture
+    df_SM_cable              = pd.DataFrame(cable.variables['SoilMoist'][:,0,0], columns=['SoilMoist'])
+    df_SM_cable['SoilMoist'] = 0.0
+
+    for i in np.arange(0,len(zse),1):
+        df_SM_cable = df_SM_cable + cable.variables['SoilMoist'][:,i,0]*zse[i]*1000.
+
+    df_SM_cable['dates']    = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
+    df_SM_cable             = df_SM_cable.set_index('dates')
+    df_SM_index_cable       = df_SM_cable.index.strftime('%Y-%m-%d %H:%M')
+
+    # monthly soil water content and monthly changes
+    df_SM_mth_laststep_cable         = df_SM_cable.resample("M").agg('mean')
+    j = 0
+    for i in np.arange(0,len(df_SM_cable),1):
+        if df_SM_cable.index.is_month_end[i] and df_SM_index_cable[i][11:16] == '23:30':
+            print(df_SM_cable.index[i])
+            print(df_SM_index_cable[i])
+            df_SM_mth_laststep_cable.iloc[j] = df_SM_cable.iloc[i]
+            j       += 1
+
+    # soil water storage changes
+    for i in np.arange(0,25,1):
+        a = i+1
+        b = 4+i*3
+        c = 1+i*3
+        print(a)
+        print(b)
+        df_cable['soil_storage_chg'][a] = df_SM_mth_laststep_cable.iloc[b] - df_SM_mth_laststep_cable.iloc[c]
+
+    # output
+    df_cable.to_csv("./csv/EucFACE_amb_%s.csv" %(fcbl.split("/")[-2]))

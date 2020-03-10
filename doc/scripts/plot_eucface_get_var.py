@@ -3,6 +3,17 @@
 """
 Get variable
 
+include functions:
+
+    read_cable_var
+    read_cable_SM_one_clmn
+    read_cable_SM
+    read_obs_esoil
+    read_obs_trans
+    read_obs_swc_tdr
+    read_obs_swc_neo
+    read_SM_top_mid_bot
+
 """
 
 __author__ = "MU Mengyuan"
@@ -272,7 +283,12 @@ def read_SM_top_mid_bot(fcable, ring, layer):
                                  + cable.variables['SoilMoist'][:,3,0,0]*0.409 \
                                  + cable.variables['SoilMoist'][:,4,0,0]*1.085 \
                                  + cable.variables['SoilMoist'][:,5,0,0]*2.872  )/4.6
-
+        cable_data['SM_15m']  = (  cable.variables['SoilMoist'][:,0,0,0]*0.022 \
+                                 + cable.variables['SoilMoist'][:,1,0,0]*0.058 \
+                                 + cable.variables['SoilMoist'][:,2,0,0]*0.154 \
+                                 + cable.variables['SoilMoist'][:,3,0,0]*0.409 \
+                                 + cable.variables['SoilMoist'][:,4,0,0]*      \
+                                 (1.5-0.022-0.058-0.154-0.409) )/1.5
     elif layer == "31uni":
         cable_data['SM_top']  = (cable.variables['SoilMoist'][:,0,0,0]*0.15 \
                                  + cable.variables['SoilMoist'][:,1,0,0]*0.15)/0.3
@@ -291,11 +307,76 @@ def read_SM_top_mid_bot(fcable, ring, layer):
             cable_data['SM_all']  = cable_data['SM_all'] + cable.variables['SoilMoist'][:,i,0,0]*0.15
         cable_data['SM_all'] = cable_data['SM_all']/4.6
 
+        cable_data['SM_15m']  = cable.variables['SoilMoist'][:,0,0,0]*0.15
+        for i in np.arange(1,10):
+            cable_data['SM_15m']  = cable_data['SM_15m']+ cable.variables['SoilMoist'][:,i,0,0]*0.15
+        cable_data['SM_15m']  = cable_data['SM_15m']/1.5
+
     cable_data['dates'] = Time
     cable_data = cable_data.set_index('dates')
     cable_data = cable_data.resample("D").agg('mean')
     cable_data.index = cable_data.index - pd.datetime(2011,12,31)
     cable_data.index = cable_data.index.days
     cable_data = cable_data.sort_values(by=['dates'])
+
+    return cable_data
+
+def read_SM_top_mid_bot_hourly(fcable, ring, layer):
+
+    """
+    Read CABLE ET and oil moisture for top mid bot blocks used in metrics calculation
+
+    """
+
+    cable = nc.Dataset(fcable, 'r')
+    Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
+    cable_data = pd.DataFrame(cable.variables['TVeg'][:,0,0]*1800., columns=['TVeg'])
+    
+    if layer == "6":
+        cable_data['SM_top']  = (  cable.variables['SoilMoist'][:,0,0,0]*0.022 \
+                                 + cable.variables['SoilMoist'][:,1,0,0]*0.058\
+                                 + cable.variables['SoilMoist'][:,2,0,0]*0.154 \
+                                 + cable.variables['SoilMoist'][:,3,0,0]*(0.3-0.022-0.058-0.154) )/0.3
+        cable_data['SM_mid']  = (  cable.variables['SoilMoist'][:,3,0,0]*0.343 \
+                                 + cable.variables['SoilMoist'][:,4,0,0]*(1.2-0.343) )/1.2
+        cable_data['SM_bot']  = (  cable.variables['SoilMoist'][:,4,0,0]*(1.085-(1.2-0.343)) \
+                                 + cable.variables['SoilMoist'][:,5,0,0]*2.872)/(4.6-1.5)
+        cable_data['SM_all'] = (   cable.variables['SoilMoist'][:,0,0,0]*0.022 \
+                                 + cable.variables['SoilMoist'][:,1,0,0]*0.058 \
+                                 + cable.variables['SoilMoist'][:,2,0,0]*0.154 \
+                                 + cable.variables['SoilMoist'][:,3,0,0]*0.409 \
+                                 + cable.variables['SoilMoist'][:,4,0,0]*1.085 \
+                                 + cable.variables['SoilMoist'][:,5,0,0]*2.872  )/4.6
+        cable_data['SM_15m']  = (  cable.variables['SoilMoist'][:,0,0,0]*0.022 \
+                                 + cable.variables['SoilMoist'][:,1,0,0]*0.058 \
+                                 + cable.variables['SoilMoist'][:,2,0,0]*0.154 \
+                                 + cable.variables['SoilMoist'][:,3,0,0]*0.409 \
+                                 + cable.variables['SoilMoist'][:,4,0,0]*      \
+                                 (1.5-0.022-0.058-0.154-0.409) )/1.5
+    elif layer == "31uni":
+        cable_data['SM_top']  = (cable.variables['SoilMoist'][:,0,0,0]*0.15 \
+                                 + cable.variables['SoilMoist'][:,1,0,0]*0.15)/0.3
+        cable_data['SM_mid']  = cable.variables['SoilMoist'][:,2,0,0]*0.15
+        for i in np.arange(3,10):
+            cable_data['SM_mid']  = cable_data['SM_mid'] + cable.variables['SoilMoist'][:,i,0,0]*0.15
+        cable_data['SM_mid']  = cable_data['SM_mid']/(1.5-0.3)
+
+        cable_data['SM_bot']  = cable.variables['SoilMoist'][:,10,0,0]*0.15
+        for i in np.arange(11,30):
+            cable_data['SM_bot']  = cable_data['SM_bot'] + cable.variables['SoilMoist'][:,i,0,0]*0.15
+        cable_data['SM_bot']  = (cable_data['SM_bot'] + cable.variables['SoilMoist'][:,30,0,0]*0.1)/(4.6-1.5)
+
+        cable_data['SM_all']  = cable.variables['SoilMoist'][:,30,0,0]*0.1
+        for i in np.arange(0,30):
+            cable_data['SM_all']  = cable_data['SM_all'] + cable.variables['SoilMoist'][:,i,0,0]*0.15
+        cable_data['SM_all'] = cable_data['SM_all']/4.6
+
+        cable_data['SM_15m']  = cable.variables['SoilMoist'][:,0,0,0]*0.15
+        for i in np.arange(1,10):
+            cable_data['SM_15m']  = cable_data['SM_15m']+ cable.variables['SoilMoist'][:,i,0,0]*0.15
+        cable_data['SM_15m']  = cable_data['SM_15m']/1.5
+
+    cable_data['dates'] = Time
+    cable_data = cable_data.set_index('dates')
 
     return cable_data
