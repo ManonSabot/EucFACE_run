@@ -104,8 +104,7 @@ def read_cable_SM_one_clmn(fcable, layer):
 
 def read_cable_SM(fcable, layer):
     """
-    Note: the SM here is for plotting profile, it has been turned into one column
-          by SoilMoist = SoilMoist.stack()
+    Note: the SM here is a multi column dataframe, it doesn't aim to plot profile plot
     """
     cable = nc.Dataset(fcable, 'r')
 
@@ -331,7 +330,7 @@ def read_SM_top_mid_bot_hourly(fcable, ring, layer):
     cable = nc.Dataset(fcable, 'r')
     Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
     cable_data = pd.DataFrame(cable.variables['TVeg'][:,0,0]*1800., columns=['TVeg'])
-    
+
     if layer == "6":
         cable_data['SM_top']  = (  cable.variables['SoilMoist'][:,0,0,0]*0.022 \
                                  + cable.variables['SoilMoist'][:,1,0,0]*0.058\

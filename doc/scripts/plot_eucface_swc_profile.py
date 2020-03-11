@@ -251,9 +251,9 @@ def plot_profile(fcable, case_name, ring, contour, layer):
     ax3.set_ylabel("Depth (cm)")
     ax3.axis('tight')
     if contour == True:
-        fig.savefig("../plots/EucFACE_SW_obsved_dates_contour_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("../plots/EucFACE_SW_obsved_dates_contour_%s_%s.png" % (os.path.basename(fcable).split("/")[-2], ring), bbox_inches='tight', pad_inches=0.1)
     else:
-        fig.savefig("../plots/EucFACE_SW_obsved_dates_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("../plots/EucFACE_SW_obsved_dates_%s_%s.png" % (os.path.basename(fcable).split("/")[-2], ring), bbox_inches='tight', pad_inches=0.1)
 
 def plot_profile_3(fctl, fbest, ring, contour):
 
@@ -526,14 +526,17 @@ def plot_profile_3(fctl, fbest, ring, contour):
     else:
         fig.savefig("../plots/EucFACE_SW_obsved_dates_obs-ctl-best.png" , bbox_inches='tight', pad_inches=0.1)
 
-def plot_profile_tdr_ET(fcable, case_name, ring, contour, layer):
+def plot_profile_tdr_ET(fcable, ring, contour, layer):
 
     """
     plot simulation status and fluxes
     """
 
     # ____________________ Plot setting _______________________
-    fig = plt.figure(figsize=[14,12])
+    if fcable.split("/")[-2] == "met_LAI_6":
+        fig = plt.figure(figsize=[12,20])
+    else:
+        fig = plt.figure(figsize=[12,16])
     fig.subplots_adjust(hspace=0.1)
     fig.subplots_adjust(wspace=0.05)
     plt.rcParams['text.usetex'] = False
@@ -557,10 +560,6 @@ def plot_profile_tdr_ET(fcable, case_name, ring, contour, layer):
     # and a little thinner (0.5 instead of 1)
     plt.rcParams['axes.edgecolor'] = almost_black
     plt.rcParams['axes.labelcolor'] = almost_black
-
-    cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"]
-    xtickslocs    = [0,19,37,52,66,74,86]
-
 
     # ____________________ Read data _______________________
     # ==== ET ====
@@ -589,7 +588,7 @@ def plot_profile_tdr_ET(fcable, case_name, ring, contour, layer):
     # ==== SM ====
     neo = read_obs_swc_neo(ring)
     tdr = read_obs_swc_tdr(ring)
-    SoilMoist = read_cable_SM(fcable, layer)
+    SoilMoist = read_cable_SM_one_clmn(fcable, layer)
 
     # --------- interpolation ----------
     # Obs SoilMoist
@@ -667,9 +666,9 @@ def plot_profile_tdr_ET(fcable, case_name, ring, contour, layer):
     SoilMoist_50cm = SoilMoist_50cm.sort_values(by=['dates'])
 
     # Soil hydraulic param
-    swilt = np.zeros(len(Rainf))
-    sfc = np.zeros(len(Rainf))
-    ssat = np.zeros(len(Rainf))
+    swilt = np.zeros(len(TVeg))
+    sfc = np.zeros(len(TVeg))
+    ssat = np.zeros(len(TVeg))
 
     if layer == "6":
         swilt[:] = ( cable.variables['swilt'][0]*0.022 + cable.variables['swilt'][1]*0.058 \
@@ -687,12 +686,13 @@ def plot_profile_tdr_ET(fcable, case_name, ring, contour, layer):
                  + cable.variables['ssat'][2]*0.15 + cable.variables['ssat'][3]*0.05 )/0.5
 
     # ________________________ Plotting _________________________
-    if os.path.basename(case_name).split("/")[-1] == "met_LAI_6":
+    if fcable.split("/")[-2] == "met_LAI_6":
         ax1 = fig.add_subplot(511)
         ax2 = fig.add_subplot(512)
+        ax5 = fig.add_subplot(513)
         ax3 = fig.add_subplot(514)
         ax4 = fig.add_subplot(515)
-        ax5 = fig.add_subplot(513)
+
     else:
         ax1 = fig.add_subplot(411)
         ax2 = fig.add_subplot(412)
@@ -710,7 +710,7 @@ def plot_profile_tdr_ET(fcable, case_name, ring, contour, layer):
     ax1.scatter(subs_Esoil.index, subs_Esoil['obs'], marker='o', c='',edgecolors='red', s = 2., label="ESoil Obs") # subs['EfloorPred']
 
     ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
-    ax1.set_ylabel(" Trans, Esoil ($mm$ $d^{-1}$)")
+    ax1.set_ylabel(" Trans, Esoil (mm d$^{-1}$)")
     ax1.axis('tight')
     ax1.set_ylim(0.,4.5)
     ax1.set_xlim(367,1097)
@@ -729,7 +729,10 @@ def plot_profile_tdr_ET(fcable, case_name, ring, contour, layer):
     #ax2.set_xlim(367,1097)
     ax2.legend()
 
-    if os.path.basename(case_name).split("/")[-1] == "met_LAI_6":
+    cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"]
+    xtickslocs    = [0,19,37,52,66,74,86]
+    
+    if fcable.split("/")[-2] == "met_LAI_6":
 
         if contour:
             levels = np.arange(0.,52.,2.)
@@ -746,8 +749,8 @@ def plot_profile_tdr_ET(fcable, case_name, ring, contour, layer):
         cbar.update_ticks()
 
         # every second tick
-        ax5.set_yticks(np.arange(len(Y))[::10])
-        ax5.set_yticklabels(Y_labels[::10])
+        ax5.set_yticks(np.arange(len(Y))[::20])
+        ax5.set_yticklabels(Y_labels[::20])
         plt.setp(ax5.get_xticklabels(), visible=False)
 
         ax5.set(xticks=xtickslocs, xticklabels=cleaner_dates)
@@ -768,8 +771,8 @@ def plot_profile_tdr_ET(fcable, case_name, ring, contour, layer):
     cbar2.update_ticks()
 
     # every second tick
-    ax3.set_yticks(np.arange(len(Y))[::10])
-    ax3.set_yticklabels(Y_labels2[::10])
+    ax3.set_yticks(np.arange(len(Y))[::20])
+    ax3.set_yticklabels(Y_labels2[::20])
     plt.setp(ax3.get_xticklabels(), visible=False)
 
     ax3.set(xticks=xtickslocs, xticklabels=cleaner_dates)
@@ -793,8 +796,8 @@ def plot_profile_tdr_ET(fcable, case_name, ring, contour, layer):
     cbar3.update_ticks()
 
     # every second tick
-    ax4.set_yticks(np.arange(len(Y))[::10])
-    ax4.set_yticklabels(Y_labels3[::10])
+    ax4.set_yticks(np.arange(len(Y))[::20])
+    ax4.set_yticklabels(Y_labels3[::20])
 
     #ax4.set_xticks(np.arange(len(X)))
     #cleaner_dates3 = X
@@ -805,12 +808,12 @@ def plot_profile_tdr_ET(fcable, case_name, ring, contour, layer):
     ax4.axis('tight')
 
 
-    fig.align_labels()
+    #fig.align_labels()
 
     if contour == True:
-        fig.savefig("EucFACE_SW_obsved_dates_ET_contour_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("../plots/EucFACE_SW_obsved_dates_ET_contour_%s_%s.png" % (fcable.split("/")[-2], ring), bbox_inches='tight', pad_inches=0.1)
     else:
-        fig.savefig("EucFACE_SW_obsved_dates_ET_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("../plots/EucFACE_SW_obsved_dates_ET_%s_%s.png" % (fcable.split("/")[-2], ring), bbox_inches='tight', pad_inches=0.1)
 
 def plot_dry_down(fcable, case_name, ring, layer):
 

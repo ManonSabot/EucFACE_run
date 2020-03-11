@@ -798,7 +798,10 @@ def find_Heatwave_hourly(fcable, ring, layer):
 
 def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh, EF, SM_top, SM_mid, SM_bot, SM_all, SM_15m):
 
-    fig = plt.figure(figsize=[12,20])
+    if time_scale == "daily":
+        fig = plt.figure(figsize=[12,20])
+    elif time_scale == "hourly":
+        fig = plt.figure(figsize=[14,20])
 
     fig.subplots_adjust(hspace=0.1)
     fig.subplots_adjust(wspace=0.05)
@@ -832,30 +835,28 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
 
     x      = date
     colors = cm.rainbow(np.linspace(0,1,len(case_labels)))
+    ax5 = ax1.twinx()
 
     if time_scale == "daily":
         width  = 0.6
-        ax1.set_ylabel('Max Air Temperature (°C)')
-        ax1.set_ylim(20, 45)
-        ax5.set_ylim(0., 30.)
-        ax2.set_ylim(0.,1.8)
-        ax3.set_ylim(-50.,220)
-        ax4.set_ylim(0.18,0.32)
-        plt.suptitle('Heatwave in %s ~ %s ' % (str(date[2]), str(date[-3])))
     elif time_scale == "hourly":
         width  = 1/48
-        ax1.set_ylabel('Air Temperature (°C)')
-        #ax1.set_ylim(20, 45)
-        ax5.set_ylim(0., 20.)
-        ax2.set_ylim(0.,5.)
-        #ax3.set_ylim(-50.,220)
-        ax4.set_ylim(0.,0.4)
-        #plt.suptitle('Heatwave in %s ~ %s ' % (str(date[2]), str(date[-3])))
+
 
     ax1.plot(x, Tair,   c="black", lw=1.5, ls="-", label="Air Temperature")#.rolling(window=30).mean()
-    ax5 = ax1.twinx()
+    if time_scale == "daily":
+        ax1.set_ylabel('Max Air Temperature (°C)')
+        ax1.set_ylim(20, 45)
+    elif time_scale == "hourly":
+        ax1.set_ylabel('Air Temperature (°C)')
+        ax1.set_ylim(10, 45)
+
     ax5.set_ylabel('Rainfall (mm d$^{-1}$)')
     ax5.bar(x, Rainf,  width, color='royalblue', alpha = 0.5, label='Rainfall')
+    if time_scale == "daily":
+        ax5.set_ylim(0., 30.)
+    elif time_scale == "hourly":
+        ax5.set_ylim(0., 20.)
 
     for case_num in np.arange(len(case_labels)):
         print(case_num)
@@ -872,17 +873,29 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
     ax2.set_ylabel("Evaporative Fraction (-)")
     ax2.axis('tight')
     ax2.set_xlim(date[0],date[-1])
+    if time_scale == "daily":
+        ax2.set_ylim(0.,1.8)
+    elif time_scale == "hourly":
+        ax2.set_ylim(0,10.)
 
     plt.setp(ax3.get_xticklabels(), visible=False)
     ax3.set_ylabel('Latent, Sensible Heat (W m$^{-2}$)')
     ax3.axis('tight')
     ax3.set_xlim(date[0],date[-1])
+    if time_scale == "daily":
+        ax3.set_ylim(-50.,220)
 
     plt.setp(ax4.get_xticklabels(), visible=True)
     ax4.set_ylabel("VWC in top 1.5m  (m$^{3}$ m$^{-3}$)")
     ax4.axis('tight')
     ax4.legend()
     ax4.set_xlim(date[0],date[-1])
+    if time_scale == "daily":
+        ax4.set_ylim(0.18,0.32)
+        plt.suptitle('Heatwave in %s ~ %s ' % (str(date[2]), str(date[-3])))
+    elif time_scale == "hourly":
+        ax4.set_ylim(0.,0.4)
+        #plt.suptitle('Heatwave in %s ~ %s ' % (str(date[2]), str(date[-3])))
     '''
     plt.setp(ax4.get_xticklabels(), visible=True)
     ax4.set_ylabel("VWC (m$^{3}$ m$^{-3}$)")
@@ -1019,7 +1032,7 @@ def plot_Rain_Fwsoil_Trans(fstd, fhvrd, fexp, fwatpot, ring):
     ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
     ax1.yaxis.tick_left()
     ax1.yaxis.set_label_position("left")
-    ax1.set_ylabel("Rainfall ($mm$ $mon^{-1}$)")
+    ax1.set_ylabel("Rainfall (mm mon$^{-1}$)")
     ax1.axis('tight')
     #ax1.set_ylim(0.,120.)
     #ax1.set_xlim(367,2739)#,1098)
@@ -1045,70 +1058,17 @@ def plot_Rain_Fwsoil_Trans(fstd, fhvrd, fexp, fwatpot, ring):
     ax3.legend()
     fig.savefig("../plots/EucFACE_Rain_Fwsoil_Trans" , bbox_inches='tight', pad_inches=0.1)
 
-def plot_Rain_Fwsoil_Trans_EF_SM(fstd, fhvrd, fexp, fwatpot, ring, layer):
+def plot_Rain_Fwsoil_Trans_Esoil_EF_SM(fcables, ring, layers, case_labels):
 
-    Rain= read_cable_var(fstd, "Rainf")
-
-    fw1 = read_cable_var(fstd, "Fwsoil")
-    fw2 = read_cable_var(fhvrd, "Fwsoil")
-    fw3 = read_cable_var(fexp, "Fwsoil")
-    fw4 = read_cable_var(fwatpot, "Fwsoil")
-
-    t1 = read_cable_var(fstd, "TVeg")
-    t2 = read_cable_var(fhvrd, "TVeg")
-    t3 = read_cable_var(fexp, "TVeg")
-    t4 = read_cable_var(fwatpot, "TVeg")
-
-    lh1 = read_cable_var(fstd, "Qle")
-    lh2 = read_cable_var(fhvrd, "Qle")
-    lh3 = read_cable_var(fexp, "Qle")
-    lh4 = read_cable_var(fwatpot, "Qle")
-
-    r1 = read_cable_var(fstd, "Qh") + read_cable_var(fstd, "Qle")
-    r2 = read_cable_var(fhvrd, "Qh") + read_cable_var(fhvrd, "Qle")
-    r3 = read_cable_var(fexp, "Qh") + read_cable_var(fexp, "Qle")
-    r4 = read_cable_var(fwatpot, "Qh") + read_cable_var(fwatpot, "Qle")
-
-    r1 = np.where(r1["cable"].values < 1., lh1['cable'].values, r1["cable"].values)
-    r2 = np.where(r2["cable"].values < 1., lh2['cable'].values, r2["cable"].values)
-    r3 = np.where(r3["cable"].values < 1., lh3['cable'].values, r3["cable"].values)
-    r4 = np.where(r4["cable"].values < 1., lh4['cable'].values, r4["cable"].values)
-
-    EF1 = pd.DataFrame(lh1['cable'].values/r1, columns=['EF'])
-    EF1["Date"] = lh1.index
-    EF1 = EF1.set_index('Date')
-    #mean_val = np.where(np.any([EF1["EF"].values> 1.0, EF1["EF"].values< 0.0], axis=0), float('nan'), EF1["EF"].values)
-    EF1["EF"]= np.where(EF1["EF"].values> 10.0, 10., EF1["EF"].values)
-
-    EF2 = pd.DataFrame(lh2['cable'].values/r2, columns=['EF'])
-    EF2["Date"] = lh2.index
-    EF2 = EF2.set_index('Date')
-    EF2["EF"] = np.where(EF2["EF"].values> 10.0, 10., EF2["EF"].values)
-
-    EF3 = pd.DataFrame(lh3['cable'].values/r3, columns=['EF'])
-    EF3["Date"] = lh3.index
-    EF3 = EF3.set_index('Date')
-    EF3["EF"]= np.where(EF3["EF"].values> 10.0, 10., EF3["EF"].values)
-
-    EF4 = pd.DataFrame(lh4['cable'].values/r4, columns=['EF'])
-    EF4["Date"] = lh4.index
-    EF4 = EF4.set_index('Date')
-    EF4["EF"]= np.where(EF4["EF"].values> 10.0, 10., EF4["EF"].values)
-
-    sm1 = read_SM_top_mid_bot(fstd, ring, layer)
-    sm2 = read_SM_top_mid_bot(fhvrd, ring, layer)
-    sm3 = read_SM_top_mid_bot(fexp, ring, layer)
-    sm4 = read_SM_top_mid_bot(fwatpot, ring, "6")
-
-    fig = plt.figure(figsize=[15,16])
+    fig = plt.figure(figsize=[15,20])
 
     fig.subplots_adjust(hspace=0.1)
     fig.subplots_adjust(wspace=0.05)
     plt.rcParams['text.usetex'] = False
     plt.rcParams['font.family'] = "sans-serif"
     plt.rcParams['font.sans-serif'] = "Helvetica"
-    plt.rcParams['axes.labelsize'] = 14
-    plt.rcParams['font.size'] = 14
+    plt.rcParams['axes.labelsize']  = 14
+    plt.rcParams['font.size']       = 14
     plt.rcParams['legend.fontsize'] = 14
     plt.rcParams['xtick.labelsize'] = 14
     plt.rcParams['ytick.labelsize'] = 14
@@ -1126,70 +1086,85 @@ def plot_Rain_Fwsoil_Trans_EF_SM(fstd, fhvrd, fexp, fwatpot, ring, layer):
     plt.rcParams['axes.edgecolor'] = almost_black
     plt.rcParams['axes.labelcolor'] = almost_black
 
-    ax5  = fig.add_subplot(411)
-    ax2  = fig.add_subplot(412)
-    ax3  = fig.add_subplot(413)
-    ax4  = fig.add_subplot(414)
+    colors = cm.tab20(np.linspace(0,1,len(case_labels)))
 
-    day_start = 1828
-    x    = Rain.index[Rain.index >= day_start]
-    width= 1.
-
-    #ax1.set_ylabel('Rainfall ($mm$ $mon^{-1}$)"')
-    #ax1.plot(x, Rain['cable'][Rain.index >= day_start].rolling(window=30).sum(), lw=2.0, ls="-.", width, color='purple', label='Rainfall') # bar   .cumsum()
-    #ax1.bar(x , Rainf,  width, color='blue', label='Rainfall')
-    #ax5 = ax1.twinx()
-    ax5.set_ylabel('VWC in top 1.5m (m$^{3}$ m$^{-3}$)')
-    ax5.plot(x, sm1['SM_15m'][lh1.index >= day_start].rolling(window=30).mean(),   c="orange", lw=1.0, ls="-", label="β-std")#.rolling(window=30).mean()
-    ax5.plot(x, sm2['SM_15m'][lh1.index >= day_start].rolling(window=30).mean(),   c="blue", lw=1.0, ls="-", label="β-hvrd")
-    ax5.plot(x, sm3['SM_15m'][lh1.index >= day_start].rolling(window=30).mean(),   c="green", lw=1.0, ls="-", label="β-exp")
-    ax5.plot(x, sm4['SM_15m'][lh1.index >= day_start].rolling(window=30).mean(),   c="red", lw=1.0, ls="-", label="Ctl-β-std")
-
-    ax2.plot(x, fw1['cable'][fw1.index >= day_start].rolling(window=30).mean(),   c="orange", lw=1.0, ls="-", label="β-std")#.rolling(window=30).mean()
-    ax2.plot(x, fw2['cable'][fw2.index >= day_start].rolling(window=30).mean(),   c="blue", lw=1.0, ls="-", label="β-hvrd")
-    ax2.plot(x, fw3['cable'][fw3.index >= day_start].rolling(window=30).mean(),   c="green", lw=1.0, ls="-", label="β-exp")
-    ax2.plot(x, fw4['cable'][fw4.index >= day_start].rolling(window=30).mean(),   c="red", lw=1.0, ls="-", label="Ctl-β-std")
-
-    ax3.plot(x, t1['cable'][t1.index >= day_start].rolling(window=30).sum(),   c="orange", lw=1.0, ls="-", label="β-std")
-    ax3.plot(x, t2['cable'][t2.index >= day_start].rolling(window=30).sum(),   c="blue", lw=1.0, ls="-", label="β-hvrd")
-    ax3.plot(x, t3['cable'][t3.index >= day_start].rolling(window=30).sum(),   c="green", lw=1.0, ls="-", label="β-exp")
-    ax3.plot(x, t4['cable'][t4.index >= day_start].rolling(window=30).sum(),   c="red", lw=1.0, ls="-", label="Ctl-β-std")
-
-    ax4.plot(x, EF1['EF'][lh1.index >= day_start].rolling(window=30).mean(),   c="orange", lw=1.0, ls="-", label="β-std")#.rolling(window=30).mean()
-    #ax4.plot(x, r1[lh1.index >= day_start].rolling(window=30).mean(),   c="orange", lw=1.0, ls="-", label="β-std")
-    ax4.plot(x, EF2['EF'][lh1.index >= day_start].rolling(window=30).mean(),   c="blue", lw=1.0, ls="-", label="β-hvrd")
-    ax4.plot(x, EF3['EF'][lh1.index >= day_start].rolling(window=30).mean(),   c="green", lw=1.0, ls="-", label="β-exp")
-    ax4.plot(x, EF4['EF'][lh1.index >= day_start].rolling(window=30).mean(),   c="red", lw=1.0, ls="-", label="Ctl-β-std")
+    ax1  = fig.add_subplot(511)
+    ax2  = fig.add_subplot(512)
+    ax3  = fig.add_subplot(513)
+    ax4  = fig.add_subplot(514)
+    ax5  = fig.add_subplot(515)
 
     cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"]
     xtickslocs    = [367,732,1097,1462,1828,2193,2558]
 
-    plt.setp(ax5.get_xticklabels(), visible=False)
-    ax5.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
-    ax5.axis('tight')
-    ax5.set_xlim(day_start,2739)
+    day_start = 1828
+
+    case_sum = len(fcables)
+
+    for case_num in np.arange(case_sum):
+
+        Rain  = read_cable_var(fcables[case_num], "Rainf")
+        fw    = read_cable_var(fcables[case_num], "Fwsoil")
+        Trans = read_cable_var(fcables[case_num], "TVeg")
+        Esoil = read_cable_var(fcables[case_num], "ESoil")
+        Qle   = read_cable_var(fcables[case_num], "Qle")
+        Rnet  = read_cable_var(fcables[case_num], "Qh") + \
+                read_cable_var(fcables[case_num], "Qle")
+
+        Rnet = np.where(Rnet["cable"].values < 5., Qle['cable'].values, Rnet["cable"].values)
+
+        EF   = pd.DataFrame(Qle['cable'].values/Rnet, columns=['EF'])
+        EF["Date"] = Qle.index
+        EF   = EF.set_index('Date')
+        #mean_val = np.where(np.any([EF1["EF"].values> 1.0, EF1["EF"].values< 0.0], axis=0), float('nan'), EF1["EF"].values)
+        #EF["EF"]= np.where(EF["EF"].values> 10.0, 10., EF["EF"].values)
+
+        sm = read_SM_top_mid_bot(fcables[case_num], ring, layers[case_num])
+
+        x    = fw.index[fw.index >= day_start]
+
+        ax1.set_ylabel('VWC in top 1.5m (m$^{3}$ m$^{-3}$)')
+        ax1.plot(x, sm['SM_15m'][Qle.index >= day_start].rolling(window=30).mean(),   c=colors[case_num], lw=1.0, ls="-", label=case_labels[case_num])#.rolling(window=30).mean()
+        ax2.plot(x, Esoil['cable'][Esoil.index >= day_start].rolling(window=30).sum(),c=colors[case_num], lw=1.0, ls="-", label=case_labels[case_num])
+        ax3.plot(x, Trans['cable'][Trans.index >= day_start].rolling(window=30).sum(),c=colors[case_num], lw=1.0, ls="-", label=case_labels[case_num])
+        ax4.plot(x, fw['cable'][fw.index >= day_start].rolling(window=30).mean(),     c=colors[case_num], lw=1.0, ls="-", label=case_labels[case_num])#.rolling(window=30).mean()
+        ax5.plot(x, EF['EF'][Qle.index >= day_start].rolling(window=30).mean(),       c=colors[case_num], lw=1.0, ls="-", label=case_labels[case_num])#.rolling(window=30).mean()
+
+
+    plt.setp(ax1.get_xticklabels(), visible=False)
+    ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
+    ax1.axis('tight')
+    ax1.set_xlim(day_start,2739)
 
     plt.setp(ax2.get_xticklabels(), visible=False)
     ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax2.set_ylabel("β")
+    ax2.set_ylabel("Soil Evaporation (mm mon$^{-1}$)")
     ax2.axis('tight')
-    ax2.set_ylim(0.,1.1)
-    #ax2.set_xlim(367,2739)#,1098)
+    ax4.set_ylim(0.,65.)
     ax2.set_xlim(day_start,2739)
-    ax2.legend()
 
     plt.setp(ax3.get_xticklabels(), visible=False)
     ax3.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax3.set_ylabel("Transpiration ($mm$ $mon^{-1}$)")
+    ax3.set_ylabel("Transpiration (mm mon$^{-1}$)")
     ax3.axis('tight')
+    ax4.set_ylim(0.,65.)
     ax3.set_xlim(day_start,2739)
 
-    plt.setp(ax4.get_xticklabels(), visible=True)
-    ax4.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
-    #ax4.yaxis.tick_left()
-    #ax4.yaxis.set_label_position("left")
-    ax4.set_ylabel("Evaporative Fraction (-)")
+    plt.setp(ax4.get_xticklabels(), visible=False)
+    ax4.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+    ax4.set_ylabel("β")
     ax4.axis('tight')
+    ax4.set_ylim(0.,1.1)
+    #ax4.set_xlim(367,2739)#,1098)
     ax4.set_xlim(day_start,2739)
+    ax4.legend()
 
-    fig.savefig("../EucFACE_Rain_Fwsoil_Trans_EF_SM" , bbox_inches='tight', pad_inches=0.1)
+    plt.setp(ax5.get_xticklabels(), visible=True)
+    ax5.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
+    #ax5.yaxis.tick_left()
+    #ax5.yaxis.set_label_position("left")
+    ax5.set_ylabel("Evaporative Fraction (-)")
+    ax5.axis('tight')
+    ax5.set_xlim(day_start,2739)
+
+    fig.savefig("../plots/EucFACE_Rain_Fwsoil_Trans_EF_SM" , bbox_inches='tight', pad_inches=0.1)
