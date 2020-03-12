@@ -57,7 +57,7 @@ if __name__ == "__main__":
     case_10 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_hie-watpot"
     fcbl_10 ="%s/EucFACE_%s_out.nc" % (case_10, ring)
 
-    '''
+    
     plot_profile_tdr_ET(fcbl_1, ring, contour,    "6")
     plot_profile_tdr_ET(fcbl_2, ring, contour,    "6")
     plot_profile_tdr_ET(fcbl_5, ring, contour,"31uni")
@@ -70,8 +70,8 @@ if __name__ == "__main__":
     case_labels = ["Ctl",  "Lit",  "Hi-Res", "Opt-top", "Opt",  "β-hvrd","β-exp"]
     layers      = ["6",    "6",    "31uni",  "31uni",   "31uni","31uni", "31uni"]
     time_scale  = "hourly"
-    plot_Rain_Fwsoil_Trans_Esoil_EF_SM(fcables, ring, layers, case_labels)
-    #plot_EF_SM_HW(fcables, ring, layers, case_labels, time_scale)
+    #plot_Rain_Fwsoil_Trans_Esoil_EF_SM(fcables, ring, layers, case_labels)
+    plot_EF_SM_HW(fcables, ring, layers, case_labels, time_scale)
 
     fcables = [
                 "./csv/EucFACE_amb_met_LAI_6.csv",
@@ -82,5 +82,5 @@ if __name__ == "__main__":
                 "./csv/EucFACE_amb_met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_Hvrd.csv",
                 "./csv/EucFACE_amb_met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_hie-exp.csv"
                 ]
-
+    '''
     #plot_waterbal(fcables,case_labels)

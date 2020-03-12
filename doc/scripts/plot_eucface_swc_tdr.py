@@ -728,10 +728,10 @@ def find_Heatwave_hourly(fcable, ring, layer):
 
     #print(Rnet)
 
-    #Rnet["cable"] = np.where(Rnet["cable"].values < 1., Qle['cable'].values, Rnet["cable"].values)
     EF          = pd.DataFrame(Qle['cable'].values/Rnet['cable'].values, columns=['EF'])
     EF['dates'] = Time
     EF          = EF.set_index('dates')
+    EF['EF']    = np.where(Rnet["cable"].values < 5., float('nan'), EF['EF'].values)
     #EF['EF'] = np.where(EF["EF"].values >10.0, 10., EF["EF"].values)
     SM = read_SM_top_mid_bot_hourly(fcable, ring, layer)
 
@@ -827,21 +827,20 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
     plt.rcParams['axes.edgecolor'] = almost_black
     plt.rcParams['axes.labelcolor'] = almost_black
 
-    ax1  = fig.add_subplot(411)
-    ax2  = fig.add_subplot(412)
-    ax3  = fig.add_subplot(413)
-    ax4  = fig.add_subplot(414)
-    #ax6  = fig.add_subplot(515)
+    ax1  = fig.add_subplot(511)
+    ax2  = fig.add_subplot(512)
+    ax3  = fig.add_subplot(513)
+    ax4  = fig.add_subplot(514)
+    ax5  = fig.add_subplot(515)
 
     x      = date
-    colors = cm.rainbow(np.linspace(0,1,len(case_labels)))
-    ax5 = ax1.twinx()
+    colors = cm.tab20(np.linspace(0,1,len(case_labels)))
+    ax6 = ax1.twinx()
 
     if time_scale == "daily":
         width  = 0.6
     elif time_scale == "hourly":
         width  = 1/48
-
 
     ax1.plot(x, Tair,   c="black", lw=1.5, ls="-", label="Air Temperature")#.rolling(window=30).mean()
     if time_scale == "daily":
@@ -851,19 +850,19 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
         ax1.set_ylabel('Air Temperature (°C)')
         ax1.set_ylim(10, 45)
 
-    ax5.set_ylabel('Rainfall (mm d$^{-1}$)')
-    ax5.bar(x, Rainf,  width, color='royalblue', alpha = 0.5, label='Rainfall')
+    ax6.set_ylabel('Rainfall (mm d$^{-1}$)')
+    ax6.bar(x, Rainf,  width, color='royalblue', alpha = 0.5, label='Rainfall')
     if time_scale == "daily":
-        ax5.set_ylim(0., 30.)
+        ax6.set_ylim(0., 30.)
     elif time_scale == "hourly":
-        ax5.set_ylim(0., 20.)
+        ax6.set_ylim(0, 20)
 
     for case_num in np.arange(len(case_labels)):
         print(case_num)
         ax2.plot(x, EF[case_num, :],  c=colors[case_num], lw=1.5, ls="-", label=case_labels[case_num])#.rolling(window=30).mean()
         ax3.plot(x, Qle[case_num, :], c=colors[case_num], lw=1.5, ls="-", label=case_labels[case_num])#.rolling(window=30).mean()
-        ax3.plot(x, Qh[case_num, :],  c=colors[case_num], lw=1.5, ls="-.") #, label=case_labels)#.rolling(window=30).mean()
-        ax4.plot(x, SM_15m[case_num, :],  c=colors[case_num], lw=1.5, ls="-", label=case_labels[case_num])#.rolling(window=30).mean()
+        ax4.plot(x, Qh[case_num, :],  c=colors[case_num], lw=1.5, ls="-", label=case_labels[case_num]) #, label=case_labels)#.rolling(window=30).mean()
+        ax5.plot(x, SM_15m[case_num, :],  c=colors[case_num], lw=1.5, ls="-", label=case_labels[case_num])#.rolling(window=30).mean()
         #ax4.plot(x, SM_all[case_num, :],  c=colors[case_num], lw=1.5, ls="-", label=case_labels[case_num])#.rolling(window=30).mean()
 
     plt.setp(ax1.get_xticklabels(), visible=False)
@@ -876,25 +875,33 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
     if time_scale == "daily":
         ax2.set_ylim(0.,1.8)
     elif time_scale == "hourly":
-        ax2.set_ylim(0,10.)
+        ax2.set_ylim(0,3.)
 
     plt.setp(ax3.get_xticklabels(), visible=False)
-    ax3.set_ylabel('Latent, Sensible Heat (W m$^{-2}$)')
+    ax3.set_ylabel('Latent Heat (W m$^{-2}$)')
     ax3.axis('tight')
     ax3.set_xlim(date[0],date[-1])
     if time_scale == "daily":
         ax3.set_ylim(-50.,220)
 
-    plt.setp(ax4.get_xticklabels(), visible=True)
-    ax4.set_ylabel("VWC in top 1.5m  (m$^{3}$ m$^{-3}$)")
+
+    plt.setp(ax4.get_xticklabels(), visible=False)
+    ax4.set_ylabel('Sensible Heat (W m$^{-2}$)')
     ax4.axis('tight')
-    ax4.legend()
     ax4.set_xlim(date[0],date[-1])
     if time_scale == "daily":
-        ax4.set_ylim(0.18,0.32)
+        ax4.set_ylim(-50.,220)
+
+    plt.setp(ax5.get_xticklabels(), visible=True)
+    ax5.set_ylabel("VWC in top 1.5m  (m$^{3}$ m$^{-3}$)")
+    ax5.axis('tight')
+    ax5.legend()
+    ax5.set_xlim(date[0],date[-1])
+    if time_scale == "daily":
+        ax5.set_ylim(0.18,0.32)
         plt.suptitle('Heatwave in %s ~ %s ' % (str(date[2]), str(date[-3])))
     elif time_scale == "hourly":
-        ax4.set_ylim(0.,0.4)
+        ax5.set_ylim(0.15,0.35)
         #plt.suptitle('Heatwave in %s ~ %s ' % (str(date[2]), str(date[-3])))
     '''
     plt.setp(ax4.get_xticklabels(), visible=True)

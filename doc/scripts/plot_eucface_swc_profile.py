@@ -711,10 +711,10 @@ def plot_profile_tdr_ET(fcable, ring, contour, layer):
 
     ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
     ax1.set_ylabel(" Trans, Esoil (mm d$^{-1}$)")
-    ax1.axis('tight')
     ax1.set_ylim(0.,4.5)
     ax1.set_xlim(367,1097)
     ax1.legend()
+    ax1.axis('tight')
 
     ax2.plot(tdr.index, tdr.values,    c="orange", lw=1.0, ls="-", label="Obs")
     ax2.plot(x, SoilMoist_50cm.values, c="green", lw=1.0, ls="-", label="CABLE")
@@ -724,14 +724,14 @@ def plot_profile_tdr_ET(fcable, ring, contour, layer):
 
     ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
     ax2.set_ylabel("VWC (m$^{3}$ m$^{-3}$)")
-    ax2.axis('tight')
     ax2.set_ylim(0,0.5)
     #ax2.set_xlim(367,1097)
     ax2.legend()
+    ax2.axis('tight')
 
     cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"]
     xtickslocs    = [0,19,37,52,66,74,86]
-    
+
     if fcable.split("/")[-2] == "met_LAI_6":
 
         if contour:
@@ -769,7 +769,7 @@ def plot_profile_tdr_ET(fcable, ring, contour, layer):
     tick_locator2 = ticker.MaxNLocator(nbins=5)
     cbar2.locator = tick_locator2
     cbar2.update_ticks()
-
+    
     # every second tick
     ax3.set_yticks(np.arange(len(Y))[::20])
     ax3.set_yticklabels(Y_labels2[::20])
@@ -799,15 +799,15 @@ def plot_profile_tdr_ET(fcable, ring, contour, layer):
     ax4.set_yticks(np.arange(len(Y))[::20])
     ax4.set_yticklabels(Y_labels3[::20])
 
-    #ax4.set_xticks(np.arange(len(X)))
-    #cleaner_dates3 = X
-    #ax4.set_xticklabels(cleaner_dates3)
+    ax4.set_xticks(np.arange(len(X)))
+    cleaner_dates3 = X
+    ax4.set_xticklabels(cleaner_dates3)
 
     ax4.set(xticks=xtickslocs, xticklabels=cleaner_dates)
     ax4.set_ylabel("Depth (cm)")
     ax4.axis('tight')
 
-
+    #plt.show()
     #fig.align_labels()
 
     if contour == True:
