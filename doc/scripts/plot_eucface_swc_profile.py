@@ -537,7 +537,7 @@ def plot_profile_tdr_ET(fcable, ring, contour, layer):
         fig = plt.figure(figsize=[12,20])
     else:
         fig = plt.figure(figsize=[12,16])
-    fig.subplots_adjust(hspace=0.1)
+    fig.subplots_adjust(hspace=0.15)
     fig.subplots_adjust(wspace=0.05)
     plt.rcParams['text.usetex'] = False
     plt.rcParams['font.family'] = "sans-serif"
@@ -645,25 +645,23 @@ def plot_profile_tdr_ET(fcable, ring, contour, layer):
 
     # ---------------------------------
 
-    SoilMoist_50cm = pd.DataFrame(cable.variables['SoilMoist'][:,0,0,0], columns=['SoilMoist'])
+    SoilMoist_25cm = pd.DataFrame(cable.variables['SoilMoist'][:,0,0,0], columns=['SoilMoist'])
 
     if layer == "6":
-        SoilMoist_50cm['SoilMoist'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.022 \
+        SoilMoist_25cm['SoilMoist'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.022 \
                                       + cable.variables['SoilMoist'][:,1,0,0]*0.058 \
                                       + cable.variables['SoilMoist'][:,2,0,0]*0.154 \
-                                      + cable.variables['SoilMoist'][:,3,0,0]*(0.5-0.022-0.058-0.154) )/0.5
+                                      + cable.variables['SoilMoist'][:,3,0,0]*(0.25-0.022-0.058-0.154) )/0.25
     elif layer == "31uni":
-        SoilMoist_50cm['SoilMoist'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.15 \
-                                      + cable.variables['SoilMoist'][:,1,0,0]*0.15 \
-                                      + cable.variables['SoilMoist'][:,2,0,0]*0.15 \
-                                      + cable.variables['SoilMoist'][:,3,0,0]*0.05 )/0.5
+        SoilMoist_25cm['SoilMoist'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.15 \
+                                      + cable.variables['SoilMoist'][:,1,0,0]*0.10 )/0.25
 
-    SoilMoist_50cm['dates'] = Time
-    SoilMoist_50cm = SoilMoist_50cm.set_index('dates')
-    SoilMoist_50cm = SoilMoist_50cm.resample("D").agg('mean')
-    SoilMoist_50cm.index = SoilMoist_50cm.index - pd.datetime(2011,12,31)
-    SoilMoist_50cm.index = SoilMoist_50cm.index.days
-    SoilMoist_50cm = SoilMoist_50cm.sort_values(by=['dates'])
+    SoilMoist_25cm['dates'] = Time
+    SoilMoist_25cm = SoilMoist_25cm.set_index('dates')
+    SoilMoist_25cm = SoilMoist_25cm.resample("D").agg('mean')
+    SoilMoist_25cm.index = SoilMoist_25cm.index - pd.datetime(2011,12,31)
+    SoilMoist_25cm.index = SoilMoist_25cm.index.days
+    SoilMoist_25cm = SoilMoist_25cm.sort_values(by=['dates'])
 
     # Soil hydraulic param
     swilt = np.zeros(len(TVeg))
@@ -672,18 +670,15 @@ def plot_profile_tdr_ET(fcable, ring, contour, layer):
 
     if layer == "6":
         swilt[:] = ( cable.variables['swilt'][0]*0.022 + cable.variables['swilt'][1]*0.058 \
-                   + cable.variables['swilt'][2]*0.154 + cable.variables['swilt'][3]*(0.5-0.022-0.058-0.154) )/0.5
+                   + cable.variables['swilt'][2]*0.154 + cable.variables['swilt'][3]*(0.25-0.022-0.058-0.154) )/0.25
         sfc[:] = ( cable.variables['sfc'][0]*0.022   + cable.variables['sfc'][1]*0.058 \
-                   + cable.variables['sfc'][2]*0.154 + cable.variables['sfc'][3]*(0.5-0.022-0.058-0.154) )/0.5
+                   + cable.variables['sfc'][2]*0.154 + cable.variables['sfc'][3]*(0.25-0.022-0.058-0.154) )/0.25
         ssat[:] = ( cable.variables['ssat'][0]*0.022 + cable.variables['ssat'][1]*0.058 \
-                   + cable.variables['ssat'][2]*0.154+ cable.variables['ssat'][3]*(0.5-0.022-0.058-0.154) )/0.5
+                   + cable.variables['ssat'][2]*0.154+ cable.variables['ssat'][3]*(0.25-0.022-0.058-0.154) )/0.25
     elif layer == "31uni":
-        swilt[:] =(cable.variables['swilt'][0]*0.15 + cable.variables['swilt'][1]*0.15 \
-                  + cable.variables['swilt'][2]*0.15 + cable.variables['swilt'][3]*0.05 )/0.5
-        sfc[:] =(cable.variables['sfc'][0]*0.15 + cable.variables['sfc'][1]*0.15 \
-                + cable.variables['sfc'][2]*0.15 + cable.variables['sfc'][3]*0.05 )/0.5
-        ssat[:] =(cable.variables['ssat'][0]*0.15 + cable.variables['ssat'][1]*0.15 \
-                 + cable.variables['ssat'][2]*0.15 + cable.variables['ssat'][3]*0.05 )/0.5
+        swilt[:] =(cable.variables['swilt'][0]*0.15 + cable.variables['swilt'][1]*0.10 )/0.25
+        sfc[:] =(cable.variables['sfc'][0]*0.15 + cable.variables['sfc'][1]*0.10 )/0.25
+        ssat[:] =(cable.variables['ssat'][0]*0.15 + cable.variables['ssat'][1]*0.10 )/0.25
 
     # ________________________ Plotting _________________________
     if fcable.split("/")[-2] == "met_LAI_6":
@@ -692,7 +687,6 @@ def plot_profile_tdr_ET(fcable, ring, contour, layer):
         ax5 = fig.add_subplot(513)
         ax3 = fig.add_subplot(514)
         ax4 = fig.add_subplot(515)
-
     else:
         ax1 = fig.add_subplot(411)
         ax2 = fig.add_subplot(412)
@@ -700,34 +694,46 @@ def plot_profile_tdr_ET(fcable, ring, contour, layer):
         ax4 = fig.add_subplot(414)
 
     x = TVeg.index
-    cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"]
-    xtickslocs    = [367,732,1097,1462,1828,2193,2558]
+    print(x)
+    print(subs_Esoil.index)
+    # set x-axis values
+    cleaner_dates1 = ["2013","2014","2015","2016","2017","2018","2019"]
+    xtickslocs1    = [367,732,1097,1462,1828,2193,2558]
+    # set color
     cmap = plt.cm.viridis_r
 
-    ax1.plot(x, TVeg['TVeg'].rolling(window=5).mean(),     c="green", lw=1.0, ls="-", label="Trans") #.rolling(window=7).mean()
-    ax1.plot(x, ESoil['ESoil'].rolling(window=5).mean(),    c="orange", lw=1.0, ls="-", label="ESoil") #.rolling(window=7).mean()
+    ax1.plot(x, TVeg['TVeg'].rolling(window=7).mean(),     c="green", lw=1.0, ls="-", label="Trans") #.rolling(window=7).mean()
+    ax1.plot(x, ESoil['ESoil'].rolling(window=7).mean(),    c="orange", lw=1.0, ls="-", label="ESoil") #.rolling(window=7).mean()
     ax1.scatter(subs_Trans.index, subs_Trans['obs'], marker='o', c='',edgecolors='blue', s = 2., label="Trans Obs") # subs['EfloorPred']
     ax1.scatter(subs_Esoil.index, subs_Esoil['obs'], marker='o', c='',edgecolors='red', s = 2., label="ESoil Obs") # subs['EfloorPred']
+    #ax1.plot(subs_Trans.index, subs_Trans['obs'].rolling(window=7).mean(), c='blue', lw=1.0, ls="-", label="Trans Obs") # subs['EfloorPred']
+    #ax1.plot(subs_Esoil.index, subs_Esoil['obs'].rolling(window=7).mean(), c='red', lw=1.0, ls="-", label="ESoil Obs") # subs['EfloorPred']
 
-    ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
+    # this order of the setting can affect plot x & y axis
+    plt.setp(ax1.get_xticklabels(), visible=True)
+    ax1.set(xticks=xtickslocs1, xticklabels=cleaner_dates1) ####
     ax1.set_ylabel(" Trans, Esoil (mm d$^{-1}$)")
+    ax1.axis('tight')
     ax1.set_ylim(0.,4.5)
     ax1.set_xlim(367,1097)
     ax1.legend()
-    ax1.axis('tight')
+
+    #ax1.update_ticks()
 
     ax2.plot(tdr.index, tdr.values,    c="orange", lw=1.0, ls="-", label="Obs")
-    ax2.plot(x, SoilMoist_50cm.values, c="green", lw=1.0, ls="-", label="CABLE")
+    ax2.plot(x, SoilMoist_25cm.values, c="green", lw=1.0, ls="-", label="CABLE")
     ax2.plot(x, swilt,                 c="black", lw=1.0, ls="-", label="swilt")
     ax2.plot(x, sfc,                   c="black", lw=1.0, ls="-.", label="sfc")
     ax2.plot(x, ssat,                  c="black", lw=1.0, ls=":", label="ssat")
 
-    ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
-    ax2.set_ylabel("VWC (m$^{3}$ m$^{-3}$)")
+    plt.setp(ax2.get_xticklabels(), visible=True)
+    ax2.set(xticks=xtickslocs1, xticklabels=cleaner_dates1) ####
+    ax2.set_ylabel("VWC in top 25cm (m$^{3}$ m$^{-3}$)")
+    ax2.axis('tight') # it should be in front of ylim  and xlim
     ax2.set_ylim(0,0.5)
-    #ax2.set_xlim(367,1097)
+    ax2.set_xlim(367,2558)
     ax2.legend()
-    ax2.axis('tight')
+    #ax2.update_ticks()
 
     cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"]
     xtickslocs    = [0,19,37,52,66,74,86]
@@ -742,7 +748,7 @@ def plot_profile_tdr_ET(fcable, ring, contour, layer):
             img = ax5.imshow(grid_data, cmap=cmap, vmin=0, vmax=52, origin="upper", interpolation='nearest')
             Y_labels = Y
 
-        cbar = fig.colorbar(img, orientation="vertical", pad=0.02, shrink=.6) #"horizontal"
+        cbar = fig.colorbar(img, ax = ax5, orientation="vertical", pad=0.02, shrink=.6) #"horizontal"
         cbar.set_label('VWC Obs (%)')#('Volumetric soil water content (%)')
         tick_locator = ticker.MaxNLocator(nbins=5)
         cbar.locator = tick_locator
@@ -764,12 +770,12 @@ def plot_profile_tdr_ET(fcable, ring, contour, layer):
         img2 = ax3.imshow(grid_cable, cmap=cmap, vmin=0, vmax=52, origin="upper", interpolation='nearest')
         Y_labels2 = Y
 
-    cbar2 = fig.colorbar(img2, orientation="vertical", pad=0.02, shrink=.6)
+    cbar2 = fig.colorbar(img2, ax = ax3,  orientation="vertical", pad=0.02, shrink=.6)
     cbar2.set_label('VWC CABLE (%)')#('Volumetric soil water content (%)')
     tick_locator2 = ticker.MaxNLocator(nbins=5)
     cbar2.locator = tick_locator2
     cbar2.update_ticks()
-    
+
     # every second tick
     ax3.set_yticks(np.arange(len(Y))[::20])
     ax3.set_yticklabels(Y_labels2[::20])
@@ -789,7 +795,7 @@ def plot_profile_tdr_ET(fcable, ring, contour, layer):
         img3 = ax4.imshow(difference, cmap=cmap, vmin=-30, vmax=30, origin="upper", interpolation='nearest')
         Y_labels3 = Y
 
-    cbar3 = fig.colorbar(img3, orientation="vertical", pad=0.02, shrink=.6)
+    cbar3 = fig.colorbar(img3, ax = ax4, orientation="vertical", pad=0.02, shrink=.6)
     cbar3.set_label('CABLE - Obs (%)')
     tick_locator3 = ticker.MaxNLocator(nbins=6)
     cbar3.locator = tick_locator3
@@ -798,10 +804,6 @@ def plot_profile_tdr_ET(fcable, ring, contour, layer):
     # every second tick
     ax4.set_yticks(np.arange(len(Y))[::20])
     ax4.set_yticklabels(Y_labels3[::20])
-
-    ax4.set_xticks(np.arange(len(X)))
-    cleaner_dates3 = X
-    ax4.set_xticklabels(cleaner_dates3)
 
     ax4.set(xticks=xtickslocs, xticklabels=cleaner_dates)
     ax4.set_ylabel("Depth (cm)")

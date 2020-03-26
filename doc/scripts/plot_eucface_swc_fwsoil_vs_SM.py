@@ -1,9 +1,15 @@
 #!/usr/bin/env python
 
 """
-Plot EucFACE soil moisture at observated dates
+plot Fwsoil vs SM, Trans vs SM and ESoil vs SM
 
-That's all folks.
+include functions:
+
+    plot_fwsoil_SM
+    plot_Trans_SM
+    plot_Esoil_SM
+    __name__
+
 """
 
 __author__ = "MU Mengyuan"

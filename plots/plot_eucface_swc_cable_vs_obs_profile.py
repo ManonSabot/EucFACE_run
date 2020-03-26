@@ -250,13 +250,13 @@ def plot_profile(fcable, case_name, ring, contour, layer):
     else:
         fig.savefig("EucFACE_SW_obsved_dates_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
 
-
 def plot_profile_tdr_ET(fcable, case_name, ring, contour, layer):
+
     """
     plot simulation status and fluxes
     """
 
-# ____________________ Plot setting _______________________
+    # ____________________ Plot setting _______________________
     fig = plt.figure(figsize=[14,12])
     fig.subplots_adjust(hspace=0.1)
     fig.subplots_adjust(wspace=0.05)
@@ -286,161 +286,10 @@ def plot_profile_tdr_ET(fcable, case_name, ring, contour, layer):
     xtickslocs    = [0,19,37,52,66,74,86]
 
 
-# ____________________ Read data _______________________
-    subset = read_obs_swc_tdr(ring)
-
-
-
-    subset = read_obs_swc_neo(ring)
-    # Interpolate
-    if contour:
-        x     = np.concatenate((subset[(25)].index.values,               \
-                                subset.index.get_level_values(1).values, \
-                                subset[(450)].index.values ))            # time
-        y     = np.concatenate(([0]*len(subset[(25)]),                  \
-                                subset.index.get_level_values(0).values, \
-                                [460]*len(subset[(25)])    ))
-        value =  np.concatenate((subset[(25)].values, subset.values, subset[(450)].values))
-    else :
-        x     = subset.index.get_level_values(1).values #, \
-        y     = subset.index.get_level_values(0).values#, \
-        value = subset.values
-
-    X     = subset[(25)].index.values[20:] #np.arange(date_start,date_end,1) # 2012-4-30 to 2019-5-11
-    Y     = np.arange(0,465,5)
-
-    grid_X, grid_Y = np.meshgrid(X,Y)
-
-    if contour:
-        grid_data = griddata((x, y) , value, (grid_X, grid_Y), method='cubic')
-    else:
-        grid_data = griddata((x, y) , value, (grid_X, grid_Y), method='nearest')
-    print(type(grid_data))
-
-
-
-    cmap = plt.cm.viridis_r
-
-
-    '''
-    ax1 = fig.add_subplot(412) #(nrows=2, ncols=2, index=1)
-
-    if contour:
-        levels = np.arange(0.,52.,2.)
-        img = ax1.contourf(grid_data, cmap=cmap, origin="upper", levels=levels)
-        Y_labels = np.flipud(Y)
-    else:
-        img = ax1.imshow(grid_data, cmap=cmap, vmin=0, vmax=52, origin="upper", interpolation='nearest')
-        Y_labels = Y
-
-    cbar = fig.colorbar(img, orientation="vertical", pad=0.02, shrink=.6) #"horizontal"
-    cbar.set_label('VWC Obs (%)')#('Volumetric soil water content (%)')
-    tick_locator = ticker.MaxNLocator(nbins=5)
-    cbar.locator = tick_locator
-    cbar.update_ticks()
-
-    # every second tick
-    ax1.set_yticks(np.arange(len(Y))[::10])
-    ax1.set_yticklabels(Y_labels[::10])
-    plt.setp(ax1.get_xticklabels(), visible=False)
-
-
-    ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax1.set_ylabel("Depth (cm)")
-    ax1.axis('tight')
-    '''
-# _________________________ CABLE ___________________________
-    SoilMoist = read_cable_SM(fcable, layer)
-
-    ntimes      = len(np.unique(SoilMoist['dates']))
-    dates       = np.unique(SoilMoist['dates'].values)
-    print(dates)
-    if contour:
-        x_cable     = np.concatenate(( dates, SoilMoist['dates'].values,dates)) # Time
-        y_cable     = np.concatenate(([0]*ntimes,SoilMoist['Depth'].values,[460]*ntimes))# Depth
-        value_cable = np.concatenate(( SoilMoist.iloc[:ntimes,2].values, \
-                                       SoilMoist.iloc[:,2].values,         \
-                                       SoilMoist.iloc[-(ntimes):,2].values ))
-    else:
-        x_cable     = SoilMoist['dates'].values
-        y_cable     = SoilMoist['Depth'].values
-        value_cable = SoilMoist.iloc[:,2].values
-    value_cable = value_cable*100.
-    # add the 12 depths to 0
-    X_cable     = X #np.arange(date_start_cable,date_end_cable,1) # 2013-1-1 to 2016-12-31
-    Y_cable     = np.arange(0,465,5)
-    grid_X_cable, grid_Y_cable = np.meshgrid(X_cable,Y_cable)
-
-    # interpolate
-    if contour:
-        grid_cable = griddata((x_cable, y_cable) , value_cable, (grid_X_cable, grid_Y_cable),\
-                 method='cubic')
-    else:
-        grid_cable = griddata((x_cable, y_cable) , value_cable, (grid_X_cable, grid_Y_cable),\
-                 method='nearest')
-
-    ax2 = fig.add_subplot(312)#, sharey = ax1)#(nrows=2, ncols=2, index=2, sharey=ax1)
-
-    if contour:
-        img2 = ax2.contourf(grid_cable, cmap=cmap, origin="upper", levels=levels,interpolation='nearest')
-        Y_labels2 = np.flipud(Y)
-    else:
-        img2 = ax2.imshow(grid_cable, cmap=cmap, vmin=0, vmax=52, origin="upper", interpolation='nearest')
-        Y_labels2 = Y
-
-    cbar2 = fig.colorbar(img2, orientation="vertical", pad=0.02, shrink=.6)
-    cbar2.set_label('VWC CABLE (%)')#('Volumetric soil water content (%)')
-    tick_locator2 = ticker.MaxNLocator(nbins=5)
-    cbar2.locator = tick_locator2
-    cbar2.update_ticks()
-
-    # every second tick
-    ax2.set_yticks(np.arange(len(Y_cable))[::10])
-    ax2.set_yticklabels(Y_labels2[::10])
-    plt.setp(ax2.get_xticklabels(), visible=False)
-
-    ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax2.set_ylabel("Depth (cm)")
-    ax2.axis('tight')
-
-# ________________ plot difference _____________________
-    ax3 = fig.add_subplot(313)#,figsize=(12,4))
-    difference = grid_cable -grid_data
-
-    cmap = plt.cm.BrBG
-
-    if contour:
-        levels = np.arange(-30.,30.,2.)
-        img3 = ax3.contourf(difference, cmap=cmap, origin="upper", levels=levels)
-        Y_labels3 = np.flipud(Y)
-    else:
-        img3 = ax3.imshow(difference, cmap=cmap, vmin=-30, vmax=30, origin="upper", interpolation='nearest')
-        Y_labels3 = Y
-
-    cbar3 = fig.colorbar(img3, orientation="vertical", pad=0.02, shrink=.6)
-    cbar3.set_label('CABLE - Obs (%)')
-    tick_locator3 = ticker.MaxNLocator(nbins=6)
-    cbar3.locator = tick_locator3
-    cbar3.update_ticks()
-
-    # every second tick
-    ax3.set_yticks(np.arange(len(Y_cable))[::10])
-    ax3.set_yticklabels(Y_labels3[::10])
-
-    ax3.set_xticks(np.arange(len(X_cable)))
-    cleaner_dates3 = X_cable
-    ax3.set_xticklabels(cleaner_dates3)
-
-
-    ax3.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax3.set_ylabel("Depth (cm)")
-    ax3.axis('tight')
-
-# ________________________ ET _________________________
-
+    # ____________________ Read data _______________________
+    # ==== ET ====
     subs_Esoil = read_obs_esoil(ring)
     subs_Trans = read_obs_trans(ring)
-    subset     = read_obs_swc_tdr(ring)
 
     cable = nc.Dataset(fcable, 'r')
     Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
@@ -461,24 +310,224 @@ def plot_profile_tdr_ET(fcable, case_name, ring, contour, layer):
     ESoil.index = ESoil.index - pd.datetime(2011,12,31)
     ESoil.index = ESoil.index.days
 
-    ax4 = fig.add_subplot(311)#,figsize=(15,15)
-    width = 1.
+    # ==== SM ====
+    neo = read_obs_swc_neo(ring)
+    tdr = read_obs_swc_tdr(ring)
+    SoilMoist = read_cable_SM(fcable, layer)
+
+    # --------- interpolation ----------
+    # Obs SoilMoist
+    if contour:
+        x     = np.concatenate((neo[(25)].index.values,               \
+                                neo.index.get_level_values(1).values, \
+                                neo[(450)].index.values ))            # time
+        y     = np.concatenate(([0]*len(neo[(25)]),                  \
+                                neo.index.get_level_values(0).values, \
+                                [460]*len(neo[(25)])    ))
+        value =  np.concatenate((neo[(25)].values, neo.values, neo[(450)].values))
+    else :
+        x     = neo.index.get_level_values(1).values #, \
+        y     = neo.index.get_level_values(0).values#, \
+        value = neo.values
+
+    X     = neo[(25)].index.values[20:]
+    Y     = np.arange(0,465,5)
+
+    grid_X, grid_Y = np.meshgrid(X,Y)
+
+    # CABLE SoilMoist
+    if contour:
+        grid_data = griddata((x, y) , value, (grid_X, grid_Y), method='cubic')
+    else:
+        grid_data = griddata((x, y) , value, (grid_X, grid_Y), method='nearest')
+    print(type(grid_data))
+
+    ntimes      = len(np.unique(SoilMoist['dates']))
+    dates       = np.unique(SoilMoist['dates'].values)
+    print(dates)
+    if contour:
+        x_cable     = np.concatenate(( dates, SoilMoist['dates'].values,dates)) # Time
+        y_cable     = np.concatenate(([0]*ntimes,SoilMoist['Depth'].values,[460]*ntimes))# Depth
+        value_cable = np.concatenate(( SoilMoist.iloc[:ntimes,2].values, \
+                                       SoilMoist.iloc[:,2].values,         \
+                                       SoilMoist.iloc[-(ntimes):,2].values ))
+    else:
+        x_cable     = SoilMoist['dates'].values
+        y_cable     = SoilMoist['Depth'].values
+        value_cable = SoilMoist.iloc[:,2].values
+    value_cable = value_cable*100.
+    # add the 12 depths to 0
+    grid_X_cable, grid_Y_cable = np.meshgrid(X,Y)
+
+    if contour:
+        grid_cable = griddata((x_cable, y_cable) , value_cable, (grid_X_cable, grid_Y_cable),\
+                 method='cubic')
+    else:
+        grid_cable = griddata((x_cable, y_cable) , value_cable, (grid_X_cable, grid_Y_cable),\
+                 method='nearest')
+
+    difference = grid_cable -grid_data
+
+    # ---------------------------------
+
+    SoilMoist_50cm = pd.DataFrame(cable.variables['SoilMoist'][:,0,0,0], columns=['SoilMoist'])
+
+    if layer == "6":
+        SoilMoist_50cm['SoilMoist'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.022 \
+                                      + cable.variables['SoilMoist'][:,1,0,0]*0.058 \
+                                      + cable.variables['SoilMoist'][:,2,0,0]*0.154 \
+                                      + cable.variables['SoilMoist'][:,3,0,0]*(0.5-0.022-0.058-0.154) )/0.5
+    elif layer == "31uni":
+        SoilMoist_50cm['SoilMoist'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.15 \
+                                      + cable.variables['SoilMoist'][:,1,0,0]*0.15 \
+                                      + cable.variables['SoilMoist'][:,2,0,0]*0.15 \
+                                      + cable.variables['SoilMoist'][:,3,0,0]*0.05 )/0.5
+
+    SoilMoist_50cm['dates'] = Time
+    SoilMoist_50cm = SoilMoist_50cm.set_index('dates')
+    SoilMoist_50cm = SoilMoist_50cm.resample("D").agg('mean')
+    SoilMoist_50cm.index = SoilMoist_50cm.index - pd.datetime(2011,12,31)
+    SoilMoist_50cm.index = SoilMoist_50cm.index.days
+    SoilMoist_50cm = SoilMoist_50cm.sort_values(by=['dates'])
+
+    # Soil hydraulic param
+    swilt = np.zeros(len(Rainf))
+    sfc = np.zeros(len(Rainf))
+    ssat = np.zeros(len(Rainf))
+
+    if layer == "6":
+        swilt[:] = ( cable.variables['swilt'][0]*0.022 + cable.variables['swilt'][1]*0.058 \
+                   + cable.variables['swilt'][2]*0.154 + cable.variables['swilt'][3]*(0.5-0.022-0.058-0.154) )/0.5
+        sfc[:] = ( cable.variables['sfc'][0]*0.022   + cable.variables['sfc'][1]*0.058 \
+                   + cable.variables['sfc'][2]*0.154 + cable.variables['sfc'][3]*(0.5-0.022-0.058-0.154) )/0.5
+        ssat[:] = ( cable.variables['ssat'][0]*0.022 + cable.variables['ssat'][1]*0.058 \
+                   + cable.variables['ssat'][2]*0.154+ cable.variables['ssat'][3]*(0.5-0.022-0.058-0.154) )/0.5
+    elif layer == "31uni":
+        swilt[:] =(cable.variables['swilt'][0]*0.15 + cable.variables['swilt'][1]*0.15 \
+                  + cable.variables['swilt'][2]*0.15 + cable.variables['swilt'][3]*0.05 )/0.5
+        sfc[:] =(cable.variables['sfc'][0]*0.15 + cable.variables['sfc'][1]*0.15 \
+                + cable.variables['sfc'][2]*0.15 + cable.variables['sfc'][3]*0.05 )/0.5
+        ssat[:] =(cable.variables['ssat'][0]*0.15 + cable.variables['ssat'][1]*0.15 \
+                 + cable.variables['ssat'][2]*0.15 + cable.variables['ssat'][3]*0.05 )/0.5
+
+    # ________________________ Plotting _________________________
+    if os.path.basename(case_name).split("/")[-1] == "met_LAI_6":
+        ax1 = fig.add_subplot(511)
+        ax2 = fig.add_subplot(512)
+        ax3 = fig.add_subplot(514)
+        ax4 = fig.add_subplot(515)
+        ax5 = fig.add_subplot(513)
+    else:
+        ax1 = fig.add_subplot(411)
+        ax2 = fig.add_subplot(412)
+        ax3 = fig.add_subplot(413)
+        ax4 = fig.add_subplot(414)
+
     x = TVeg.index
-
-    ax4.plot(x, TVeg['TVeg'].rolling(window=5).mean(),     c="green", lw=1.0, ls="-", label="Trans") #.rolling(window=7).mean()
-    ax4.plot(x, ESoil['ESoil'].rolling(window=5).mean(),    c="orange", lw=1.0, ls="-", label="ESoil") #.rolling(window=7).mean()
-    ax4.scatter(subs_Trans.index, subs_Trans['obs'], marker='o', c='',edgecolors='blue', s = 2., label="Trans Obs") # subs['EfloorPred']
-    ax4.scatter(subs_Esoil.index, subs_Esoil['obs'], marker='o', c='',edgecolors='red', s = 2., label="ESoil Obs") # subs['EfloorPred']
-
     cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"]
     xtickslocs    = [367,732,1097,1462,1828,2193,2558]
+    cmap = plt.cm.viridis_r
 
-    ax4.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
-    ax4.set_ylabel(" Trans, Esoil ($mm$ $d^{-1}$)")
+    ax1.plot(x, TVeg['TVeg'].rolling(window=5).mean(),     c="green", lw=1.0, ls="-", label="Trans") #.rolling(window=7).mean()
+    ax1.plot(x, ESoil['ESoil'].rolling(window=5).mean(),    c="orange", lw=1.0, ls="-", label="ESoil") #.rolling(window=7).mean()
+    ax1.scatter(subs_Trans.index, subs_Trans['obs'], marker='o', c='',edgecolors='blue', s = 2., label="Trans Obs") # subs['EfloorPred']
+    ax1.scatter(subs_Esoil.index, subs_Esoil['obs'], marker='o', c='',edgecolors='red', s = 2., label="ESoil Obs") # subs['EfloorPred']
+
+    ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
+    ax1.set_ylabel(" Trans, Esoil ($mm$ $d^{-1}$)")
+    ax1.axis('tight')
+    ax1.set_ylim(0.,4.5)
+    ax1.set_xlim(367,1097)
+    ax1.legend()
+
+    ax2.plot(tdr.index, tdr.values,    c="orange", lw=1.0, ls="-", label="Obs")
+    ax2.plot(x, SoilMoist_50cm.values, c="green", lw=1.0, ls="-", label="CABLE")
+    ax2.plot(x, swilt,                 c="black", lw=1.0, ls="-", label="swilt")
+    ax2.plot(x, sfc,                   c="black", lw=1.0, ls="-.", label="sfc")
+    ax2.plot(x, ssat,                  c="black", lw=1.0, ls=":", label="ssat")
+
+    ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates) ####
+    ax2.set_ylabel("VWC (m$^{3}$ m$^{-3}$)")
+    ax2.axis('tight')
+    ax2.set_ylim(0,0.5)
+    #ax2.set_xlim(367,1097)
+    ax2.legend()
+
+    if os.path.basename(case_name).split("/")[-1] == "met_LAI_6":
+
+        if contour:
+            levels = np.arange(0.,52.,2.)
+            img = ax5.contourf(grid_data, cmap=cmap, origin="upper", levels=levels)
+            Y_labels = np.flipud(Y)
+        else:
+            img = ax5.imshow(grid_data, cmap=cmap, vmin=0, vmax=52, origin="upper", interpolation='nearest')
+            Y_labels = Y
+
+        cbar = fig.colorbar(img, orientation="vertical", pad=0.02, shrink=.6) #"horizontal"
+        cbar.set_label('VWC Obs (%)')#('Volumetric soil water content (%)')
+        tick_locator = ticker.MaxNLocator(nbins=5)
+        cbar.locator = tick_locator
+        cbar.update_ticks()
+
+        # every second tick
+        ax5.set_yticks(np.arange(len(Y))[::10])
+        ax5.set_yticklabels(Y_labels[::10])
+        plt.setp(ax5.get_xticklabels(), visible=False)
+
+        ax5.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+        ax5.set_ylabel("Depth (cm)")
+        ax5.axis('tight')
+
+    if contour:
+        img2 = ax3.contourf(grid_cable, cmap=cmap, origin="upper", levels=levels,interpolation='nearest')
+        Y_labels2 = np.flipud(Y)
+    else:
+        img2 = ax3.imshow(grid_cable, cmap=cmap, vmin=0, vmax=52, origin="upper", interpolation='nearest')
+        Y_labels2 = Y
+
+    cbar2 = fig.colorbar(img2, orientation="vertical", pad=0.02, shrink=.6)
+    cbar2.set_label('VWC CABLE (%)')#('Volumetric soil water content (%)')
+    tick_locator2 = ticker.MaxNLocator(nbins=5)
+    cbar2.locator = tick_locator2
+    cbar2.update_ticks()
+
+    # every second tick
+    ax3.set_yticks(np.arange(len(Y))[::10])
+    ax3.set_yticklabels(Y_labels2[::10])
+    plt.setp(ax3.get_xticklabels(), visible=False)
+
+    ax3.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+    ax3.set_ylabel("Depth (cm)")
+    ax3.axis('tight')
+
+    cmap = plt.cm.BrBG
+
+    if contour:
+        levels = np.arange(-30.,30.,2.)
+        img3 = ax4.contourf(difference, cmap=cmap, origin="upper", levels=levels)
+        Y_labels3 = np.flipud(Y)
+    else:
+        img3 = ax4.imshow(difference, cmap=cmap, vmin=-30, vmax=30, origin="upper", interpolation='nearest')
+        Y_labels3 = Y
+
+    cbar3 = fig.colorbar(img3, orientation="vertical", pad=0.02, shrink=.6)
+    cbar3.set_label('CABLE - Obs (%)')
+    tick_locator3 = ticker.MaxNLocator(nbins=6)
+    cbar3.locator = tick_locator3
+    cbar3.update_ticks()
+
+    # every second tick
+    ax4.set_yticks(np.arange(len(Y))[::10])
+    ax4.set_yticklabels(Y_labels3[::10])
+
+    #ax4.set_xticks(np.arange(len(X)))
+    #cleaner_dates3 = X
+    #ax4.set_xticklabels(cleaner_dates3)
+
+    ax4.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+    ax4.set_ylabel("Depth (cm)")
     ax4.axis('tight')
-    ax4.set_ylim(0.,4.5)
-    ax4.set_xlim(367,1097)
-    ax4.legend()
+
 
     fig.align_labels()
 

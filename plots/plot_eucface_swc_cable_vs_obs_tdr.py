@@ -26,13 +26,9 @@ from sklearn.metrics import mean_squared_error
 
 def plot_tdr(fcable, case_name, ring, layer):
 
-    fobs_Esoil = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_underET.csv"
-    fobs_Trans = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_sapflow.csv"
-    fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
-
-    subs_Esoil = read_obs_esoil(fobs_Esoil, ring)
-    subs_Trans = read_obs_trans(fobs_Trans, ring)
-    subset     = read_obs_swc(fobs, ring)
+    subs_Esoil = read_obs_esoil(ring)
+    subs_Trans = read_obs_trans(ring)
+    subset     = read_obs_swc_tdr(ring)
 
 # _________________________ CABLE ___________________________
     cable = nc.Dataset(fcable, 'r')
@@ -389,17 +385,12 @@ def plot_tdr(fcable, case_name, ring, layer):
     '''
     #fig.savefig("EucFACE_tdr_%s_hk=%s_b=%s_%s.png" % (case_name, hk, b, ring), bbox_inches='tight', pad_inches=0.1)
     fig.savefig("EucFACE_tdr_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
-    #fig.savefig("EucFACE_tdr_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
 
 def plot_tdr_ET(fcable, case_name, ring, layer):
 
-    fobs_Esoil = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_underET.csv"
-    fobs_Trans = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_sapflow.csv"
-    fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
-
-    subs_Esoil = read_obs_esoil(fobs_Esoil, ring)
-    subs_Trans = read_obs_trans(fobs_Trans, ring)
-    subset     = read_obs_swc(fobs, ring)
+    subs_Esoil = read_obs_esoil(ring)
+    subs_Trans = read_obs_trans(ring)
+    subset     = read_obs_swc_tdr(ring)
 
 # _________________________ CABLE ___________________________
     cable = nc.Dataset(fcable, 'r')

@@ -13,6 +13,8 @@ include functions:
     read_obs_swc_tdr
     read_obs_swc_neo
     read_SM_top_mid_bot
+    read_obs_neo_top_mid_bot
+    read_ET_SM_top_mid_bot
 
 """
 
@@ -25,6 +27,7 @@ import numpy as np
 import pandas as pd
 import datetime as dt
 import netCDF4 as nc
+from scipy.interpolate import griddata
 
 def read_cable_var(fcable, var_name):
 
@@ -35,19 +38,39 @@ def read_cable_var(fcable, var_name):
     print("carry on read_cable_var")
     cable = nc.Dataset(fcable, 'r')
     Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
-    if var_name in ["TVeg", "ESoil", "Rainf"]:
+    if var_name in ["TVeg", "ESoil", "Rainf", "GPP"]:
         var = pd.DataFrame(cable.variables[var_name][:,0,0]*1800., columns=['cable'])
     else:
         var = pd.DataFrame(cable.variables[var_name][:,0,0], columns=['cable'])
     var['Date'] = Time
     var = var.set_index('Date')
-    if var_name in ["TVeg", "ESoil", "Rainf"]:
+    if var_name in ["TVeg", "ESoil", "Rainf", "GPP"]:
         var = var.resample("D").agg('sum')
     else:
         print("is here")
         var = var.resample("D").agg('mean')
     var.index = var.index - pd.datetime(2011,12,31)
     var.index = var.index.days
+    var = var.sort_values(by=['Date'])
+
+    return var
+
+def read_cable_GPP_year(fcable, var_name):
+
+    """
+    read a var from CABLE output
+    """
+
+    print("carry on read_cable_var")
+    cable = nc.Dataset(fcable, 'r')
+    Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
+    var = pd.DataFrame(cable.variables[var_name][:,0,0]*1800., columns=['cable'])
+    var['Date'] = Time
+    var = var.set_index('Date')
+    var = var.resample("Y").agg('sum')
+
+    #var.index = var.index - pd.datetime(2011,12,31)
+    #var.index = var.index.days
     var = var.sort_values(by=['Date'])
 
     return var
@@ -377,5 +400,105 @@ def read_SM_top_mid_bot_hourly(fcable, ring, layer):
 
     cable_data['dates'] = Time
     cable_data = cable_data.set_index('dates')
+
+    return cable_data
+
+def read_obs_neo_top_mid_bot(ring):
+
+    """
+    Read neo soil moisture for top mid and bot soil blocks used for metrics calculation
+    """
+    fobs_neo = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
+    neo = pd.read_csv(fobs_neo, usecols = ['Ring','Depth','Date','VWC'])
+    neo['Date'] = pd.to_datetime(neo['Date'],format="%d/%m/%y",infer_datetime_format=False)
+    neo['Date'] = neo['Date'] - pd.datetime(2011,12,31)
+    neo['Date'] = neo['Date'].dt.days
+    neo = neo.sort_values(by=['Date','Depth'])
+
+    if ring == 'amb':
+        subset = neo[neo['Ring'].isin(['R2','R3','R6'])]
+    elif ring == 'ele':
+        subset = neo[neo['Ring'].isin(['R1','R4','R5'])]
+    else:
+        subset = neo[neo['Ring'].isin([ring])]
+
+    subset = subset.groupby(by=["Depth","Date"]).mean()
+    subset = subset.xs('VWC', axis=1, drop_level=True)
+    x     = subset.index.get_level_values(1).values
+    y     = subset.index.get_level_values(0).values
+    value = subset.values
+
+    X     = subset[(25)].index.values[20:]
+    Y     = np.arange(0.5,460,1)
+
+    grid_X, grid_Y = np.meshgrid(X,Y)
+
+    grid_data = griddata((x, y) , value, (grid_X, grid_Y), method='nearest')
+
+    neo_data = pd.DataFrame(subset[(25)].index.values[20:], columns=['dates'])
+    neo_data["SM_top"] = np.mean(grid_data[0:30,:],axis=0)/100.
+    neo_data["SM_mid"]  = np.mean(grid_data[30:150,:],axis=0)/100.
+    neo_data["SM_bot"] = np.mean(grid_data[150:460,:],axis=0)/100.
+    neo_data["WA_all"] = np.sum(grid_data[:,:]/100.*10.,axis=0)
+    neo_data = neo_data.set_index('dates')
+    return neo_data
+
+def read_ET_SM_top_mid_bot(fcable, ring, layer):
+    """
+    Read CABLE ET and oil moisture for top mid bot blocks used in metrics calculation
+    """
+    cable = nc.Dataset(fcable, 'r')
+    Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
+    cable_data = pd.DataFrame(cable.variables['TVeg'][:,0,0]*1800., columns=['TVeg'])
+    cable_data['ESoil'] = cable.variables['ESoil'][:,0,0]*1800.
+    cable_data['Evap'] = cable.variables['Evap'][:,0,0]*1800.
+
+    if layer == "6":
+        cable_data['SM_25cm'] = (  cable.variables['SoilMoist'][:,0,0,0]*0.022 \
+                                 + cable.variables['SoilMoist'][:,1,0,0]*0.058 \
+                                 + cable.variables['SoilMoist'][:,2,0,0]*0.154 \
+                                 + cable.variables['SoilMoist'][:,3,0,0]*(0.25-0.022-0.058-0.154) )/0.25
+        cable_data['SM_top']  = (  cable.variables['SoilMoist'][:,0,0,0]*0.022 \
+                                 + cable.variables['SoilMoist'][:,1,0,0]*0.058\
+                                 + cable.variables['SoilMoist'][:,2,0,0]*0.154 \
+                                 + cable.variables['SoilMoist'][:,3,0,0]*(0.3-0.022-0.058-0.154) )/0.3
+        cable_data['SM_mid']  = (  cable.variables['SoilMoist'][:,3,0,0]*0.343 \
+                                 + cable.variables['SoilMoist'][:,4,0,0]*(1.2-0.343) )/1.2
+        cable_data['SM_bot']  = (  cable.variables['SoilMoist'][:,4,0,0]*(1.085-(1.2-0.343)) \
+                                 + cable.variables['SoilMoist'][:,5,0,0]*2.872)/(4.6-1.5)
+
+        cable_data['WA_all'] = (   cable.variables['SoilMoist'][:,0,0,0]*0.022 \
+                                 + cable.variables['SoilMoist'][:,1,0,0]*0.058 \
+                                 + cable.variables['SoilMoist'][:,2,0,0]*0.154 \
+                                 + cable.variables['SoilMoist'][:,3,0,0]*0.409 \
+                                 + cable.variables['SoilMoist'][:,4,0,0]*1.085 \
+                                 + cable.variables['SoilMoist'][:,5,0,0]*2.872  )*1000.
+
+    elif layer == "31uni":
+        cable_data['SM_25cm'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.15 \
+                                 + cable.variables['SoilMoist'][:,1,0,0]*0.10 )/0.25
+        cable_data['SM_top']  = (cable.variables['SoilMoist'][:,0,0,0]*0.15 \
+                                 + cable.variables['SoilMoist'][:,1,0,0]*0.15)/0.3
+        cable_data['SM_mid']  = cable.variables['SoilMoist'][:,2,0,0]*0.15
+        for i in np.arange(3,10):
+            cable_data['SM_mid']  = cable_data['SM_mid'] + cable.variables['SoilMoist'][:,i,0,0]*0.15
+        cable_data['SM_mid']  = cable_data['SM_mid']/(1.5-0.3)
+
+        cable_data['SM_bot']  = cable.variables['SoilMoist'][:,10,0,0]*0.15
+        for i in np.arange(11,30):
+            cable_data['SM_bot']  = cable_data['SM_bot'] + cable.variables['SoilMoist'][:,i,0,0]*0.15
+        cable_data['SM_bot']  = (cable_data['SM_bot'] + cable.variables['SoilMoist'][:,30,0,0]*0.1)/(4.6-1.5)
+
+        cable_data['WA_all']  = cable.variables['SoilMoist'][:,30,0,0]*0.1
+        for i in np.arange(0,30):
+            cable_data['WA_all']  = cable_data['WA_all'] + cable.variables['SoilMoist'][:,i,0,0]*0.15
+        cable_data['WA_all'] = cable_data['WA_all']*1000.
+
+    cable_data['dates'] = Time
+    cable_data = cable_data.set_index('dates')
+    cable_data = cable_data.resample("D").agg('mean')
+    cable_data.index = cable_data.index - pd.datetime(2011,12,31)
+    cable_data.index = cable_data.index.days
+    cable_data = cable_data.sort_values(by=['dates'])
 
     return cable_data
