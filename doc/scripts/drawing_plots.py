@@ -65,14 +65,14 @@ if __name__ == "__main__":
 
     case_12 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_LAIx12_31uni_litter_LAIx12"
     fcbl_12 ="%s/EucFACE_%s_out.nc" % (case_12, ring)
-    '''
+
     fcables     = [fcbl_1, fcbl_2, fcbl_5,   fcbl_6,    fcbl_7, fcbl_8,  fcbl_9]#,  fcbl_11, fcbl_12]
     case_labels = ["Ctl",  "Lit",  "Hi-Res", "Opt-top", "Opt",  "β-hvrd","β-exp"]#, "Hi-Res-LAI-20", "Hi-Res-LAI+20"]
     layers      = ["6",    "6",    "31uni",  "31uni",   "31uni","31uni", "31uni"]#, "31uni", "31uni"]
     time_scale  = "hourly"
     ring        = "amb"
-    plot_Fwsoil_days(fcables, case_labels)
-    '''
+    plot_Fwsoil_days_bar(fcables, case_labels)
+    plot_Fwsoil_boxplot(fcables, case_labels)
     #plot_GPP(fcables, ring, case_labels)
 
 
@@ -83,10 +83,10 @@ if __name__ == "__main__":
     plot_Fwsoil_Trans(fcables, ring, case_labels)
     '''
 
-    sen_values = np.linspace(-10.,5.,31)
-    for i,sen_value in enumerate(sen_values):
-        fcable = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_31uni_hyds-30cm/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^%s_litter/EucFACE_amb_out.nc" % str(sen_value).replace('.', '')
-        plot_profile_tdr_ET(fcable, ring, contour,    "31uni")
+    #sen_values = np.linspace(-10.,5.,31)
+    #for i,sen_value in enumerate(sen_values):
+    #    fcable = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_31uni_hyds-30cm/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^%s_litter/EucFACE_amb_out.nc" % str(sen_value).replace('.', '')
+    #    plot_profile_tdr_ET(fcable, ring, contour,    "31uni")
 
     # plot_profile_tdr_ET(fcbl_1, ring, contour,    "6")
     # plot_profile_tdr_ET(fcbl_2, ring, contour,    "6")

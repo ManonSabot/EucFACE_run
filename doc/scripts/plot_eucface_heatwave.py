@@ -8,6 +8,10 @@ Include functions :
     find_Heatwave_hourly
     plot_single_HW_event
     plot_EF_SM_HW
+    get_day_time_Qle_Qh_EF
+    find_all_Heatwave_days
+    boxplot_Qle_Qh_EF_HW
+    group_boxplot_Qle_Qh_EF_HW
 
 """
 __author__ = "MU Mengyuan"
@@ -22,10 +26,11 @@ import matplotlib.pyplot as plt
 import matplotlib.colors
 import datetime as dt
 import netCDF4 as nc
+import seaborn as sns
+import scipy.stats as stats
 from matplotlib import cm
 from matplotlib import ticker
 from scipy.interpolate import griddata
-import scipy.stats as stats
 from sklearn.metrics import mean_squared_error
 from plot_eucface_get_var import *
 
@@ -464,7 +469,7 @@ def find_all_Heatwave_days(fcable):
 
     return HW_event
 
-def plot_Qle_Qh_EF_HW(fcables, case_labels, time_scale):
+def boxplot_Qle_Qh_EF_HW(fcables, case_labels, time_scale):
 
     time_scale = "hw_days" # "hw_days" "all_days"
     case_sum = len(fcables)
@@ -569,6 +574,122 @@ def plot_Qle_Qh_EF_HW(fcables, case_labels, time_scale):
     elif time_scale == "all_days":
         fig.savefig("../plots/EucFACE_Qle_Qh_EF_all" , bbox_inches='tight', pad_inches=0.02)
 
+def group_boxplot_Qle_Qh_EF_HW(fcables, case_labels):
+
+    case_sum = len(fcables)
+    day_hw   = len(find_all_Heatwave_days(fcables[0]))
+
+    Tair, Qle_tmp, Qh_tmp, EF_tmp = get_day_time_Qle_Qh_EF(fcables[0])
+    day_all = len(Qle_tmp)
+
+    Qle_hw = np.zeros([day_hw, case_sum])
+    Qh_hw  = np.zeros([day_hw, case_sum])
+    EF_hw  = np.zeros([day_hw, case_sum])
+
+    Qle_all = np.zeros([day_all, case_sum])
+    Qh_all  = np.zeros([day_all, case_sum])
+    EF_all  = np.zeros([day_all, case_sum])
+
+    for case_num in np.arange(case_sum):
+        HW_event = find_all_Heatwave_days(fcables[case_num])
+        for day_num in np.arange(day_hw):
+            Qle_hw[day_num,case_num] = HW_event[day_num][1]
+            Qh_hw[day_num,case_num]  = HW_event[day_num][2]
+            EF_hw[day_num,case_num]  = HW_event[day_num][3]
+
+    for case_num in np.arange(case_sum):
+        Tair, Qle_tmp, Qh_tmp, EF_tmp = get_day_time_Qle_Qh_EF(fcables[case_num])
+        Qle_all[:,case_num] = Qle_tmp['cable'].values
+        Qh_all[:,case_num]  = Qh_tmp['cable'].values
+        EF_all[:,case_num]  = EF_tmp['EF'].values
+
+    hw           = pd.DataFrame(np.zeros((day_hw+day_all)*case_sum),columns=['Qle'])
+    hw['Qh']     = np.zeros((day_hw+day_all)*case_sum)
+    hw['EF']     = np.zeros((day_hw+day_all)*case_sum)
+    hw['day']    = [''] * ((day_hw+day_all)*case_sum)
+    hw['exp']    = [''] * ((day_hw+day_all)*case_sum)
+
+    s = 0
+
+    for case_num in np.arange(case_sum):
+
+        e  = s+day_hw
+        hw['Qle'].iloc[s:e] = Qle_hw[:,case_num]
+        hw['Qh'].iloc[s:e]  = Qh_hw[:,case_num]
+        hw['EF'].iloc[s:e]  = EF_hw[:,case_num]
+        hw['day'].iloc[s:e] = ['heatwave'] * day_hw
+        hw['exp'].iloc[s:e] = [ case_labels[case_num]] * day_hw
+
+        s  = e
+        e  = s+day_all
+        hw['Qle'].iloc[s:e] = Qle_all[:,case_num]
+        hw['Qh'].iloc[s:e]  = Qh_all[:,case_num]
+        hw['EF'].iloc[s:e]  = EF_all[:,case_num]
+        hw['day'].iloc[s:e] = ['all'] * day_all
+        hw['exp'].iloc[s:e] = [ case_labels[case_num]] * day_all
+        s  =  e
+
+    fig = plt.figure(figsize=[12,15])
+
+    fig.subplots_adjust(hspace=0.1)
+    fig.subplots_adjust(wspace=0.05)
+    plt.rcParams['text.usetex'] = False
+    plt.rcParams['font.family'] = "sans-serif"
+    plt.rcParams['font.sans-serif'] = "Helvetica"
+    plt.rcParams['axes.labelsize']  = 14
+    plt.rcParams['font.size']       = 14
+    plt.rcParams['legend.fontsize'] = 14
+    plt.rcParams['xtick.labelsize'] = 14
+    plt.rcParams['ytick.labelsize'] = 14
+
+    almost_black = '#262626'
+    # change the tick colors also to the almost black
+    plt.rcParams['ytick.color'] = almost_black
+    plt.rcParams['xtick.color'] = almost_black
+
+    # change the text colors also to the almost black
+    plt.rcParams['text.color'] = almost_black
+
+    # Change the default axis colors from black to a slightly lighter black,
+    # and a little thinner (0.5 instead of 1)
+    plt.rcParams['axes.edgecolor'] = almost_black
+    plt.rcParams['axes.labelcolor'] = almost_black
+
+    ax1  = fig.add_subplot(311)
+    ax2  = fig.add_subplot(312)
+    ax3  = fig.add_subplot(313)
+
+    flierprops = dict(marker='o', markersize=3, markerfacecolor="black")
+    ax1 = sns.boxplot(x="exp", y="Qle", hue="day", data=fw, palette="Set3",
+                     order=case_labels, flierprops=flierprops, width=0.6,
+                     hue_order=['heatwave','all'])
+
+    ax2 = sns.boxplot(x="exp", y="Qh", hue="day", data=fw, palette="Set3",
+                     order=case_labels, flierprops=flierprops, width=0.6,
+                     hue_order=['heatwave','all'])
+
+    ax3 = sns.boxplot(x="exp", y="EF", hue="day", data=fw, palette="Set3",
+                     order=case_labels, flierprops=flierprops, width=0.6,
+                     hue_order=['heatwave','all'])
+
+    ax1.set_ylabel('Latent Heat (W m$^{-2}$)')
+    ax1.axis('tight')
+    #ax1.set_xlim(date[0],date[-1])
+    ax1.set_ylim(-50.,600.)
+
+    ax2.set_ylabel('Sensible Heat (W m$^{-2}$)')
+    ax2.axis('tight')
+    #ax2.set_xlim(date[0],date[-1])
+    ax2.set_ylim(-120.,400.)
+
+    ax3.set_ylabel("Evaporative Fraction (-)")
+    ax3.axis('tight')
+    #ax3.set_xlim(date[0],date[-1])
+    ax3.set_ylim(-0.3,1.6)
+    ax3.legend()
+
+    fig.savefig("../plots/EucFACE_Qle_Qh_EF_group_boxplot" , bbox_inches='tight', pad_inches=0.02)
+
 if __name__ == "__main__":
 
     ring   = "amb"
@@ -612,4 +733,5 @@ if __name__ == "__main__":
     case_labels = ["Ctl",  "Lit",  "Hi-Res", "Opt-top", "Opt",  "β-hvrd","β-exp"]#, "Hi-Res-LAI-20", "Hi-Res-LAI+20"]
     time_scale  = "all_days"
 
-    plot_Qle_Qh_EF_HW(fcables, case_labels, time_scale)
+    boxplot_Qle_Qh_EF_HW(fcables, case_labels, time_scale)
+    group_boxplot_Qle_Qh_EF_HW(fcables, case_labels)
