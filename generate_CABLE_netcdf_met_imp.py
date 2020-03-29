@@ -1,8 +1,19 @@
 #!/usr/bin/env python
 
 """
-Run CABLE for the EucFACE site and gather some specific outputs about direct
-and diffuse fracs and direct and diffuse GPP for Jim and Dushan
+Run CABLE for the EucFACE site
+
+Includes:
+    calc_soil_frac
+    estimate_rhosoil_vec
+    init_soil_moisture
+    neo_swilt_ssat
+    tdr_constrain_top_25cm
+    convert_rh_to_qair
+    calc_esat
+    estimate_lwdown
+    interpolate_lai
+    thickness_weighted_average
 
 That's all folks.
 """
@@ -15,6 +26,9 @@ modifications:
 4. add option for single ring
 5. add soil fraction interpolation methods
 6. add option for soil layers - done
+7. can choose neutron or/and tdr VWC observation to constrain
+   wilting point and VWC at saturation
+8. tdr represents 25cm instead of 50cm
 '''
 
 __author__    = "Martin De Kauwe"
@@ -551,7 +565,7 @@ def main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname,\
         swilt_vec[:,0,0],watr[:],ssat_vec[:,0,0]  = \
             neo_swilt_ssat(swc_fname, nsoil, ring, layer_num, swilt_vec[:,0,0], watr[:], ssat_vec[:,0,0], soil_frac, boundary)
     if tdr_constrain:
-        swilt_vec[:,0,0],ssat_vec[:,0,0] = tdr_constrain_top_50cm(tdr_fname, ring, layer_num, swilt_vec[:,0,0],ssat_vec[:,0,0])
+        swilt_vec[:,0,0],ssat_vec[:,0,0] = tdr_constrain_top_25cm(tdr_fname, ring, layer_num, swilt_vec[:,0,0],ssat_vec[:,0,0])
 
     if neo_constrain or tdr_constrain:
         if PTF == 'Campbell_Cosby_multi_Python':
@@ -867,7 +881,7 @@ def neo_swilt_ssat(swc_fname, nsoil, ring, layer_num, swilt_input, watr_input, s
 
     return swilt_output, watr_output, ssat_output;
 
-def tdr_constrain_top_50cm(tdr_fname, ring, layer_num, swilt_input, ssat_input):
+def tdr_constrain_top_25cm(tdr_fname, ring, layer_num, swilt_input, ssat_input):
 
     tdr = pd.read_csv(tdr_fname, usecols = ['Ring','swc.tdr'])
 
@@ -884,22 +898,16 @@ def tdr_constrain_top_50cm(tdr_fname, ring, layer_num, swilt_input, ssat_input):
     print(tdr_min)
     print(tdr_max)
 
-    # assumption: tdr variance can capture swilt and ssat better within 50 cm
+    # assumption: tdr variance can capture swilt and ssat better within 25 cm
     if layer_num == "6":
-        layer_num_50cm = 4 # [0-64.3cm]
-    elif layer_num == "13":
-        layer_num_50cm = 5 # [0-56cm]
+        layer_num_25cm = 3 # [0-23.4cm]
     elif layer_num == "31uni":
-        layer_num_50cm = 3 # [0-45cm]
-    elif layer_num == "31exp":
-        layer_num_50cm = 14 # [0-46.63cm]
-    elif layer_num == "31para":
-        layer_num_50cm = 6 # [0-42.0714cm]
+        layer_num_25cm = 2 # [0-30cm]
 
     swilt_output = swilt_input
     ssat_output  = ssat_input
 
-    for i in np.arange(layer_num_50cm):
+    for i in np.arange(layer_num_25cm):
         swilt_output[i] = tdr_min
         ssat_output[i]  = tdr_max
     return swilt_output,ssat_output;
@@ -948,7 +956,6 @@ def calc_esat(tair):
 
     return esat
 
-
 def estimate_lwdown(tairK, rh):
     """
     Synthesises downward longwave radiation based on Tair RH
@@ -968,6 +975,11 @@ def estimate_lwdown(tairK, rh):
 
 def interpolate_lai(lai_fname, ring):
     """
+    raw LAI data is from 2012-10-26 to 2018-04-27, to fill the gap between 2018-04-28
+    to 2019-06-30, firstly calculating the 366-days LAI cycle,
+    secondly, connect the phenological LAI at 27th April to observated LAI at
+    27th April 2018, thirdly, remove 29th Feburary and copy the phenological LAI
+    to 2019-01-01 to 2019-07-01
     """
     df_lai = pd.read_csv(lai_fname, usecols = ['ring','Date','LAIsmooth']) # daily data
     if ring == "amb":
@@ -975,7 +987,7 @@ def interpolate_lai(lai_fname, ring):
     elif ring == "ele":
         subset = df_lai[df_lai['ring'].isin(['1','4','5'])]
     else:
-        subset = df_lai[df_lai['ring'].isin([ring[-1]])] #???
+        subset = df_lai[df_lai['ring'].isin([ring[-1]])] # select out the ring
     subset = subset.groupby(by=["Date"])['LAIsmooth'].mean()
 
     tmp = pd.DataFrame(subset.values, columns=['LAI'])
@@ -984,10 +996,11 @@ def interpolate_lai(lai_fname, ring):
     for i in np.arange(0,len(tmp['LAI']),1):
         tmp['month'][i] = subset.index[i][5:7]
         tmp['day'][i]   = subset.index[i][8:10]
-    tmp = tmp.groupby(by=['month','day'])['LAI'].mean()
+    tmp = tmp.groupby(by=['month','day'])['LAI'].mean() # 366-day LAI cycle
 
-    rate = subset[-1]/tmp[(4)][(27)]
+    rate = subset[-1]/tmp[(4)][(27)] # to link the phenological LAI with the observated LAI at 27th April 2018
 
+    # to adjust phenological LAI
     day_len_1 = (pd.datetime(2019,7,1) - pd.datetime(2012,12,31)).days
     day_len_2 = (pd.datetime(2018,4,27) - pd.datetime(2012,12,31)).days
     day_len_3 = (pd.datetime(2013,1,1) - pd.datetime(2012,10,26)).days
@@ -1034,7 +1047,7 @@ if __name__ == "__main__":
     # "Campbell_Cosby_multivariate"
     # "Campbell_HC_SWC"
     soil_frac = "nearest" # "linear"
-    layer_num = "6"
+    layer_num = "31uni"
     neo_constrain = True
     tdr_constrain = True
     for ring in ["R1","R2","R3","R4","R5","R6","amb", "ele"]:
