@@ -12,18 +12,17 @@ import datetime as dt
 from scipy.interpolate import interp1d
 from scipy.interpolate import griddata
 import matplotlib.pyplot as plt
-from scipy.interpolate import spline
+from scipy import interpolate
+from scipy.signal import savgol_filter
 
-def interpolate_raw_lai(lai_fname, ring):
+def interpolate_raw_lai(lai_fname, ring, method):
 
     """
     raw LAI data is from 2012-10-26 to 2019-12-29. It needs to be interpolate to
     daily data
     """
 
-    df_lai      = pd.read_csv(lai_fname, usecols = ['Ring','LAI','days_201311']) # raw data
-    #df_lai_date = pd.read_csv(lai_fname, usecols = ['Date'])       # raw data
-    #df_lai['Date'] = pd.to_datetime(df_lai_date['Date'],format="%d/%m/%Y",infer_datetime_format=False)
+    df_lai = pd.read_csv(lai_fname, usecols = ['Ring','LAI','days_201311']) # raw data
     df_lai = df_lai.sort_values(by=['days_201311'])
 
     # the LAI divide into different columns
@@ -34,57 +33,67 @@ def interpolate_raw_lai(lai_fname, ring):
     lai['R5'] = df_lai[df_lai['Ring'].values == 'R5']['LAI'].values
     lai['R6'] = df_lai[df_lai['Ring'].values == 'R6']['LAI'].values
     lai['Date'] = df_lai[df_lai['Ring'].values == 'R6']['days_201311'].values
-    #lai       = lai.set_index('Date')
-    #lai       = lai.resample("D")
 
-    #lai.index = lai.index.astype('datetime64[D]') - pd.datetime(2013,1,1)
-    #lai.index = lai.index.days
+    # for interpolation, add a row of 2019-12-31
+    insertRow = pd.DataFrame([[1.4672, 1.5551, 1.3979, 1.3515, 1.7840, 1.5353, 2555]],columns = ['R1','R2','R3','R4','R5','R6',"Date"])
+    lai = lai.append(insertRow,ignore_index=True)
 
-    #lai['Date'] = day_1[].dt.total_seconds()
-
-    print(lai)
     # make LAI_daily date array
     daily =np.arange(0,2556)
-    #print(LAI_daily)
-    #day_2     = LAI_daily['Date']-np.datetime64('2013-01-01','D')
-    #day_2     = day_2.total_seconds()
-    #print(day_1)
-    #print(np.datetime64('2013-01-01','D'))
-    #print(LAI_daily)
-    R1 = np.interp(daily, lai['Date'].values, lai['R1'].values)
-    R2 = np.interp(daily, lai['Date'].values, lai['R2'].values)
-    R3 = np.interp(daily, lai['Date'].values, lai['R3'].values)
-    R4 = np.interp(daily, lai['Date'].values, lai['R4'].values)
-    R5 = np.interp(daily, lai['Date'].values, lai['R5'].values)
-    R6 = np.interp(daily, lai['Date'].values, lai['R6'].values)
 
-
-
+    # interpolate to daily LAI
     if ring == "amb":
-        LAI_daily = (np.interp(daily, lai['Date'].values, lai['R2'].values)
-                   + np.interp(daily, lai['Date'].values, lai['R3'].values)
-                   + np.interp(daily, lai['Date'].values, lai['R6'].values))/3.
+        func1 = interp1d(lai['Date'].values, lai['R2'].values, kind = "cubic")#cubic
+        func2 = interp1d(lai['Date'].values, lai['R3'].values, kind = "cubic")
+        func3 = interp1d(lai['Date'].values, lai['R6'].values, kind = "cubic")
+        LAI_daily = (func1(daily)+func2(daily)+func3(daily))/3.
     elif ring == "ele":
-        LAI_daily = (np.interp(daily, lai['Date'].values, lai['R1'].values)
-                   + np.interp(daily, lai['Date'].values, lai['R3'].values)
-                   + np.interp(daily, lai['Date'].values, lai['R4'].values))/3.
+        func1 = interp1d(lai['Date'].values, lai['R1'].values, kind = "cubic")
+        func2 = interp1d(lai['Date'].values, lai['R4'].values, kind = "cubic")
+        func3 = interp1d(lai['Date'].values, lai['R5'].values, kind = "cubic")
+        LAI_daily = (func1(daily)+func2(daily)+func3(daily))/3.
     else:
-        LAI_daily = np.interp(daily, lai['Date'].values, lai[ring].values)
+        func = interp1d(lai['Date'].values, lai[ring].values, kind = "cubic")
+        LAI_daily = func(daily)
+    print(LAI_daily)
+    #plt.plot(LAI_daily)
+    #plt.show()
 
-    #date = LAI_daily['Date'] - np.datetime64('2013-01-01T00:00:00')
+    # smooth
+    if method == "savgol_filter" :
+        # using Savitzky Golay Filter to smooth LAI
+        LAI_daily_smooth = savgol_filter(LAI_daily, 91,3) # window size 11, polynomial order 3
 
-    #LAI_daily['Date']  = np.zeros(len(LAI_daily))
-    #for i in np.arange(0,len(LAI_daily),1):
-    #    LAI_daily['Date'][i] = date.iloc[i].total_seconds()
+    elif method == "average":
+        # using 9 points smoothing
+        LAI_daily_smooth = np.zeros(len(LAI_daily))
+        smooth_length    = 61
+        half_length      = 30
+
+        for i in np.arange(len(LAI_daily)):
+            if i < half_length:
+                LAI_daily_smooth[i] = np.mean(LAI_daily[0:(i+1+half_length)])
+            elif i > (2555-half_length):
+                LAI_daily_smooth[i] = np.mean(LAI_daily[(i-half_length):])
+            else:
+                print(i)
+                LAI_daily_smooth[i] = np.mean(LAI_daily[(i-half_length):(i+1+half_length)])
+                #,LAI_daily
+
+    # linearly interpolate to half hour resolution
     seconds = 2556.*24.*60.*60.
-    half_hour = np.arange(0.,seconds,60*60*24.)
-    grid_x = np.arange(0.,seconds,1800.)
+    day_second       = np.arange(0.,seconds,60*60*24.)
+    half_hour_second = np.arange(0.,seconds,1800.)
 
-    LAI_half_hour = np.interp(grid_x, half_hour, LAI_daily)
-    y_smooth = spline(half_hour,LAI_daily, grid_x)
-    plt.plot(y_smooth)
-    plt.show()
+    LAI_half_hour = np.interp(half_hour_second, day_second, LAI_daily_smooth)
+
+    fig = plt.figure(figsize=[12,8])
+    ax = fig.add_subplot(111)
+    ax.plot(LAI_half_hour,c='red')
     #return LAI_half_hour
+
+    fig.savefig("EucFACE_LAI" , bbox_inches='tight', pad_inches=0.1)
+
 
 if __name__ == "__main__":
 
@@ -93,5 +102,5 @@ if __name__ == "__main__":
     swc_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
     tdr_fname = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
     stx_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/soil_texture/FACE_P0018_RA_SOILTEXT_L2_20120501.csv"
-
-    interpolate_raw_lai(lai_fname, 'R2')
+    method = "savgol_filter" #'average' #"savgol_filter"
+    interpolate_raw_lai(lai_fname, 'R2',method)

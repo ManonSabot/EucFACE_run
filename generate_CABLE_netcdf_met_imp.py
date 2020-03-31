@@ -13,6 +13,7 @@ Includes:
     calc_esat
     estimate_lwdown
     interpolate_lai
+    interpolate_raw_lai
     thickness_weighted_average
 
 That's all folks.
@@ -44,8 +45,8 @@ import datetime
 from scipy.interpolate import interp1d
 from scipy.interpolate import griddata
 
-def main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname,\
-         PTF, soil_frac, layer_num, neo_constrain, tdr_constrain, ring):
+def main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname,
+         PTF, soil_frac, layer_num, neo_constrain, tdr_constrain, ring, new_LAI):
 
     '''
     SWdown = (/0.0,1360.0/),            & ! W/m^2
@@ -382,7 +383,11 @@ def main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname,\
         vcmax[:] = 81.70591263e-6
         ejmax[:] = 135.8062907e-6
     elevation[:] = 23.0 # Ellsworth 2017, NCC
-    LAI[:,0,0] = interpolate_lai(lai_fname, ring)
+    if new_LAI:
+        method     = "savgol_filter" #'average' #"savgol_filter"
+        LAI[:,0,0] = interpolate_raw_lai(lai_fname, ring, method)
+    else:
+        LAI[:,0,0] = interpolate_lai(lai_fname, ring)
 
     #df.lai.values.reshape(n_timesteps, ndim, ndim)
     g1[:] = 3.8
@@ -1038,56 +1043,81 @@ def interpolate_lai(lai_fname, ring):
 
     return LAI_interp
 
-def interpolate_raw_lai(lai_fname, ring):
+def interpolate_raw_lai(lai_fname, ring, method):
+
     """
-    raw LAI data is from 2012-10-26 to 2019-12-29. It needs to be interpolate to
-    daily data
+    the raw LAI data is from 2012-10-26 to 2019-12-29. It will be interpolated
+    and smoothed into half-hour data from 2013-1-1 to 2019-12-31
     """
 
-    df_lai = pd.read_csv(lai_fname, usecols = ['Ring','Date','LAI']) # raw data
+    df_lai = pd.read_csv(lai_fname, usecols = ['Ring','LAI','days_201311']) # raw data
+    df_lai = df_lai.sort_values(by=['days_201311'])
+
+    # the LAI divide into different columns
+    lai = pd.DataFrame(df_lai[df_lai['Ring'].values == 'R1']['LAI'].values, columns=['R1'])
+    lai['R2'] = df_lai[df_lai['Ring'].values == 'R2']['LAI'].values
+    lai['R3'] = df_lai[df_lai['Ring'].values == 'R3']['LAI'].values
+    lai['R4'] = df_lai[df_lai['Ring'].values == 'R4']['LAI'].values
+    lai['R5'] = df_lai[df_lai['Ring'].values == 'R5']['LAI'].values
+    lai['R6'] = df_lai[df_lai['Ring'].values == 'R6']['LAI'].values
+    lai['Date'] = df_lai[df_lai['Ring'].values == 'R6']['days_201311'].values
+
+    # for interpolation, add a row of 2019-12-31
+    insertRow = pd.DataFrame([[1.4672, 1.5551, 1.3979, 1.3515, 1.7840, 1.5353, 2555]],
+                columns = ['R1','R2','R3','R4','R5','R6',"Date"])
+    lai = lai.append(insertRow,ignore_index=True)
+
+    # make LAI_daily date array
+    daily =np.arange(0,2556)
+
+    # interpolate to daily LAI
     if ring == "amb":
-        subset = df_lai[df_lai['Ring'].isin(['2','3','6'])]
+        func1 = interp1d(lai['Date'].values, lai['R2'].values, kind = "cubic")
+        func2 = interp1d(lai['Date'].values, lai['R3'].values, kind = "cubic")
+        func3 = interp1d(lai['Date'].values, lai['R6'].values, kind = "cubic")
+        LAI_daily = (func1(daily)+func2(daily)+func3(daily))/3.
     elif ring == "ele":
-        subset = df_lai[df_lai['Ring'].isin(['1','4','5'])]
+        func1 = interp1d(lai['Date'].values, lai['R1'].values, kind = "cubic")
+        func2 = interp1d(lai['Date'].values, lai['R4'].values, kind = "cubic")
+        func3 = interp1d(lai['Date'].values, lai['R5'].values, kind = "cubic")
+        LAI_daily = (func1(daily)+func2(daily)+func3(daily))/3.
     else:
-        subset = df_lai[df_lai['Ring'].isin([ring[-1]])] # select out the ring
+        func = interp1d(lai['Date'].values, lai[ring].values, kind = "cubic")
+        LAI_daily = func(daily)
 
-    subset = subset.groupby(by=["Date"])['LAI'].mean()
+    # smooth
+    if method == "savgol_filter" :
+        # using Savitzky Golay Filter to smooth LAI
+        LAI_daily_smooth = savgol_filter(LAI_daily, 91, 3) # window size 91, polynomial order 3
 
-    tmp = pd.DataFrame(subset.values, columns=['LAI'])
-    tmp['month'] = subset.values
-    tmp['day']   = subset.values
-    for i in np.arange(0,len(tmp['LAI']),1):
-        tmp['month'][i] = subset.index[i][5:7]
-        tmp['day'][i]   = subset.index[i][8:10]
-    tmp = tmp.groupby(by=['month','day'])['LAI'].mean() # 366-day LAI cycle
+    elif method == "average":
+        # using 61 points average
+        LAI_daily_smooth = np.zeros(len(LAI_daily))
+        smooth_length    = 61
+        half_length      = 30
 
-    rate = subset[-1]/tmp[(4)][(27)] # to link the phenological LAI with the observated LAI at 27th April 2018
+        for i in np.arange(len(LAI_daily)):
+            if i < half_length:
+                LAI_daily_smooth[i] = np.mean(LAI_daily[0:(i+1+half_length)])
+            elif i > (2555-half_length):
+                LAI_daily_smooth[i] = np.mean(LAI_daily[(i-half_length):])
+            else:
+                print(i)
+                LAI_daily_smooth[i] = np.mean(LAI_daily[(i-half_length):(i+1+half_length)])
 
-    # to adjust phenological LAI
-    day_len_1 = (pd.datetime(2019,7,1) - pd.datetime(2012,12,31)).days
-    day_len_2 = (pd.datetime(2018,4,27) - pd.datetime(2012,12,31)).days
-    day_len_3 = (pd.datetime(2013,1,1) - pd.datetime(2012,10,26)).days
-    day_len_4 = (pd.datetime(2019,1,1) - pd.datetime(2013,1,1)).days
-    day_len_5 = (pd.datetime(2019,2,28) - pd.datetime(2012,12,31)).days
+    # linearly interpolate to half hour resolution
+    seconds = 2556.*24.*60.*60.
+    day_second       = np.arange(0.,seconds,60*60*24.)
+    half_hour_second = np.arange(0.,seconds,1800.)
 
-    lai = pd.DataFrame(np.arange(np.datetime64('2013-01-01','D'),\
-            np.datetime64('2019-07-02','D')), columns=['date'])
-    lai['LAI'] = np.zeros(day_len_1)
-    lai['LAI'][:day_len_2]          = subset[day_len_3:].values # 2013,1,1 - 2018,4,27
-    lai['LAI'][day_len_2:day_len_4] = tmp.values[118:]*rate # 2018,4,28-2018,12,31
-    lai['LAI'][day_len_4:day_len_5] = tmp.values[:59]*rate # 2019,1,1-2019,2,28
-    lai['LAI'][day_len_5:]          = tmp.values[60:183]*rate # 2019,3,1-2019,7,1
+    LAI_half_hour = np.interp(half_hour_second, day_second, LAI_daily_smooth)
 
-    date = lai['date'] - np.datetime64('2013-01-01T00:00:00')
-    lai['Date']  = np.zeros(len(lai))
-    for i in np.arange(0,len(lai),1):
-        lai['Date'][i] = date.iloc[i].total_seconds()
-    grid_x = np.arange(0.,204940800.,1800)
+    fig = plt.figure(figsize=[12,8])
+    ax = fig.add_subplot(111)
+    ax.plot(LAI_half_hour,c='red')
+    fig.savefig("EucFACE_LAI" , bbox_inches='tight', pad_inches=0.1)
 
-    LAI_interp = np.interp(grid_x, lai['Date'].values, lai['LAI'].values)
-
-    return LAI_interp
+    return LAI_half_hour
 
 def thickness_weighted_average(var, nsoil, zse_vec):
     VAR     = 0.0
@@ -1099,8 +1129,8 @@ def thickness_weighted_average(var, nsoil, zse_vec):
 
 if __name__ == "__main__":
 
-    met_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/met_July2019/eucMet_gap_filled.csv"
-    lai_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/met_July2019/eucLAI.csv"
+    met_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/met_2013-2019/eucFACEmet1319_gap_filled.csv"
+    lai_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/met_2013-2019/eucFACEmet1319.csv"
     swc_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
     tdr_fname = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
     stx_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/soil_texture/FACE_P0018_RA_SOILTEXT_L2_20120501.csv"
@@ -1110,11 +1140,14 @@ if __name__ == "__main__":
     # "Campbell_Cosby_univariate"
     # "Campbell_Cosby_multivariate"
     # "Campbell_HC_SWC"
-    soil_frac = "nearest" # "linear"
-    layer_num = "31uni"
+
+    soil_frac     = "nearest" # "linear"
+    layer_num     = "31uni"
     neo_constrain = True
     tdr_constrain = True
+    new_LAI       = True
+
     for ring in ["R1","R2","R3","R4","R5","R6","amb", "ele"]:
         out_fname = "EucFACE_met_%s.nc" % (ring)
         main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname, PTF, soil_frac,\
-             layer_num, neo_constrain, tdr_constrain, ring=ring)
+             layer_num, neo_constrain, tdr_constrain, ring, new_LAI)
