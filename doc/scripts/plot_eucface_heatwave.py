@@ -426,11 +426,11 @@ def get_day_time_Qle_Qh_EF(fcable):
     Qle['cable']= np.where(np.all([Qle.index.hour >= 9., Qle.index.hour <= 16.],axis=0 ), Qle['cable'].values, float('nan'))
     Qh['cable'] = np.where(np.all([Qh.index.hour >= 9., Qh.index.hour <= 16.  ],axis=0 ), Qh['cable'].values, float('nan'))
     EF['EF']    = np.where(np.all([EF.index.hour >= 9., EF.index.hour <= 16.  ],axis=0 ), EF['EF'].values, float('nan'))
-    print(Qle)
+    #print(Qle)
     Qle         = Qle.resample("D").agg('mean')
     Qh          = Qh.resample("D").agg('mean')
     EF          = EF.resample("D").agg('mean')
-    print(Qle)
+    #print(Qle)
     return Tair, Qle, Qh, EF;
 
 def find_all_Heatwave_days(fcable):
@@ -440,8 +440,17 @@ def find_all_Heatwave_days(fcable):
     # exclude rainday and the after two days of rain
     day = np.zeros((len(Tair)), dtype=bool)
 
-    for i in np.arange(0,len(Tair)):
-        if (Tair.values[i] >= 35.): # and Rainf.values[i] == 0.):
+
+    cable = nc.Dataset(fcable, 'r')
+    Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
+
+    Rain = pd.DataFrame(cable.variables['Rainf'][:,0,0]*60*30,columns=['Rain'])
+    Rain['dates'] = Time
+    Rain = Rain.set_index('dates')
+    Rain = Rain.resample("D").agg('sum')
+
+    for i in np.arange(1,len(Tair)):
+        if (Tair.values[i] >= 35. and Rain.values[i] < 0.1 and Rain.values[i-1] < 0.1): # and Rainf.values[i] == 0.):
             day[i]   = True
 
     # calculate heatwave event
@@ -500,7 +509,7 @@ def boxplot_Qle_Qh_EF_HW(fcables, case_labels, time_scale):
             Qle[:,case_num] = Qle_tmp['cable'].values
             Qh[:,case_num]  = Qh_tmp['cable'].values
             EF[:,case_num]  = EF_tmp['EF'].values
-        print(Qle)
+        #print(Qle)
     fig = plt.figure(figsize=[7,9])
 
     fig.subplots_adjust(hspace=0.1)
@@ -578,9 +587,15 @@ def group_boxplot_Qle_Qh_EF_HW(fcables, case_labels):
 
     case_sum = len(fcables)
     day_hw   = len(find_all_Heatwave_days(fcables[0]))
-
+    print("day_hw %f" % day_hw)
+    print(find_all_Heatwave_days(fcables[0]))
+    
     Tair, Qle_tmp, Qh_tmp, EF_tmp = get_day_time_Qle_Qh_EF(fcables[0])
     day_all = len(Qle_tmp)
+
+    Tair, Qle_tmp, Qh_tmp, EF_tmp = get_day_time_Qle_Qh_EF(fcables[0])
+    day_sum = len(Qle_tmp[np.any([Qle_tmp.index.month == 1, Qle_tmp.index.month == 2, Qle_tmp.index.month == 12],axis=0)])
+    print(Qle_tmp[np.any([Qle_tmp.index.month == 1, Qle_tmp.index.month == 2, Qle_tmp.index.month == 12],axis=0)])
 
     Qle_hw = np.zeros([day_hw, case_sum])
     Qh_hw  = np.zeros([day_hw, case_sum])
@@ -589,6 +604,10 @@ def group_boxplot_Qle_Qh_EF_HW(fcables, case_labels):
     Qle_all = np.zeros([day_all, case_sum])
     Qh_all  = np.zeros([day_all, case_sum])
     EF_all  = np.zeros([day_all, case_sum])
+
+    Qle_sum = np.zeros([day_sum, case_sum])
+    Qh_sum  = np.zeros([day_sum, case_sum])
+    EF_sum  = np.zeros([day_sum, case_sum])
 
     for case_num in np.arange(case_sum):
         HW_event = find_all_Heatwave_days(fcables[case_num])
@@ -602,6 +621,12 @@ def group_boxplot_Qle_Qh_EF_HW(fcables, case_labels):
         Qle_all[:,case_num] = Qle_tmp['cable'].values
         Qh_all[:,case_num]  = Qh_tmp['cable'].values
         EF_all[:,case_num]  = EF_tmp['EF'].values
+
+    for case_num in np.arange(case_sum):
+        Tair, Qle_tmp, Qh_tmp, EF_tmp = get_day_time_Qle_Qh_EF(fcables[case_num])
+        Qle_sum[:,case_num] = Qle_tmp[np.any([Qle_tmp.index.month == 1, Qle_tmp.index.month == 2, Qle_tmp.index.month == 12],axis=0)]['cable'].values
+        Qh_sum[:,case_num]  = Qh_tmp[np.any([Qh_tmp.index.month == 1, Qh_tmp.index.month == 2, Qh_tmp.index.month == 12],axis=0)]['cable'].values
+        EF_sum[:,case_num]  = EF_tmp[np.any([EF_tmp.index.month == 1, EF_tmp.index.month == 2, EF_tmp.index.month == 12],axis=0)]['EF'].values
 
     hw           = pd.DataFrame(np.zeros((day_hw+day_all)*case_sum),columns=['Qle'])
     hw['Qh']     = np.zeros((day_hw+day_all)*case_sum)
@@ -621,15 +646,28 @@ def group_boxplot_Qle_Qh_EF_HW(fcables, case_labels):
         hw['exp'].iloc[s:e] = [ case_labels[case_num]] * day_hw
 
         s  = e
+
+        '''
+        # all days
         e  = s+day_all
         hw['Qle'].iloc[s:e] = Qle_all[:,case_num]
         hw['Qh'].iloc[s:e]  = Qh_all[:,case_num]
         hw['EF'].iloc[s:e]  = EF_all[:,case_num]
         hw['day'].iloc[s:e] = ['all'] * day_all
         hw['exp'].iloc[s:e] = [ case_labels[case_num]] * day_all
+        '''
+
+        # summer
+        e  = s+day_sum
+        hw['Qle'].iloc[s:e] = Qle_sum[:,case_num]
+        hw['Qh'].iloc[s:e]  = Qh_sum[:,case_num]
+        hw['EF'].iloc[s:e]  = EF_sum[:,case_num]
+        hw['day'].iloc[s:e] = ['summer'] * day_sum
+        hw['exp'].iloc[s:e] = [ case_labels[case_num]] * day_sum
+
         s  =  e
 
-    fig = plt.figure(figsize=[12,15])
+    fig = plt.figure(figsize=[13,15])
 
     fig.subplots_adjust(hspace=0.1)
     fig.subplots_adjust(wspace=0.05)
@@ -660,35 +698,42 @@ def group_boxplot_Qle_Qh_EF_HW(fcables, case_labels):
     ax3  = fig.add_subplot(313)
 
     flierprops = dict(marker='o', markersize=3, markerfacecolor="black")
-    ax1 = sns.boxplot(x="exp", y="Qle", hue="day", data=fw, palette="Set3",
-                     order=case_labels, flierprops=flierprops, width=0.6,
-                     hue_order=['heatwave','all'])
 
-    ax2 = sns.boxplot(x="exp", y="Qh", hue="day", data=fw, palette="Set3",
+    sns.boxplot(x="exp", y="Qle", hue="day", data=hw, palette="Set3",
                      order=case_labels, flierprops=flierprops, width=0.6,
-                     hue_order=['heatwave','all'])
+                     hue_order=['heatwave','summer'], ax=ax1)# ['heatwave','all']
 
-    ax3 = sns.boxplot(x="exp", y="EF", hue="day", data=fw, palette="Set3",
+    sns.boxplot(x="exp", y="Qh", hue="day", data=hw, palette="Set3",
                      order=case_labels, flierprops=flierprops, width=0.6,
-                     hue_order=['heatwave','all'])
+                     hue_order=['heatwave','summer'], ax=ax2)# ['heatwave','all']
+
+    sns.boxplot(x="exp", y="EF", hue="day", data=hw, palette="Set3",
+                     order=case_labels, flierprops=flierprops, width=0.6,
+                     hue_order=['heatwave','summer'], ax=ax3)# ['heatwave','all']
 
     ax1.set_ylabel('Latent Heat (W m$^{-2}$)')
     ax1.axis('tight')
     #ax1.set_xlim(date[0],date[-1])
     ax1.set_ylim(-50.,600.)
+    ax1.axhline(y=np.median(Qle_hw[:,0]) , ls="--")
+    ax1.axhline(y=np.median(Qle_all[:,0]), ls="-.")
 
     ax2.set_ylabel('Sensible Heat (W m$^{-2}$)')
     ax2.axis('tight')
     #ax2.set_xlim(date[0],date[-1])
     ax2.set_ylim(-120.,400.)
+    ax2.axhline(y=np.median(Qh_hw[:,0]) , ls="--")
+    ax2.axhline(y=np.median(Qh_all[:,0]), ls="-.")
 
     ax3.set_ylabel("Evaporative Fraction (-)")
     ax3.axis('tight')
     #ax3.set_xlim(date[0],date[-1])
     ax3.set_ylim(-0.3,1.6)
-    ax3.legend()
+    #plt.legend()
+    ax3.axhline(y=np.median(EF_hw[:,0]) , ls="--")
+    ax3.axhline(y=np.median(EF_all[:,0]), ls="-.")
 
-    fig.savefig("../plots/EucFACE_Qle_Qh_EF_group_boxplot" , bbox_inches='tight', pad_inches=0.02)
+    fig.savefig("../plots/EucFACE_Qle_Qh_EF_summer_group_boxplot" , bbox_inches='tight', pad_inches=0.02)
 
 if __name__ == "__main__":
 
@@ -733,5 +778,5 @@ if __name__ == "__main__":
     case_labels = ["Ctl",  "Lit",  "Hi-Res", "Opt-top", "Opt",  "β-hvrd","β-exp"]#, "Hi-Res-LAI-20", "Hi-Res-LAI+20"]
     time_scale  = "all_days"
 
-    boxplot_Qle_Qh_EF_HW(fcables, case_labels, time_scale)
+    #boxplot_Qle_Qh_EF_HW(fcables, case_labels, time_scale)
     group_boxplot_Qle_Qh_EF_HW(fcables, case_labels)

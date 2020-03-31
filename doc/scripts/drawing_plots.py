@@ -66,50 +66,47 @@ if __name__ == "__main__":
     case_12 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_LAIx12_31uni_litter_LAIx12"
     fcbl_12 ="%s/EucFACE_%s_out.nc" % (case_12, ring)
 
-    fcables     = [fcbl_1, fcbl_2, fcbl_5,   fcbl_6,    fcbl_7, fcbl_8,  fcbl_9]#,  fcbl_11, fcbl_12]
-    case_labels = ["Ctl",  "Lit",  "Hi-Res", "Opt-top", "Opt",  "β-hvrd","β-exp"]#, "Hi-Res-LAI-20", "Hi-Res-LAI+20"]
-    layers      = ["6",    "6",    "31uni",  "31uni",   "31uni","31uni", "31uni"]#, "31uni", "31uni"]
+    case_13 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_LAI-08_31uni_litter"
+    fcbl_13 ="%s/EucFACE_%s_out.nc" % (case_13, ring)
+
+
+
+
+    fcables     = [fcbl_1, fcbl_2, fcbl_5,   fcbl_6,    fcbl_7, fcbl_8,  fcbl_9, fcbl_11, fcbl_13]#,  fcbl_11, fcbl_12]
+    case_labels = ["Ctl",  "Lit",  "Hi-Res", "Opt-top", "Opt",  "β-hvrd","β-exp", "Hi-Res-LAI-20", "Hi-Res_LAI-0.8"]#, "Hi-Res-LAI-20", "Hi-Res-LAI+20"]
+    layers      = ["6",    "6",    "31uni",  "31uni",   "31uni","31uni", "31uni","31uni","31uni"]#, "31uni", "31uni"]
     time_scale  = "hourly"
     ring        = "amb"
-    plot_Fwsoil_days_bar(fcables, case_labels)
-    plot_Fwsoil_boxplot(fcables, case_labels)
+
+
+    fcables = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_31uni_hyds-30cm-deep/outputs",
+              "met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^*_litter/EucFACE_amb_out.nc"))
+
+    for fcable in fcables:
+        print(fcable)
+        plot_profile_tdr_ET(fcable, ring, contour,"31uni")
+
+    '''
+    drought plot
+    '''
+    #plot_Fwsoil_days_bar(fcables, case_labels)
+    #plot_Fwsoil_boxplot(fcables, case_labels)
+
+
+    '''
+    GPP
+    '''
     #plot_GPP(fcables, ring, case_labels)
 
-
     '''
-    fcables     = [fcbl_1, fcbl_5,  fcbl_11,  fcbl_12 ]
-    case_labels = ["Ctl", "Hi-Res", "Hi-Res-LAI-20","Hi-Res-LAI+20"]
-    layers      = ["6",   "31uni", "31uni", "31uni"]
-    plot_Fwsoil_Trans(fcables, ring, case_labels)
+    tdr_ET plot
     '''
-
-    #sen_values = np.linspace(-10.,5.,31)
-    #for i,sen_value in enumerate(sen_values):
-    #    fcable = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_31uni_hyds-30cm/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^%s_litter/EucFACE_amb_out.nc" % str(sen_value).replace('.', '')
-    #    plot_profile_tdr_ET(fcable, ring, contour,    "31uni")
-
-    # plot_profile_tdr_ET(fcbl_1, ring, contour,    "6")
-    # plot_profile_tdr_ET(fcbl_2, ring, contour,    "6")
-    # plot_profile_tdr_ET(fcbl_5, ring, contour,"31uni")
-    # plot_profile_tdr_ET(fcbl_6, ring, contour,"31uni")
-    # plot_profile_tdr_ET(fcbl_7, ring, contour,"31uni")
-    # plot_profile_tdr_ET(fcbl_8, ring, contour,"31uni")
-    # plot_profile_tdr_ET(fcbl_9, ring, contour,"31uni")
-    '''
-    fcables     = [fcbl_1 ]
-    case_labels = ["Ctl"  ]
-    layers      = ["6"    ]
-    '''
-    #plot_Rain_Fwsoil_Trans_Esoil_EF_SM(fcables, ring, layers, case_labels)
-
-    fcables = [
-                "./csv/EucFACE_amb_met_LAI_6.csv",
-                "./csv/EucFACE_amb_met_LAI_6_litter.csv",
-                "./csv/EucFACE_amb_met_LAI_vrt_swilt-watr-ssat_SM_31uni_litter.csv",
-                "./csv/EucFACE_amb_met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x1-x1_litter.csv",
-                "./csv/EucFACE_amb_met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter.csv",
-                "./csv/EucFACE_amb_met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_Hvrd.csv",
-                "./csv/EucFACE_amb_met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_hie-exp.csv"
-                ]
-
-    #plot_waterbal(fcables,case_labels)
+    #plot_profile_tdr_ET(fcbl_13, ring, contour,"31uni")
+    #plot_profile_tdr_ET(fcbl_11, ring, contour,"31uni")
+    #plot_profile_tdr_ET(fcbl_1, ring, contour,    "6")
+    #plot_profile_tdr_ET(fcbl_2, ring, contour,    "6")
+    #plot_profile_tdr_ET(fcbl_5, ring, contour,"31uni")
+    #plot_profile_tdr_ET(fcbl_6, ring, contour,"31uni")
+    #plot_profile_tdr_ET(fcbl_7, ring, contour,"31uni")
+    #plot_profile_tdr_ET(fcbl_8, ring, contour,"31uni")
+    #plot_profile_tdr_ET(fcbl_9, ring, contour,"31uni")

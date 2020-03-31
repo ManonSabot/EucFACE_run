@@ -47,6 +47,19 @@ from scipy.interpolate import griddata
 def main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname,\
          PTF, soil_frac, layer_num, neo_constrain, tdr_constrain, ring):
 
+    '''
+    SWdown = (/0.0,1360.0/),            & ! W/m^2
+    LWdown = (/0.0,950.0/),             & ! W/m^2
+    Rainf = (/0.0,0.1/),                & ! mm/s
+    Snowf = (/0.0,0.1/),                & ! mm/s
+    PSurf = (/500.0,1100.0/),           & ! mbar/hPa
+    Tair = (/200.0,333.0/),             & ! K
+    Qair = (/0.0,0.1/),                 & ! g/g
+    CO2air = (/160.0,2000.0/),          & ! ppmv
+    Wind = (/0.0,75.0/),                & ! m/s
+    lai = (/0.0,8.0/),                  &
+    '''
+
     DEG_2_KELVIN = 273.15
     SW_2_PAR = 2.3
     PAR_2_SW = 1.0 / SW_2_PAR
@@ -975,8 +988,8 @@ def estimate_lwdown(tairK, rh):
 
 def interpolate_lai(lai_fname, ring):
     """
-    raw LAI data is from 2012-10-26 to 2018-04-27, to fill the gap between 2018-04-28
-    to 2019-06-30, firstly calculating the 366-days LAI cycle,
+    the raw data is daily LAI from 2012-10-26 to 2018-04-27, to fill the gap between
+    2018-04-28 to 2019-06-30, firstly calculating the 366-days LAI cycle,
     secondly, connect the phenological LAI at 27th April to observated LAI at
     27th April 2018, thirdly, remove 29th Feburary and copy the phenological LAI
     to 2019-01-01 to 2019-07-01
@@ -989,6 +1002,57 @@ def interpolate_lai(lai_fname, ring):
     else:
         subset = df_lai[df_lai['ring'].isin([ring[-1]])] # select out the ring
     subset = subset.groupby(by=["Date"])['LAIsmooth'].mean()
+
+    tmp = pd.DataFrame(subset.values, columns=['LAI'])
+    tmp['month'] = subset.values
+    tmp['day']   = subset.values
+    for i in np.arange(0,len(tmp['LAI']),1):
+        tmp['month'][i] = subset.index[i][5:7]
+        tmp['day'][i]   = subset.index[i][8:10]
+    tmp = tmp.groupby(by=['month','day'])['LAI'].mean() # 366-day LAI cycle
+
+    rate = subset[-1]/tmp[(4)][(27)] # to link the phenological LAI with the observated LAI at 27th April 2018
+
+    # to adjust phenological LAI
+    day_len_1 = (pd.datetime(2019,7,1) - pd.datetime(2012,12,31)).days
+    day_len_2 = (pd.datetime(2018,4,27) - pd.datetime(2012,12,31)).days
+    day_len_3 = (pd.datetime(2013,1,1) - pd.datetime(2012,10,26)).days
+    day_len_4 = (pd.datetime(2019,1,1) - pd.datetime(2013,1,1)).days
+    day_len_5 = (pd.datetime(2019,2,28) - pd.datetime(2012,12,31)).days
+
+    lai = pd.DataFrame(np.arange(np.datetime64('2013-01-01','D'),\
+            np.datetime64('2019-07-02','D')), columns=['date'])
+    lai['LAI'] = np.zeros(day_len_1)
+    lai['LAI'][:day_len_2]          = subset[day_len_3:].values # 2013,1,1 - 2018,4,27
+    lai['LAI'][day_len_2:day_len_4] = tmp.values[118:]*rate # 2018,4,28-2018,12,31
+    lai['LAI'][day_len_4:day_len_5] = tmp.values[:59]*rate # 2019,1,1-2019,2,28
+    lai['LAI'][day_len_5:]          = tmp.values[60:183]*rate # 2019,3,1-2019,7,1
+
+    date = lai['date'] - np.datetime64('2013-01-01T00:00:00')
+    lai['Date']  = np.zeros(len(lai))
+    for i in np.arange(0,len(lai),1):
+        lai['Date'][i] = date.iloc[i].total_seconds()
+    grid_x = np.arange(0.,204940800.,1800)
+
+    LAI_interp = np.interp(grid_x, lai['Date'].values, lai['LAI'].values)
+
+    return LAI_interp
+
+def interpolate_raw_lai(lai_fname, ring):
+    """
+    raw LAI data is from 2012-10-26 to 2019-12-29. It needs to be interpolate to
+    daily data
+    """
+
+    df_lai = pd.read_csv(lai_fname, usecols = ['Ring','Date','LAI']) # raw data
+    if ring == "amb":
+        subset = df_lai[df_lai['Ring'].isin(['2','3','6'])]
+    elif ring == "ele":
+        subset = df_lai[df_lai['Ring'].isin(['1','4','5'])]
+    else:
+        subset = df_lai[df_lai['Ring'].isin([ring[-1]])] # select out the ring
+
+    subset = subset.groupby(by=["Date"])['LAI'].mean()
 
     tmp = pd.DataFrame(subset.values, columns=['LAI'])
     tmp['month'] = subset.values

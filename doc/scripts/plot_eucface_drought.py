@@ -663,6 +663,7 @@ def plot_Fwsoil_boxplot(fcables, case_labels):
     ax.axis('tight')
     #ax1.set_xlim(date[0],date[-1])
     ax.set_ylim(0.,1.1)
+    ax.axhline(y=np.median(fw[np.all([fw.year=='drought',fw.exp=='Ctl'],axis=0)]['fwsoil'].values) , ls="--")
 
     plt.legend()#loc="upper right"
 
