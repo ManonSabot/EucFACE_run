@@ -30,18 +30,20 @@ if __name__ == "__main__":
     contour = False
     rings   = ["amb"]#"R1","R2","R3","R4","R5","R6",,"ele"
     plot_var= "difference" #"CABLE" # "difference"
-    pyth    = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_31uni_3hyds/outputs"
+    pyth    = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_31uni_bch-hyds-30cm/outputs"
 
-    value1      = "2"
-    sen_values2 = ["-2","-1","0","1","2","3"]
+    #value1      = "2"
+    #sen_values2 = ["-2","-1","0","1","2","3"]
     #["0","05","1","15","2","25","3","35","4","45","5"]
     #["-8","-7","-6","-5","-4","-3","-2","-1","0","1","2"]
-    sen_values3 = ["-2","-1","0","1","2","3"]
+    #sen_values3 = ["-2","-1","0","1","2","3"]
+    sen_values1 = ["-2","-15","-1","-05","0","05","1","15","2","25"] # ,"3"
+    sen_values2 = ["2","25","3","35","4","45","5","55","6","65","7"]
     sen_range  = ["-2.","-1.","0.","1.","2.","3."]
     #["0.","0.5","1.","1.5","2.","2.5","3.","3.5","4.","4.5","5."]
 # ____________________ Plot obs _______________________
 
-    fig, axes = plt.subplots(len(sen_values2), len(sen_values3),figsize=(80,40))
+    fig, axes = plt.subplots(len(sen_values1), len(sen_values2),figsize=(80,40))
 
     #fig.figure(figsize=[40,40])
     fig.subplots_adjust(hspace=0.1)
@@ -78,9 +80,9 @@ if __name__ == "__main__":
     xtickslocs    = [0,19,37,52,66,74,86]
 
     for ring in rings:
-        for i,value2 in enumerate(sen_values2):
-            for j,value3 in enumerate(sen_values3):
-                case_name = "%s/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^%s-%s-%s_litter" % (pyth, value1, value2, value3)
+        for i,value1 in enumerate(sen_values1):
+            for j,value2 in enumerate(sen_values2):
+                case_name = "%s/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^%s-%s_litter" % (pyth, value1, value2)
 
                 fcable    ="%s/EucFACE_%s_out.nc" % (case_name, ring)
                 grid_data, grid_cable, difference = read_profile_data(fcable, case_name, ring, contour, layer)
@@ -104,16 +106,15 @@ if __name__ == "__main__":
                 plt.setp(axes[i,j].get_xticklabels(), visible=False)
                 plt.setp(axes[i,j].get_yticklabels(), visible=False)
 
-                if i == len(sen_values2)-1:
+                if i == len(sen_values1)-1:
                     plt.setp(axes[i,j].get_yticklabels(), visible=True)
                     axes[i,j].set_yticks(np.arange(len(Y))[::10])
                     axes[i,j].set_yticklabels(Y_labels[::10])
-                    axes[i,j].set_xlabel("10 ^ %s" % sen_range[j])
-
+                    axes[i,j].set_xlabel("bch = %s" % sen_values2[j])
                 if j == 0:
                     plt.setp(axes[i,j].get_xticklabels(), visible=True)
                     axes[i,j].set(xticks=xtickslocs, xticklabels=cleaner_dates)
-                    axes[i,j].set_ylabel("10 ^ %s" % sen_range[i])
+                    axes[i,j].set_ylabel("hyds = 10 ^ %s" % sen_values1[i])
 
                 axes[i,j].axis('tight')
 

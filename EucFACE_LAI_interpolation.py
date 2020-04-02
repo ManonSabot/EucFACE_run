@@ -103,4 +103,4 @@ if __name__ == "__main__":
     tdr_fname = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
     stx_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/soil_texture/FACE_P0018_RA_SOILTEXT_L2_20120501.csv"
     method = "savgol_filter" #'average' #"savgol_filter"
-    interpolate_raw_lai(lai_fname, 'R2',method)
+    interpolate_raw_lai(lai_fname, 'amb',method)

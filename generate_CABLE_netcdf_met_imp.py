@@ -44,6 +44,7 @@ import netCDF4 as nc
 import datetime
 from scipy.interpolate import interp1d
 from scipy.interpolate import griddata
+from scipy.signal import savgol_filter
 
 def main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname,
          PTF, soil_frac, layer_num, neo_constrain, tdr_constrain, ring, new_LAI):
@@ -1112,10 +1113,10 @@ def interpolate_raw_lai(lai_fname, ring, method):
 
     LAI_half_hour = np.interp(half_hour_second, day_second, LAI_daily_smooth)
 
-    fig = plt.figure(figsize=[12,8])
-    ax = fig.add_subplot(111)
-    ax.plot(LAI_half_hour,c='red')
-    fig.savefig("EucFACE_LAI" , bbox_inches='tight', pad_inches=0.1)
+    #fig = plt.figure(figsize=[12,8])
+    #ax = fig.add_subplot(111)
+    #ax.plot(LAI_half_hour,c='red')
+    #fig.savefig("EucFACE_LAI" , bbox_inches='tight', pad_inches=0.1)
 
     return LAI_half_hour
 
@@ -1130,7 +1131,7 @@ def thickness_weighted_average(var, nsoil, zse_vec):
 if __name__ == "__main__":
 
     met_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/met_2013-2019/eucFACEmet1319_gap_filled.csv"
-    lai_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/met_2013-2019/eucFACEmet1319.csv"
+    lai_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/met_2013-2019/eucLAI1319.csv"
     swc_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
     tdr_fname = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
     stx_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/soil_texture/FACE_P0018_RA_SOILTEXT_L2_20120501.csv"

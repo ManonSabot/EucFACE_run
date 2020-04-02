@@ -70,8 +70,6 @@ if __name__ == "__main__":
     fcbl_13 ="%s/EucFACE_%s_out.nc" % (case_13, ring)
 
 
-
-
     fcables     = [fcbl_1, fcbl_2, fcbl_5,   fcbl_6,    fcbl_7, fcbl_8,  fcbl_9, fcbl_11, fcbl_13]#,  fcbl_11, fcbl_12]
     case_labels = ["Ctl",  "Lit",  "Hi-Res", "Opt-top", "Opt",  "β-hvrd","β-exp", "Hi-Res-LAI-20", "Hi-Res_LAI-0.8"]#, "Hi-Res-LAI-20", "Hi-Res-LAI+20"]
     layers      = ["6",    "6",    "31uni",  "31uni",   "31uni","31uni", "31uni","31uni","31uni"]#, "31uni", "31uni"]
@@ -79,7 +77,7 @@ if __name__ == "__main__":
     ring        = "amb"
 
 
-    fcables = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_31uni_hyds-30cm-deep/outputs",
+    fcables = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_31uni_bch-hyds-30cm/outputs",
               "met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^*_litter/EucFACE_amb_out.nc"))
 
     for fcable in fcables:

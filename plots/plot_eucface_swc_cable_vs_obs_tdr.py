@@ -23,6 +23,7 @@ import netCDF4 as nc
 from scipy.interpolate import griddata
 import scipy.stats as stats
 from sklearn.metrics import mean_squared_error
+from cable_get_var import *
 
 def plot_tdr(fcable, case_name, ring, layer):
 
@@ -530,48 +531,51 @@ def plot_tdr_ET(fcable, case_name, ring, layer):
     ax5.legend()
 
     fig.savefig("EucFACE_tdr_ET_%s_%s.png" % (os.path.basename(case_name).split("/")[-1], ring), bbox_inches='tight', pad_inches=0.1)
+'''
+def read_obs_esoil(ring):
 
-def read_obs_esoil(fobs_Esoil, ring):
-
-   est_esoil = pd.read_csv(fobs_Esoil, usecols = ['Ring','Date','wuTP','EfloorPred'])
-   est_esoil['Date'] = pd.to_datetime(est_esoil['Date'],format="%d/%m/%Y",infer_datetime_format=False)
-   est_esoil['Date'] = est_esoil['Date'] - pd.datetime(2011,12,31)
-   est_esoil['Date'] = est_esoil['Date'].dt.days
-   est_esoil = est_esoil.sort_values(by=['Date'])
-   # divide neo into groups
-   if ring == 'amb':
+    fobs_Esoil = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_underET.csv"
+    est_esoil = pd.read_csv(fobs_Esoil, usecols = ['Ring','Date','wuTP','EfloorPred'])
+    est_esoil['Date'] = pd.to_datetime(est_esoil['Date'],format="%d/%m/%Y",infer_datetime_format=False)
+    est_esoil['Date'] = est_esoil['Date'] - pd.datetime(2011,12,31)
+    est_esoil['Date'] = est_esoil['Date'].dt.days
+    est_esoil = est_esoil.sort_values(by=['Date'])
+    # divide neo into groups
+    if ring == 'amb':
        subs = est_esoil[(est_esoil['Ring'].isin(['R2','R3','R6'])) & (est_esoil.Date > 366)]
-   elif ring == 'ele':
+    elif ring == 'ele':
        subs = est_esoil[(est_esoil['Ring'].isin(['R1','R4','R5'])) & (est_esoil.Date > 366)]
-   else:
+    else:
        subs = est_esoil[(est_esoil['Ring'].isin([ring]))  & (est_esoil.Date > 366)]
 
-   subs = subs.groupby(by=["Date"]).mean()
-   subs['wuTP']   = subs['wuTP'].clip(lower=0.)
-   subs['wuTP']   = subs['wuTP'].replace(0., float('nan'))
-   subs['EfloorPred'] = subs['EfloorPred'].clip(lower=0.)
-   subs['EfloorPred'] = subs['EfloorPred'].replace(0., float('nan'))
+    subs = subs.groupby(by=["Date"]).mean()
+    subs['wuTP']   = subs['wuTP'].clip(lower=0.)
+    subs['wuTP']   = subs['wuTP'].replace(0., float('nan'))
+    subs['EfloorPred'] = subs['EfloorPred'].clip(lower=0.)
+    subs['EfloorPred'] = subs['EfloorPred'].replace(0., float('nan'))
 
-   return subs
+    return subs
 
 def read_obs_trans(fobs_Trans, ring):
-   est_trans = pd.read_csv(fobs_Trans, usecols = ['Ring','Date','volRing'])
-   est_trans['Date'] = pd.to_datetime(est_trans['Date'],format="%d/%m/%Y",infer_datetime_format=False)
-   est_trans['Date'] = est_trans['Date'] - pd.datetime(2011,12,31)
-   est_trans['Date'] = est_trans['Date'].dt.days
-   est_trans = est_trans.sort_values(by=['Date'])
-   # divide neo into groups
-   if ring == 'amb':
+
+    fobs_Trans = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_sapflow.csv"
+    est_trans = pd.read_csv(fobs_Trans, usecols = ['Ring','Date','volRing'])
+    est_trans['Date'] = pd.to_datetime(est_trans['Date'],format="%d/%m/%Y",infer_datetime_format=False)
+    est_trans['Date'] = est_trans['Date'] - pd.datetime(2011,12,31)
+    est_trans['Date'] = est_trans['Date'].dt.days
+    est_trans = est_trans.sort_values(by=['Date'])
+    # divide neo into groups
+    if ring == 'amb':
        subs = est_trans[(est_trans['Ring'].isin(['R2','R3','R6'])) & (est_trans.Date > 366)]
-   elif ring == 'ele':
+    elif ring == 'ele':
        subs = est_trans[(est_trans['Ring'].isin(['R1','R4','R5'])) & (est_trans.Date > 366)]
-   else:
+    else:
        subs = est_trans[(est_trans['Ring'].isin([ring]))  & (est_trans.Date > 366)]
 
-   subs = subs.groupby(by=["Date"]).mean()
-   subs['volRing']   = subs['volRing'].clip(lower=0.)
-   subs['volRing']   = subs['volRing'].replace(0., float('nan'))
-   return subs
+    subs = subs.groupby(by=["Date"]).mean()
+    subs['volRing']   = subs['volRing'].clip(lower=0.)
+    subs['volRing']   = subs['volRing'].replace(0., float('nan'))
+    return subs
 
 def read_obs_swc(fobs, ring):
     tdr = pd.read_csv(fobs, usecols = ['Ring','Date','swc.tdr'])
@@ -591,3 +595,4 @@ def read_obs_swc(fobs, ring):
     subset = subset.xs('swc.tdr', axis=1, drop_level=True)
 
     return subset
+'''

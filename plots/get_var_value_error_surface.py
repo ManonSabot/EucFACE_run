@@ -15,32 +15,17 @@ import pandas as pd
 import numpy as np
 import netCDF4 as nc
 import datetime
+from scipy.interpolate import griddata
 
 def get_var_value(ref_var, output_file, layer, ring):
     print("carry on get_var_value")
-    '''
-    choose_cable_var = {
-                     'swc_50'     : read_cable_swc_50cm(output_file, layer),
-                     'swc_all'    : read_cable_swc_all(output_file, layer),
-                     'trans'      : read_cable_var(output_file, 'TVeg'),
-                     'esoil'      : read_cable_var(output_file, 'ESoil'),
-                     'esoil2trans': calc_cable_esoil2trans(output_file)
-                     }
-    choose_obs_var = {
-                     'swc_50'     : read_obs_swc_tdr(ring),
-                     'swc_all'    : read_obs_swc_neo(ring),
-                     'trans'      : read_obs_trans(ring),
-                     'esoil'      : read_obs_esoil(ring),
-                     'esoil2trans': calc_obs_esoil2trans(ring)
-                     }
-    print(ref_var)
-    cable_var = choose_cable_var.get(ref_var)
-    obs_var   = choose_obs_var.get(ref_var)
-    '''
 
-    if ref_var == 'swc_50':
-        cable_var = read_cable_swc_50cm(output_file, layer)
+    if ref_var == 'swc_25':
+        cable_var = read_cable_swc_25cm(output_file, layer)
         obs_var   = read_obs_swc_tdr(ring)
+    elif ref_var == 'swc_150':
+        cable_var = read_cable_swc_150cm(output_file, layer, ring)
+        obs_var   = read_obs_swc_neo_150cm(ring)
     elif ref_var == 'swc_all':
         cable_var = read_cable_swc_all(output_file, layer)
         obs_var   = read_obs_swc_neo(ring)
@@ -68,51 +53,25 @@ def get_same_dates(cable_var, obs_var):
 
     return cable_var, obs_var
 
-def read_cable_swc_50cm(output_file, layer):
+def read_cable_swc_25cm(output_file, layer):
 
     """
-    read the average swc in top 50cm from CABLE output
+    read the average swc in top 25cm from CABLE output
     """
-    print("carry on read_cable_swc_50cm")
+    print("carry on read_cable_swc_25cm")
 
     cable = nc.Dataset(output_file, 'r')
     Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
     SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,0,0,0], columns=['cable'])
 
     if layer == "6":
-        SoilMoist['cable'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.022 \
+        SoilMoist['cable'] = (  cable.variables['SoilMoist'][:,0,0,0]*0.022 \
                                  + cable.variables['SoilMoist'][:,1,0,0]*0.058 \
                                  + cable.variables['SoilMoist'][:,2,0,0]*0.154 \
-                                 + cable.variables['SoilMoist'][:,3,0,0]*(0.5-0.022-0.058-0.154) )/0.5
+                                 + cable.variables['SoilMoist'][:,3,0,0]*(0.25-0.022-0.058-0.154) )/0.25
     elif layer == "31uni":
         SoilMoist['cable'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.15 \
-                                 + cable.variables['SoilMoist'][:,1,0,0]*0.15 \
-                                 + cable.variables['SoilMoist'][:,2,0,0]*0.15 \
-                                 + cable.variables['SoilMoist'][:,3,0,0]*0.05 )/0.5
-    elif layer == "31exp":
-        SoilMoist['cable'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.020440 \
-                                 + cable.variables['SoilMoist'][:,1,0,0]*0.001759 \
-                                 + cable.variables['SoilMoist'][:,2,0,0]*0.003957 \
-                                 + cable.variables['SoilMoist'][:,3,0,0]*0.007035 \
-                                 + cable.variables['SoilMoist'][:,4,0,0]*0.010993 \
-                                 + cable.variables['SoilMoist'][:,5,0,0]*0.015829 \
-                                 + cable.variables['SoilMoist'][:,6,0,0]*0.021546 \
-                                 + cable.variables['SoilMoist'][:,7,0,0]*0.028141 \
-                                 + cable.variables['SoilMoist'][:,8,0,0]*0.035616 \
-                                 + cable.variables['SoilMoist'][:,9,0,0]*0.043971 \
-                                 + cable.variables['SoilMoist'][:,10,0,0]*0.053205 \
-                                 + cable.variables['SoilMoist'][:,11,0,0]*0.063318 \
-                                 + cable.variables['SoilMoist'][:,12,0,0]*0.074311 \
-                                 + cable.variables['SoilMoist'][:,13,0,0]*0.086183 \
-                                 + cable.variables['SoilMoist'][:,14,0,0]*(0.5-0.466304))/0.5
-    elif layer == "31para":
-        SoilMoist['cable'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.020440 \
-                                 + cable.variables['SoilMoist'][:,1,0,0]*0.001759 \
-                                 + cable.variables['SoilMoist'][:,2,0,0]*0.003957 \
-                                 + cable.variables['SoilMoist'][:,3,0,0]*0.007035 \
-                                 + cable.variables['SoilMoist'][:,4,0,0]*0.010993 \
-                                 + cable.variables['SoilMoist'][:,5,0,0]*0.015829 \
-                                 + cable.variables['SoilMoist'][:,6,0,0]*(0.5-0.420714))/0.5
+                                 + cable.variables['SoilMoist'][:,1,0,0]*0.10 )/0.25
 
     SoilMoist['Date'] = Time
     SoilMoist = SoilMoist.set_index('Date')
@@ -128,6 +87,85 @@ def read_cable_swc_50cm(output_file, layer):
     Both of them have 'dates' index
     """
     return SoilMoist
+
+def read_cable_swc_150cm(output_file, layer, ring):
+
+    fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
+    neo = pd.read_csv(fobs, usecols = ['Ring','Depth','Date','VWC'])
+
+    neo['Date'] = pd.to_datetime(neo['Date'],format="%d/%m/%y",infer_datetime_format=False)
+    neo['Date'] = neo['Date'] - pd.datetime(2011,12,31)
+    neo['Date'] = neo['Date'].dt.days
+
+    neo = neo.sort_values(by=['Date','Depth'])
+
+    if ring == 'amb':
+        subset = neo[neo['Ring'].isin(['R2','R3','R6'])]
+    elif ring == 'ele':
+        subset = neo[neo['Ring'].isin(['R1','R4','R5'])]
+    else:
+        subset = neo[neo['Ring'].isin([ring])]
+
+    subset = subset.groupby(by=["Depth","Date"]).mean()
+    subset = subset.xs('VWC', axis=1, drop_level=True)
+
+    X     = subset[(25)].index.values[20:]
+
+    cable = nc.Dataset(output_file, 'r')
+
+    Time = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
+    if layer == "6":
+        SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns=[1.1, 5.1, 15.7, 43.85, 118.55, 316.4])
+    elif layer == "31uni":
+        SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns = \
+                   [7.5,   22.5 , 37.5 , 52.5 , 67.5 , 82.5 , 97.5 , \
+                    112.5, 127.5, 142.5, 157.5, 172.5, 187.5, 202.5, \
+                    217.5, 232.5, 247.5, 262.5, 277.5, 292.5, 307.5, \
+                    322.5, 337.5, 352.5, 367.5, 382.5, 397.5, 412.5, \
+                    427.5, 442.5, 457.5 ])
+    elif layer == "31exp":
+        SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns = \
+                    [ 1.021985, 2.131912, 2.417723, 2.967358, 3.868759, 5.209868,\
+                    7.078627, 9.562978, 12.75086, 16.73022, 21.58899, 27.41512,\
+                    34.29655, 42.32122, 51.57708, 62.15205, 74.1341 , 87.61115,\
+                    102.6711, 119.402 , 137.8918, 158.2283, 180.4995, 204.7933,\
+                    231.1978, 259.8008, 290.6903, 323.9542, 359.6805, 397.9571,\
+                    438.8719 ])
+    elif layer == "31para":
+        SoilMoist = pd.DataFrame(cable.variables['SoilMoist'][:,:,0,0], columns = \
+                   [ 1.000014,  3.47101, 7.782496, 14.73158, 24.11537, 35.73098, \
+                     49.37551, 64.84607, 81.93976, 100.4537, 120.185 , 140.9308, \
+                     162.4881, 184.6541, 207.2259, 230.    , 252.7742, 275.346 , \
+                     297.512 , 319.0693, 339.8151, 359.5464, 378.0603, 395.154 , \
+                     410.6246, 424.2691, 435.8847, 445.2685, 452.2176, 456.5291, \
+                     459.0001 ])
+
+    SoilMoist['dates'] = Time
+    SoilMoist = SoilMoist.set_index('dates')
+    SoilMoist = SoilMoist.resample("D").agg('mean')
+    SoilMoist.index = SoilMoist.index - pd.datetime(2011,12,31)
+    SoilMoist.index = SoilMoist.index.days
+    SoilMoist = SoilMoist.stack() # turn multi-columns into one-column
+    SoilMoist = SoilMoist.reset_index() # remove index 'dates'
+    SoilMoist = SoilMoist.rename(index=str, columns={"level_1": "Depth"})
+    SoilMoist = SoilMoist.sort_values(by=['Depth','dates'])
+
+    print(SoilMoist)
+    x_cable     = SoilMoist.index
+    y_cable     = SoilMoist['Depth'].values
+    value_cable = SoilMoist.iloc[:,2].values # ???
+
+    # add the 12 depths to 0
+    X_cable     = X #np.arange(date_start_cable,date_end_cable,1) # 2013-1-1 to 2016-12-31
+    Y_cable     = np.arange(0.5,465,1)
+    grid_X_cable, grid_Y_cable = np.meshgrid(X_cable,Y_cable)
+
+    grid_cable = griddata((x_cable, y_cable) , value_cable, (grid_X_cable, grid_Y_cable),\
+                 method='nearest')
+
+    cable_150cm = np.mean(grid_cable[0:150,:],axis=0)
+
+    return cable_150cm
 
 def read_cable_swc_all(output_file, layer):
 
@@ -223,7 +261,7 @@ def calc_cable_esoil2trans(output_file):
 def read_obs_swc_tdr(ring):
 
     """
-    read the 50 cm swc from tdr observation
+    read the 25 cm swc from tdr observation
     """
 
     print("carry on read_obs_swc_tdr")
@@ -297,6 +335,41 @@ def read_obs_swc_neo(ring):
     print(neo_obs)
 
     return neo_obs
+
+def read_obs_swc_neo_150cm(ring):
+
+    fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
+    neo = pd.read_csv(fobs, usecols = ['Ring','Depth','Date','VWC'])
+
+    neo['Date'] = pd.to_datetime(neo['Date'],format="%d/%m/%y",infer_datetime_format=False)
+    neo['Date'] = neo['Date'] - pd.datetime(2011,12,31)
+    neo['Date'] = neo['Date'].dt.days
+
+    neo = neo.sort_values(by=['Date','Depth'])
+
+    if ring == 'amb':
+        subset = neo[neo['Ring'].isin(['R2','R3','R6'])]
+    elif ring == 'ele':
+        subset = neo[neo['Ring'].isin(['R1','R4','R5'])]
+    else:
+        subset = neo[neo['Ring'].isin([ring])]
+
+    subset = subset.groupby(by=["Depth","Date"]).mean()
+    subset = subset.xs('VWC', axis=1, drop_level=True)
+
+    x     = subset.index.get_level_values(1).values
+    y     = subset.index.get_level_values(0).values
+    value = subset.values
+
+    X     = subset[(25)].index.values[20:]
+    Y     = np.arange(0.5,465,1)
+
+    grid_X, grid_Y = np.meshgrid(X,Y)
+    grid_data = griddata((x, y) , value, (grid_X, grid_Y), method='nearest')
+
+    obs_150 = pd.DataFrame(np.mean(grid_data[0:150,:],axis=0)/100., columns=['obs'])
+????????????
+    return obs_150
 
 def read_obs_trans(ring):
 

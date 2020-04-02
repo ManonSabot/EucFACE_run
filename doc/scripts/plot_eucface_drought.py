@@ -9,7 +9,8 @@ Include functions :
     plot_Fwsoil_Trans
     plot_Rain_Fwsoil_Trans
     plot_Rain_Fwsoil_Trans_Esoil_EF_SM
-    plot_Fwsoil_days
+    plot_Fwsoil_days_bar
+    plot_Fwsoil_boxplot
 
 """
 __author__ = "MU Mengyuan"
@@ -500,13 +501,13 @@ def plot_Fwsoil_days_bar(fcables, case_labels):
     intval_sum = len(intval)
     drought = True
     if drought:
-        day_start  = 1828 - 367# first day of 2017
-        day_end    = 2558 - 367 # first day of 2019
-        tot_year   = 2 #6
+        day_start  = 1461 # first day of 2017
+        day_end    = 2556 # first day of 2020
+        tot_year   = 3 #6
     else:
-        day_start  = 367 - 367 # first day of 2013
-        day_end    = 2558 - 367 # first day of 2019
-        tot_year   = 6
+        day_start  = 0    # first day of 2013
+        day_end    = 2556 # first day of 2020
+        tot_year   = 7
 
     offset     = 0.5
     fw_days    = np.zeros([case_sum,intval_sum])

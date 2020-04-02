@@ -244,10 +244,6 @@ def read_obs_swc_neo(ring):
     neo['Date'] = pd.to_datetime(neo['Date'],format="%d/%m/%y",infer_datetime_format=False)
     #  unit='D', origin=pd.Timestamp('2012-01-01')
 
-    datemark   = neo['Date'].unique()
-    datemark   = np.sort(datemark)
-    print(datemark)
-
     # turn datetime64[ns] into timedelta64[ns] since 2011-12-31, e.g. 2012-1-1 as 1 days
     neo['Date'] = neo['Date'] - pd.datetime(2011,12,31)
 

@@ -22,12 +22,10 @@ import scipy.stats as stats
 import datetime as dt
 import netCDF4 as nc
 from sklearn.metrics import mean_squared_error
-from cable_get_var import *
-from plot_eucface_swc_cable_vs_obs_neo import *
-from plot_eucface_swc_cable_vs_obs_tdr import *
-from plot_eucface_swc_cable_vs_obs_obsved_dates import *
+from get_var_value_error_surface import *
 
 def plot_2d(x, rmse, ref_var, case_name, txt_info):
+
     # _____________ Make plot _____________
     fig = plt.figure(figsize=(8,6))
     fig.subplots_adjust(hspace=0.3)
@@ -133,124 +131,129 @@ def plot_4d(x, y, z, rmse, var_names, ref_var, case_name, txt_info):
     #plt.show()
     fig.savefig("EucFACE_error_surface_4d_%s_%s" % (ref_var, case_name), bbox_inches='tight', pad_inches=0.1)
 
+def calc_2d(ref_vars, ring, layer):
 
-if __name__ == "__main__":
+    var_names  = ["hyds"] # ['bch']#
 
-    dim_info = "2d" # "3d", "4d"
-    layer    = "31uni"
-    ring     = "amb"
-    ref_var  = "swc_50" #'swc_all'
-    contour = False
+    if "hyds" in var_names:
+        case_name  = "EucFACE_run_opt_31uni_hyds-30cm"
+        var_values = ['-100','-95','-90','-85','-80','-75','-70','-65','-60','-55',
+                      '-50','-45','-40','-35','-30','-25','-20','-15','-10','-05',
+                      '00','05','10','15','20','25','30','35','40','45','50']
+        x = np.linspace(1.5,13.,24)
 
-    if dim_info == "2d":
-        var_names  = ["hyds"] # ['bch']#
+    elif "bch" in var_names:
+        case_name  = "EucFACE_run_opt_31uni_bch-50cm"
+        var_values = ['15','20','25','30','35','40','45','50','55','60','65','70','75','80','85',
+                      '90','95','100','105','110','115','120','125','130']
+        x = np.linspace(-10.,5.,31)
 
-        if "hyds" in var_names:
-            case_name  = "EucFACE_run_opt_31uni_hyds-30cm"
-            var_values = ['-100','-95','-90','-85','-80','-75','-70','-65','-60','-55',
-                          '-50','-45','-40','-35','-30','-25','-20','-15','-10','-05',
-                          '00','05','10','15','20','25','30','35','40','45','50']
-            x = np.linspace(1.5,13.,24)
+    rmse = np.zeros(len(var_values))
+    min_rmse = -9999.
+    min_i    = -1
 
-        elif "bch" in var_names:
-            case_name  = "EucFACE_run_opt_31uni_bch-50cm"
-            var_values = ['15','20','25','30','35','40','45','50','55','60','65','70','75','80','85',
-                          '90','95','100','105','110','115','120','125','130']
-            x = np.linspace(-10.,5.,31)
+    for i in np.arange(len(var_values)):
+        output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^%s_litter/EucFACE_amb_out.nc"\
+                     % (case_name, var_values[i])
+        #output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=%s_fw-hie-exp/EucFACE_amb_out.nc"\
+        #              % (case_name, var_values[i])
+        cable_var, obs_var = get_var_value(ref_var, output_file, layer, ring)
+        '''
+        =========== rmse ============
+        rmse[i] = np.sqrt(np.mean((obs_var - cable_var)**2))
 
-        rmse = np.zeros(len(var_values))
-        min_rmse = -9999.
-        min_i    = -1
+        if rmse[i] < min_rmse:
+            min_rmse = rmse[i]
+            min_i    = i
+        =============================
+        '''
+        cor_tdr = stats.pearsonr(cable_var,obs_var)
+        rmse[i] = cor_tdr[0]
+        if rmse[i] > min_rmse:
+            min_rmse = rmse[i]
+            min_i    = i
 
-        for i in np.arange(len(var_values)):
-            output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^%s_litter/EucFACE_amb_out.nc"\
-                         % (case_name, var_values[i])
-            #output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=%s_fw-hie-exp/EucFACE_amb_out.nc"\
-            #              % (case_name, var_values[i])
-            cable_var, obs_var = get_var_value(ref_var, output_file, layer, ring)
-            '''
-            =========== rmse ============
-            rmse[i] = np.sqrt(np.mean((obs_var - cable_var)**2))
+    txt_info= "when %s is %s, the min rmse is %s" % ( var_names, str(x[min_i]), str(min_rmse))
+    print("txt_info is ", txt_info)
+    plot_2d(x, rmse, ref_var, case_name, txt_info)
 
-            if rmse[i] < min_rmse:
-                min_rmse = rmse[i]
-                min_i    = i
-            =============================
-            '''
-            cor_tdr = stats.pearsonr(cable_var,obs_var)
-            rmse[i] = cor_tdr[0]
-            if rmse[i] > min_rmse:
-                min_rmse = rmse[i]
-                min_i    = i
+def calc_3d(ref_vars, ring, layer):
 
-        txt_info= "when %s is %s, the min rmse is %s" % ( var_names, str(x[min_i]), str(min_rmse))
-        print("txt_info is ", txt_info)
-        plot_2d(x, rmse, ref_var, case_name, txt_info)
+    #var_names  = ["bch","hyds"]
+    #var_values1 = ["-2","-15","-1","-05","0","05","1","15","2","25"]
+    #var_values2 = ["2","25","3","35","4","45","5","55","6","65","7"]
+    #x = np.linspace(-2.,2.5,10)
+    #y = np.linspace(2.,7.,11)
 
-    if dim_info == "3d":
-        var_names  = ["bch","hyds"]
-        case_name  = "std" #"EucFACE_run_sen_31uni_2bch-mid-bot"
-        var_values1 = ["20","30","40","50","60","70","80","90","100","110","120","130"]
-        var_values2 = ["-80","-75","-70","-65","-60","-55","-50","-45","-40","-35","-30","-25","-20","-15","-10","-05",
-                      "00","05","10","15","20"]
-        ref_var     = ['swc_50','swc_all','trans','esoil','esoil2trans']
+    case_name   = "hyds-mid-bot"
+    contour     = False
 
-        x = np.linspace(2.,13.,12)
-        y = np.linspace(-8.,2.,21)
+    var_names   = ["hyds","hyds"]
+    var_values1 = ["-2","-15","-1","-05","0","05","1","15","2","25","3","35","4","45","5"]
+    var_values2 = ["-2","-15","-1","-05","0","05","1","15","2","25","3","35","4","45","5"]
+    x           = np.linspace(-2.,5.,15)
+    y           = np.linspace(-2.,5.,15)
 
-        for k in np.arange(5):
-            rmse = np.zeros((len(var_values1), len(var_values2)))
-            min_rmse = 9999.
-            min_i    = -1
-            min_j    = -1
-            for i in np.arange(len(var_values1)):
-                for j in np.arange(len(var_values2)):
-                    #output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=%s-%s_fw-hie-exp_fix/EucFACE_amb_out.nc"\
-                    #  % (case_name, var_values1[i],var_values2[j])
-                    output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_31uni_bch-hyds-top1/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=%s-hyds^%s_std/EucFACE_amb_out.nc"\
-                                   % (case_name, var_values1[i], var_values2[j])
-
-                    cable_var, obs_var = get_var_value(ref_var[k], output_file, layer, ring)
-                    rmse[i,j] = np.sqrt(np.mean((obs_var - cable_var)**2))
-                    if rmse[i,j] < min_rmse:
-                        min_rmse = rmse[i,j]
-                        min_i    = i
-                        min_j    = j
-
-            txt_info= "when %s are %s and %s, the min rmse is %s" % ( var_names[0], str(x[min_i]), str(y[min_j]), str(min_rmse))
-            print("txt_info is ", txt_info)
-            plot_3d(x, y, rmse, var_names, ref_var[k], case_name, txt_info)
-
-            output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_31uni_bch-hyds-top1/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=%s-hyds^%s_std/EucFACE_amb_out.nc"\
-                           % (case_name, var_values1[min_i] ,var_values2[min_j])
-            case_info   = "/%s_bch=%s-hyds^%s_%s"\
-                           % (case_name, var_values1[min_i] ,var_values2[min_j],ref_var[k])
-            plot_profile(output_file, case_info, ring, contour, layer)
-            plot_neo(output_file, case_info, ring, layer)
-            plot_tdr(output_file, case_info, ring, layer)
-
-    if dim_info == "4d":
-        var_names  = ["hyds","hyds","hyds"] # ["bch","bch","bch"] #
-        case_name  = "EucFACE_run_sen_31uni_3hyds" #"EucFACE_run_sen_31uni_3bch" # "EucFACE_run_sen_31uni_3hyds-top50" # "EucFACE_run_sen_31uni_3bch-top50"
-
-        var_values1 = ["-8","-7","-6","-5","-4","-3","-2","-1","0","1","2"]
-        var_values2 = ["-8","-7","-6","-5","-4","-3","-2","-1","0","1","2"]
-        var_values3 = ["-8","-7","-6","-5","-4","-3","-2","-1","0","1","2"]
-        #["2","3","4","5","6","7","8","9","10","11","12","13"]
-        #["2","3","4","5","6","7","8"]
-        #["-8","-7","-6","-5","-4","-3","-2","-1","0","1","2"]
-
-        x = np.linspace(-8.,2.,11)
-        y = np.linspace(-8.,2.,11)
-        z = np.linspace(-8.,2.,11)
-        #np.linspace(2.,8.,7) # np.linspace(2.,13.,12) # np.linspace(-8.,2.,11)
-
-        rmse     = np.zeros((len(var_values1), len(var_values2),len(var_values3)))
+    for ref_var in ref_vars:
+        rmse = np.zeros((len(var_values1), len(var_values2)))
+        r    = np.zeros((len(var_values1), len(var_values2)))
         min_rmse = 9999.
         min_i    = -1
         min_j    = -1
-        min_k    = -1
+        for i in np.arange(len(var_values1)):
+            for j in np.arange(len(var_values2)):
+                output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_31uni_hyds-mid-bot/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^%s-%s_litter/EucFACE_amb_out.nc"\
+                                % (var_values1[i],var_values2[j])
+                #output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_31uni_bch-hyds-30cm/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^%s-%s_litter/EucFACE_amb_out.nc"\
+                #               % (var_values1[i], var_values2[j])
 
+                cable_var, obs_var = get_var_value(ref_var, output_file, layer, ring)
+                print(ref_var)
+                print(len(cable_var))
+                print(len(obs_var))
+                rmse[i,j] = np.sqrt(np.mean((obs_var - cable_var)**2))
+                r[i,j]    = stats.pearsonr(obs_var, cable_var)[0]
+                if rmse[i,j] < min_rmse:
+                    min_rmse = rmse[i,j]
+                    min_i    = i
+                    min_j    = j
+
+        txt_info= "when %s are %s and %s, the min rmse is %s" % ( var_names[0], str(x[min_i]), str(y[min_j]), str(min_rmse))
+        print("txt_info is ", txt_info)
+        plot_3d(x, y, rmse, var_names, ref_var, case_name, txt_info)
+
+        np.savetxt("EucFACE_RMSE_hyds-mid-bot_%s.csv" % (ref_var), rmse, delimiter=",")
+        np.savetxt("EucFACE_r_hyds-mid-bot_%s.csv" % (ref_var), r, delimiter=",")
+
+        #output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_31uni_bch-hyds-30cm/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^%s-%s_litter/EucFACE_amb_out.nc"\
+        #               % (var_values1[min_i] ,var_values2[min_j])
+        #case_info   = "/hyds^%s-bch=%s_%s"\
+        #               % (var_values1[min_i] ,var_values2[min_j],ref_var)
+        #plot_profile(output_file, case_info, ring, contour, layer)
+        #plot_neo(output_file, case_info, ring, layer)
+        #plot_tdr(output_file, case_info, ring, layer)
+
+def calc_4d(ref_vars, ring, layer):
+
+    var_names  = ["hyds","hyds","hyds"] # ["bch","bch","bch"] #
+    case_name  = "EucFACE_run_sen_31uni_3hyds" #"EucFACE_run_sen_31uni_3bch" # "EucFACE_run_sen_31uni_3hyds-top50" # "EucFACE_run_sen_31uni_3bch-top50"
+
+    var_values1 = ["-8","-7","-6","-5","-4","-3","-2","-1","0","1","2"]
+    var_values2 = ["-8","-7","-6","-5","-4","-3","-2","-1","0","1","2"]
+    var_values3 = ["-8","-7","-6","-5","-4","-3","-2","-1","0","1","2"]
+
+    x = np.linspace(-8.,2.,11)
+    y = np.linspace(-8.,2.,11)
+    z = np.linspace(-8.,2.,11)
+    #np.linspace(2.,8.,7) # np.linspace(2.,13.,12) # np.linspace(-8.,2.,11)
+
+    rmse     = np.zeros((len(var_values1), len(var_values2),len(var_values3)))
+    min_rmse = 9999.
+    min_i    = -1
+    min_j    = -1
+    min_k    = -1
+
+    for ref_var in ref_vars:
         for i in np.arange(len(var_values1)):
             for j in np.arange(len(var_values2)):
                 for k in np.arange(len(var_values3)):
@@ -270,3 +273,19 @@ if __name__ == "__main__":
         txt_info= "when %s are %s, %s and %s, the min rmse is %s" % ( var_names[0], str(x[min_i]), str(y[min_j]), str(z[min_k]), str(min_rmse))
         print("txt_info is ", txt_info)
         plot_4d(x, y, z, rmse, var_names, ref_var, case_name, txt_info)
+
+if __name__ == "__main__":
+
+    dim_info = "3d" # "3d", "4d"
+    layer    = "31uni"
+    ring     = "amb"
+    ref_vars     = ['swc_150','swc_25','swc_all','trans','esoil','esoil2trans']
+
+    if dim_info == "2d":
+        calc_2d(ref_vars,ring,layer)
+
+    elif dim_info == "3d":
+        calc_3d(ref_vars,ring,layer)
+
+    elif dim_info == "4d":
+        calc_4d(ref_vars, ring, layer)

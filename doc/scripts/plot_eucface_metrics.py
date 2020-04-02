@@ -304,7 +304,7 @@ def plot_r_rmse(metrics,ring):
 
     labels = ["Esoil", "Trans", "Esoil/Trans", "SM_25cm", "SM_top", "SM_mid", "SM_bot", "WA_all"]
 
-    x = np.linspace(-10.,5.,31)
+    x = np.linspace(2.,7.,11) #np.linspace(-10.,5.,31)
     for i in np.arange(0,8):
         labels[i]
         ax1.plot(x, metrics[:,i],label=labels[i] )
@@ -362,13 +362,16 @@ if __name__ == "__main__":
     '''
 
     ring  = "amb"
-    sen_values = np.linspace(-10.,5.,31)
+    #sen_values = np.linspace(-10.,5.,31)
+    sen_values = ["2","25","3","35","4","45","5","55","6","65","7"]
     metrics= np.zeros((len(sen_values),16))
     annual = np.zeros((len(sen_values),19))
 
     layer =  "31uni"
     for i,sen_value in enumerate(sen_values):
-        fcable = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_31uni_hyds-30cm/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^%s_litter/EucFACE_amb_out.nc" % str(sen_value).replace('.', '')
+        #fcable = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_31uni_bch-hyds-30cm/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^0-%s_litter/EucFACE_amb_out.nc" % str(sen_value).replace('.', '')
+        fcable = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_31uni_bch-hyds-30cm/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^0-%s_litter/EucFACE_amb_out.nc" % sen_value
+
         print(fcable)
         metrics[i,:] = calc_metrics(fcable, sen_value, ring, layer)
         annual[i,:]  = annual_value(fcable, sen_value, ring, layer)
