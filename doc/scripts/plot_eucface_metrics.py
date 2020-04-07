@@ -56,6 +56,24 @@ def calc_metrics(fcable, case_name, ring, layer):
     SM_25cm_obs   = subs_tdr["obs"].loc[subs_tdr.index.isin(subs_cable.index)]
     SM_25cm_cable = subs_cable["SM_25cm"].loc[subs_cable.index.isin(subs_tdr.index)]
 
+    mask           = np.isnan(SM_25cm_obs)
+    SM_25cm_obs     = SM_25cm_obs[mask == False]
+    SM_25cm_cable   = SM_25cm_cable[mask == False]
+
+    SM_15m_obs  = subs_neo["SM_15m"].loc[subs_neo.index.isin(subs_cable.index)]
+    SM_15m_cable= subs_cable["SM_15m"].loc[subs_cable.index.isin(subs_neo.index)]
+
+    mask           = np.isnan(SM_15m_obs)
+    SM_15m_obs     = SM_15m_obs[mask == False]
+    SM_15m_cable   = SM_15m_cable[mask == False]
+
+    SM_all_obs  = subs_neo["SM_all"].loc[subs_neo.index.isin(subs_cable.index)]
+    SM_all_cable= subs_cable["SM_all"].loc[subs_cable.index.isin(subs_neo.index)]
+
+    mask           = np.isnan(SM_all_obs)
+    SM_all_obs     = SM_all_obs[mask == False]
+    SM_all_cable   = SM_all_cable[mask == False]
+
     SM_top_obs  = subs_neo["SM_top"].loc[subs_neo.index.isin(subs_cable.index)]
     SM_top_cable= subs_cable["SM_top"].loc[subs_cable.index.isin(subs_neo.index)]
 
@@ -94,6 +112,10 @@ def calc_metrics(fcable, case_name, ring, layer):
     Esoil_Trans_MSE = mean_squared_error(Esoil_obs/Trans_obs,Esoil_cable/Trans_cable)
     SM_25cm_r       = stats.pearsonr(SM_25cm_obs.values, SM_25cm_cable.values)[0]
     SM_25cm_MSE     = mean_squared_error(SM_25cm_obs, SM_25cm_cable)
+    SM_15m_r        = stats.pearsonr(SM_15m_obs, SM_15m_cable)[0]
+    SM_15m_MSE      = mean_squared_error(SM_15m_obs, SM_15m_cable)
+    SM_all_r        = stats.pearsonr(SM_all_obs, SM_all_cable)[0]
+    SM_all_MSE      = mean_squared_error(SM_all_obs, SM_all_cable)
     SM_top_r        = stats.pearsonr(SM_top_obs, SM_top_cable)[0]
     SM_top_MSE      = mean_squared_error(SM_top_obs, SM_top_cable)
     SM_mid_r        = stats.pearsonr(SM_mid_obs, SM_mid_cable)[0]
@@ -103,8 +125,8 @@ def calc_metrics(fcable, case_name, ring, layer):
     WA_all_r        = stats.pearsonr(WA_all_obs, WA_all_cable)[0]
     WA_all_MSE      = mean_squared_error(WA_all_obs, WA_all_cable)
 
-    return Esoil_r,   Trans_r,   Esoil_Trans_r,   SM_25cm_r,  SM_top_r,   SM_mid_r,   SM_bot_r,  WA_all_r, \
-           Esoil_MSE, Trans_MSE, Esoil_Trans_MSE, SM_25cm_MSE,SM_top_MSE, SM_mid_MSE, SM_bot_MSE,WA_all_MSE;
+    return Esoil_r,   Trans_r,   Esoil_Trans_r,   SM_25cm_r,  SM_15m_r,   SM_all_r,   SM_bot_r,  WA_all_r, \
+           Esoil_MSE, Trans_MSE, Esoil_Trans_MSE, SM_25cm_MSE,SM_15m_MSE, SM_all_MSE, SM_bot_MSE,WA_all_MSE;
 
 def plotting(metrics,ring):
 
@@ -159,10 +181,12 @@ def annual_value(fcable, case_name, ring, layer):
                 0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
                 0.15,  0.15,  0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15,  \
                 0.15 ]
+    total_year = 7
 
     cable = nc.Dataset(fcable, 'r')
 
     step_2_sec = 30.*60.
+    umol_2_gC  = 12.0107 * 1.0E-6
 
     df              = pd.DataFrame(cable.variables['Rainf'][:,0,0]*step_2_sec, columns=['Rainf']) # 'Rainfall+snowfall'
     df['Evap']      = cable.variables['Evap'][:,0,0]*step_2_sec   # 'Total evaporation'
@@ -172,6 +196,7 @@ def annual_value(fcable, case_name, ring, layer):
     df['Qs']        = cable.variables['Qs'][:,0,0]*step_2_sec     # 'Surface runoff'
     df['Qsb']       = cable.variables['Qsb'][:,0,0]*step_2_sec    # 'Subsurface runoff'
     df['Qrecharge'] = cable.variables['Qrecharge'][:,0,0]*step_2_sec
+    df['GPP']       = cable.variables['GPP'][:,0,0]*step_2_sec*umol_2_gC
 
     status              = pd.DataFrame(cable.variables['Qle'][:,0,0] , columns=['Qle'])   # 'Surface latent heat flux'
     status['Qh']        = cable.variables['Qh'][:,0,0]    # 'Surface sensible heat flux'
@@ -256,19 +281,17 @@ def annual_value(fcable, case_name, ring, layer):
     status['dates']   = nc.num2date(cable.variables['time'][:], cable.variables['time'].units)
     status            = status.set_index('dates')
     status            = status.resample("Y").agg('mean')
-    print(df)
-    print(status)
-    df     = df.iloc[0:6,:].mean(axis=0)
-    status = status.iloc[0:6,:].mean(axis=0)
-    print(df)
-    print(status.shape)
 
-    annual = np.zeros(19)
-    for i in np.arange(19):
-        if i <= 7:
+    # multi-year average
+    df     = df.iloc[:,:].mean(axis=0)
+    status = status.iloc[:,:].mean(axis=0)
+
+    annual = np.zeros(20)
+    for i in np.arange(20):
+        if i <= 8:
             annual[i] = df.iloc[i]
         else:
-            annual[i] = status.iloc[i-8]
+            annual[i] = status.iloc[i-9]
 
     return annual;
 
@@ -320,24 +343,21 @@ def plot_r_rmse(metrics,ring):
     np.savetxt("EucFACE_metrics_%s.csv" % (ring), metrics, delimiter=",")
 
 if __name__ == "__main__":
-    '''
+
     cases_6 = [
-             "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_6",\
-             "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_6_litter",\
-             "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_SM_6_litter"
+            "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_6",
+            "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_6_litter"
               ]
     cases_31= [
-              "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_litter",\
-              "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x1-x1_litter",\
-              "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter",\
-              "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_hie-exp",\
-              "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_Hvrd",\
-              "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_hie-watpot"\
+            "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_litter",
+            "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter",
+            "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter_Hvrd",
+            "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter_hie-exp"
               ]
 
     rings  = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
     metrics= np.zeros((len(cases_6)+len(cases_31),16))
-    annual = np.zeros((len(cases_6)+len(cases_31),19))
+    annual = np.zeros((len(cases_6)+len(cases_31),20))
     for ring in rings:
         layer =  "6"
         for i,case_name in enumerate(cases_6):
@@ -359,8 +379,9 @@ if __name__ == "__main__":
         #metrics.to_csv("EucFACE_amb_%slayers_%s_gw_on_or_on.csv" %(layers, case_name))
         np.savetxt("EucFACE_metrics_%s.csv" % (ring), metrics, delimiter=",")
         np.savetxt("EucFACE_annual_%s.csv" % (ring), annual, delimiter=",")
-    '''
 
+
+    '''
     ring  = "amb"
     #sen_values = np.linspace(-10.,5.,31)
     sen_values = ["2","25","3","35","4","45","5","55","6","65","7"]
@@ -377,3 +398,4 @@ if __name__ == "__main__":
         annual[i,:]  = annual_value(fcable, sen_value, ring, layer)
     plot_r_rmse(metrics,ring)
     np.savetxt("EucFACE_annual_%s.csv" % (ring), annual, delimiter=",")
+    '''

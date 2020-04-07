@@ -216,9 +216,9 @@ def read_obs_trans(ring):
 
 def read_obs_swc_tdr(ring):
 
-    fobs   = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
+    fobs   = "/srv/ccrc/data25/z5218916/data/Eucface_data/SM_2013-2019/eucSM1319_gap_filled.csv"
     tdr = pd.read_csv(fobs, usecols = ['Ring','Date','swc.tdr'])
-    tdr['Date'] = pd.to_datetime(tdr['Date'],format="%Y-%m-%d",infer_datetime_format=False)
+    tdr['Date'] = pd.to_datetime(tdr['Date'],format="%d/%m/%Y",infer_datetime_format=False) # "%Y-%m-%d"
     tdr['Date'] = tdr['Date'] - pd.datetime(2011,12,31)
     tdr['Date'] = tdr['Date'].dt.days
     tdr = tdr.sort_values(by=['Date'])
@@ -236,7 +236,7 @@ def read_obs_swc_tdr(ring):
 
 def read_obs_swc_neo(ring):
 
-    fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
+    fobs = "/srv/ccrc/data25/z5218916/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
     neo = pd.read_csv(fobs, usecols = ['Ring','Depth','Date','VWC'])
     # usecols : read specific columns from CSV
 
@@ -282,6 +282,8 @@ def read_SM_top_mid_bot(fcable, ring, layer):
     Read CABLE ET and oil moisture for top mid bot blocks used in metrics calculation
 
     """
+
+    print(layer)
     cable = nc.Dataset(fcable, 'r')
     Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
     cable_data = pd.DataFrame(cable.variables['TVeg'][:,0,0]*1800., columns=['TVeg'])
@@ -308,6 +310,7 @@ def read_SM_top_mid_bot(fcable, ring, layer):
                                  + cable.variables['SoilMoist'][:,4,0,0]*      \
                                  (1.5-0.022-0.058-0.154-0.409) )/1.5
     elif layer == "31uni":
+        print("come in")
         cable_data['SM_top']  = (cable.variables['SoilMoist'][:,0,0,0]*0.15 \
                                  + cable.variables['SoilMoist'][:,1,0,0]*0.15)/0.3
         cable_data['SM_mid']  = cable.variables['SoilMoist'][:,2,0,0]*0.15
@@ -404,7 +407,7 @@ def read_obs_neo_top_mid_bot(ring):
     """
     Read neo soil moisture for top mid and bot soil blocks used for metrics calculation
     """
-    fobs_neo = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
+    fobs_neo = "/srv/ccrc/data25/z5218916/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
     neo = pd.read_csv(fobs_neo, usecols = ['Ring','Depth','Date','VWC'])
     neo['Date'] = pd.to_datetime(neo['Date'],format="%d/%m/%y",infer_datetime_format=False)
     neo['Date'] = neo['Date'] - pd.datetime(2011,12,31)
@@ -432,6 +435,8 @@ def read_obs_neo_top_mid_bot(ring):
     grid_data = griddata((x, y) , value, (grid_X, grid_Y), method='nearest')
 
     neo_data = pd.DataFrame(subset[(25)].index.values[20:], columns=['dates'])
+    neo_data["SM_15m"] = np.mean(grid_data[0:150,:],axis=0)/100.
+    neo_data["SM_all"] = np.mean(grid_data[:,:],axis=0)/100.
     neo_data["SM_top"] = np.mean(grid_data[0:30,:],axis=0)/100.
     neo_data["SM_mid"]  = np.mean(grid_data[30:150,:],axis=0)/100.
     neo_data["SM_bot"] = np.mean(grid_data[150:460,:],axis=0)/100.
@@ -450,10 +455,22 @@ def read_ET_SM_top_mid_bot(fcable, ring, layer):
     cable_data['Evap'] = cable.variables['Evap'][:,0,0]*1800.
 
     if layer == "6":
-        cable_data['SM_25cm'] = (  cable.variables['SoilMoist'][:,0,0,0]*0.022 \
+        cable_data['SM_25cm'] = (  cable.variables['SoilMoist'][:,0,0,0]*0.022
+                                 + cable.variables['SoilMoist'][:,1,0,0]*0.058
+                                 + cable.variables['SoilMoist'][:,2,0,0]*0.154
+                                 + cable.variables['SoilMoist'][:,3,0,0]*(0.25-0.022-0.058-0.154) )/0.25
+        cable_data['SM_15m'] = (   cable.variables['SoilMoist'][:,0,0,0]*0.022
+                                 + cable.variables['SoilMoist'][:,1,0,0]*0.058
+                                 + cable.variables['SoilMoist'][:,2,0,0]*0.154
+                                 + cable.variables['SoilMoist'][:,3,0,0]*0.409
+                                 + cable.variables['SoilMoist'][:,4,0,0]*
+                                   (1.5-0.022-0.058-0.154-0.409))/1.5
+        cable_data['SM_all'] = (  cable.variables['SoilMoist'][:,0,0,0]*0.022 \
                                  + cable.variables['SoilMoist'][:,1,0,0]*0.058 \
                                  + cable.variables['SoilMoist'][:,2,0,0]*0.154 \
-                                 + cable.variables['SoilMoist'][:,3,0,0]*(0.25-0.022-0.058-0.154) )/0.25
+                                 + cable.variables['SoilMoist'][:,3,0,0]*0.409 \
+                                 + cable.variables['SoilMoist'][:,4,0,0]*1.085 \
+                                 + cable.variables['SoilMoist'][:,5,0,0]*2.872  )/4.6
         cable_data['SM_top']  = (  cable.variables['SoilMoist'][:,0,0,0]*0.022 \
                                  + cable.variables['SoilMoist'][:,1,0,0]*0.058\
                                  + cable.variables['SoilMoist'][:,2,0,0]*0.154 \
@@ -462,7 +479,6 @@ def read_ET_SM_top_mid_bot(fcable, ring, layer):
                                  + cable.variables['SoilMoist'][:,4,0,0]*(1.2-0.343) )/1.2
         cable_data['SM_bot']  = (  cable.variables['SoilMoist'][:,4,0,0]*(1.085-(1.2-0.343)) \
                                  + cable.variables['SoilMoist'][:,5,0,0]*2.872)/(4.6-1.5)
-
         cable_data['WA_all'] = (   cable.variables['SoilMoist'][:,0,0,0]*0.022 \
                                  + cable.variables['SoilMoist'][:,1,0,0]*0.058 \
                                  + cable.variables['SoilMoist'][:,2,0,0]*0.154 \
@@ -473,6 +489,16 @@ def read_ET_SM_top_mid_bot(fcable, ring, layer):
     elif layer == "31uni":
         cable_data['SM_25cm'] = ( cable.variables['SoilMoist'][:,0,0,0]*0.15 \
                                  + cable.variables['SoilMoist'][:,1,0,0]*0.10 )/0.25
+        cable_data['SM_15m']  = cable.variables['SoilMoist'][:,0,0,0]*0.15
+        for i in np.arange(1,10):
+            cable_data['SM_15m']  = cable_data['SM_15m'] + cable.variables['SoilMoist'][:,i,0,0]*0.15
+        cable_data['SM_15m']  = cable_data['SM_15m']/1.5
+
+        cable_data['SM_all']  = cable.variables['SoilMoist'][:,30,0,0]*0.1
+        for i in np.arange(0,30):
+            cable_data['SM_all']  = cable_data['SM_all'] + cable.variables['SoilMoist'][:,i,0,0]*0.15
+        cable_data['SM_all']  = cable_data['SM_all']/4.6
+
         cable_data['SM_top']  = (cable.variables['SoilMoist'][:,0,0,0]*0.15 \
                                  + cable.variables['SoilMoist'][:,1,0,0]*0.15)/0.3
         cable_data['SM_mid']  = cable.variables['SoilMoist'][:,2,0,0]*0.15

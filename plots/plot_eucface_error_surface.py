@@ -136,11 +136,9 @@ def calc_2d(ref_vars, ring, layer):
     var_names  = ["hyds"] # ['bch']#
 
     if "hyds" in var_names:
-        case_name  = "EucFACE_run_opt_31uni_hyds-30cm"
-        var_values = ['-100','-95','-90','-85','-80','-75','-70','-65','-60','-55',
-                      '-50','-45','-40','-35','-30','-25','-20','-15','-10','-05',
-                      '00','05','10','15','20','25','30','35','40','45','50']
-        x = np.linspace(1.5,13.,24)
+        case_name  = "EucFACE_run_opt_31uni_hyds-all"
+        var_values = ['-30','-25','-20','-15','-10','-05','00','05','10','15','20','25','30','35','40','45','50']
+        x = np.linspace(-3.,5.,17)
 
     elif "bch" in var_names:
         case_name  = "EucFACE_run_opt_31uni_bch-50cm"
@@ -148,34 +146,36 @@ def calc_2d(ref_vars, ring, layer):
                       '90','95','100','105','110','115','120','125','130']
         x = np.linspace(-10.,5.,31)
 
-    rmse = np.zeros(len(var_values))
-    min_rmse = -9999.
-    min_i    = -1
+    for ref_var in ref_vars:
+        rmse = np.zeros(len(var_values))
+        r    = np.zeros(len(var_values))
+        min_rmse = -9999.
+        min_i    = -1
 
-    for i in np.arange(len(var_values)):
-        output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^%s_litter/EucFACE_amb_out.nc"\
-                     % (case_name, var_values[i])
-        #output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=%s_fw-hie-exp/EucFACE_amb_out.nc"\
-        #              % (case_name, var_values[i])
-        cable_var, obs_var = get_var_value(ref_var, output_file, layer, ring)
-        '''
-        =========== rmse ============
-        rmse[i] = np.sqrt(np.mean((obs_var - cable_var)**2))
+        for i in np.arange(len(var_values)):
+            output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^%s_litter/EucFACE_amb_out.nc"\
+                         % (case_name, var_values[i])
+            #output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/%s/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_bch=%s_fw-hie-exp/EucFACE_amb_out.nc"\
+            #              % (case_name, var_values[i])
+            cable_var, obs_var = get_var_value(ref_var, output_file, layer, ring)
 
-        if rmse[i] < min_rmse:
-            min_rmse = rmse[i]
-            min_i    = i
-        =============================
-        '''
-        cor_tdr = stats.pearsonr(cable_var,obs_var)
-        rmse[i] = cor_tdr[0]
-        if rmse[i] > min_rmse:
-            min_rmse = rmse[i]
-            min_i    = i
+            #=========== rmse ============
+            rmse[i] = np.sqrt(np.mean((obs_var - cable_var)**2))
 
-    txt_info= "when %s is %s, the min rmse is %s" % ( var_names, str(x[min_i]), str(min_rmse))
-    print("txt_info is ", txt_info)
-    plot_2d(x, rmse, ref_var, case_name, txt_info)
+            #============ r ==============
+            cor_tdr = stats.pearsonr(cable_var,obs_var)
+            r[i]    = cor_tdr[0]
+
+            if rmse[i] < min_rmse:
+                min_rmse = rmse[i]
+                min_i    = i
+
+        np.savetxt("EucFACE_RMSE_hyds-all_%s.csv" % (ref_var), rmse, delimiter=",")
+        np.savetxt("EucFACE_r_hyds-all_%s.csv" % (ref_var), r, delimiter=",")
+
+        txt_info= "when %s is %s, the min rmse is %s" % ( var_names, str(x[min_i]), str(min_rmse))
+        print("txt_info is ", txt_info)
+        plot_2d(x, rmse, ref_var, case_name, txt_info)
 
 def calc_3d(ref_vars, ring, layer):
 

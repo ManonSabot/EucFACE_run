@@ -239,7 +239,6 @@ def plot_ET(fcables, ring, case_labels):
         ax.plot(x, TVeg['cable'],     c=colors[case_num], lw=1.0, ls="-", label=case_labels[case_num]) #.rolling(window=5).mean() .rolling(window=7).mean()
         ax.plot(x, ESoil['cable'],    c=colors[case_num], lw=1.0, ls="-.") #.rolling(window=7).mean()
 
-
     #cleaner_dates = ["2013","2014","2015","2016","2017","2018","2019"] MMY
     #xtickslocs    = [367,732,1097,1462,1828,2193,2558] MMY
     cleaner_dates = ["2014-1-13","1-14","1-15","1-16","1-17","1-18","1-19","1-20"]

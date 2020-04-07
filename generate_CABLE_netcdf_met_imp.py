@@ -581,7 +581,9 @@ def main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname,
     print("all are good")
 
     if neo_constrain:
-        swilt_vec[:,0,0],watr[:],ssat_vec[:,0,0]  = \
+        #swilt_vec[:,0,0],watr[:],ssat_vec[:,0,0]  = \
+        #    neo_swilt_ssat(swc_fname, nsoil, ring, layer_num, swilt_vec[:,0,0], watr[:], ssat_vec[:,0,0], soil_frac, boundary)
+        swilt_vec[:,0,0],watr[:] = \
             neo_swilt_ssat(swc_fname, nsoil, ring, layer_num, swilt_vec[:,0,0], watr[:], ssat_vec[:,0,0], soil_frac, boundary)
     if tdr_constrain:
         swilt_vec[:,0,0],ssat_vec[:,0,0] = tdr_constrain_top_25cm(tdr_fname, ring, layer_num, swilt_vec[:,0,0],ssat_vec[:,0,0])
@@ -733,6 +735,10 @@ def estimate_rhosoil_vec(swc_fname, nsoil, ring, soil_frac, boundary):
 
 def init_soil_moisture(swc_fname, nsoil, ring, soil_frac, boundary):
 
+    '''
+    Initial SM at 2013-1-1 is interpolated between the neo obs of 2012-12-24 and 2013-1-8.
+    '''
+
     neo = pd.read_csv(swc_fname, usecols = ['Ring','Depth','Date','VWC'])
     neo['Date'] = pd.to_datetime(neo['Date'],format="%d/%m/%y",infer_datetime_format=False)
     neo['Date'] = neo['Date'] - pd.datetime(2012,12,31)
@@ -764,7 +770,7 @@ def init_soil_moisture(swc_fname, nsoil, ring, soil_frac, boundary):
     grid_X, grid_Y = np.meshgrid(X,Y)
 
     # interpolate
-    grid_data = griddata((x, y) , value, (grid_X, grid_Y), method=soil_frac)
+    grid_data = griddata((x, y) , value, (grid_X, grid_Y), method="linear")
     SoilMoist_grid = grid_data[:,30]/100.
 
     SoilM     = np.zeros(nsoil)
@@ -842,7 +848,7 @@ def neo_swilt_ssat(swc_fname, nsoil, ring, layer_num, swilt_input, watr_input, s
                 swilt_output[j]= watr_output[j]+0.0001
             else:
                 watr_output[j] = watr_input[j]
-
+    '''
     neo_max = np.zeros(12)
     neo_max[0] = subset[subset['Depth'] == 25]['VWC'].nlargest(1)/100.
     neo_max[1] = subset[subset['Depth'] == 50]['VWC'].nlargest(1)/100.
@@ -878,14 +884,8 @@ def neo_swilt_ssat(swc_fname, nsoil, ring, layer_num, swilt_input, watr_input, s
     # assumption: neo_max cannot capture ssat when depth > 1m
     if layer_num == "6":
         layer_num_1m = 4 # [0-64.3cm]
-    elif layer_num == "13":
-        layer_num_1m = 7 # [0-116cm]
     elif layer_num == "31uni":
-        layer_num_1m = 3 # [0-105cm]
-    elif layer_num == "31exp":
-        layer_num_1m = 19 # [0-110.6079cm]
-    elif layer_num == "31para":
-        layer_num_1m = 10 # [0-110.0403cm]
+        layer_num_1m = 3 # [0-105cm] #???
 
     for i in np.arange(layer_num_1m, len(ssat_input)):
         if ssat_output[i] < ssat_input[i]:
@@ -897,8 +897,10 @@ def neo_swilt_ssat(swc_fname, nsoil, ring, layer_num, swilt_input, watr_input, s
             print("the difference between calculated and observated ssats in the %s layer is larger than 0.03" % str(j))
             print("the calculated is %s and the observated is %s" % ( str(ssat_input[j]), str(ssat_output[j])))
             print("*********************************")
+    '''
 
-    return swilt_output, watr_output, ssat_output;
+    #return swilt_output, watr_output, ssat_output;
+    return swilt_output, watr_output;
 
 def tdr_constrain_top_25cm(tdr_fname, ring, layer_num, swilt_input, ssat_input):
 
@@ -1133,7 +1135,7 @@ if __name__ == "__main__":
     met_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/met_2013-2019/eucFACEmet1319_gap_filled.csv"
     lai_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/met_2013-2019/eucLAI1319.csv"
     swc_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
-    tdr_fname = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
+    tdr_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/SM_2013-2019/eucSM1319_gap_filled.csv"
     stx_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/soil_texture/FACE_P0018_RA_SOILTEXT_L2_20120501.csv"
 
     PTF = "Campbell_Cosby_multivariate"

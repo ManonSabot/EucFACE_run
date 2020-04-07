@@ -173,13 +173,14 @@ def find_Heatwave_hourly(fcable, ring, layer):
 
     i = 0
 
-    while i < len(Tair_daily)-2:
-
+    #while i < len(Tair_daily)-2:
+    while i < len(Tair_daily)-1:
         HW_event = []
 
         if (np.all([day[i:i+3]])):
 
-            day_start = Tair_daily.index[i-2]
+            #day_start = Tair_daily.index[i-2]
+            day_start = Tair_daily.index[i-1]
             i = i + 3
 
             while day[i]:
@@ -187,11 +188,14 @@ def find_Heatwave_hourly(fcable, ring, layer):
                 i += 1
 
             else:
-                day_end = Tair_daily.index[i+2] # the third day after heatwave
+                #if i+2 < len(Tair_daily.index):
+                #    day_end = Tair_daily.index[i+2] # the third day after heatwave
+                #elif i+1 < len(Tair_daily.index):
+                if i+1 < len(Tair_daily.index):
+                    day_end = Tair_daily.index[i+1]
+                else:
+                    day_end = Tair_daily.index[i]
 
-                #print(np.all([Tair.index >= day_start,  Tair.index < day_end],axis=0))
-                #print(day_start)
-                #print(day_end)
                 Tair_event  = Tair[np.all([Tair.index >= day_start,  Tair.index < day_end],axis=0)]
                 Rainf_event = Rainf[np.all([Tair.index >= day_start, Tair.index < day_end],axis=0)]
                 Qle_event   = Qle[np.all([Tair.index >= day_start,   Tair.index < day_end],axis=0)]
@@ -222,19 +226,22 @@ def find_Heatwave_hourly(fcable, ring, layer):
 
 def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh, EF, SM_top, SM_mid, SM_bot, SM_all, SM_15m):
 
+    # ======================= Plot setting ============================
     if time_scale == "daily":
-        fig = plt.figure(figsize=[12,20])
+        fig = plt.figure(figsize=[11,17.5])
     elif time_scale == "hourly":
-        fig = plt.figure(figsize=[14,20])
+        fig = plt.figure(figsize=[13,17.5])
 
-    fig.subplots_adjust(hspace=0.1)
-    fig.subplots_adjust(wspace=0.05)
-    plt.rcParams['text.usetex'] = False
-    plt.rcParams['font.family'] = "sans-serif"
-    plt.rcParams['font.sans-serif'] = "Helvetica"
-    plt.rcParams['axes.labelsize'] = 14
-    plt.rcParams['font.size'] = 14
-    plt.rcParams['legend.fontsize'] = 14
+    fig.subplots_adjust(hspace=0.0)
+    fig.subplots_adjust(wspace=0.1)
+
+    plt.rcParams['text.usetex']     = False
+    plt.rcParams['font.family']     = "sans-serif"
+    plt.rcParams['font.serif']      = "Helvetica"
+    plt.rcParams['axes.linewidth']  = 1.5
+    plt.rcParams['axes.labelsize']  = 14
+    plt.rcParams['font.size']       = 14
+    plt.rcParams['legend.fontsize'] = 12
     plt.rcParams['xtick.labelsize'] = 14
     plt.rcParams['ytick.labelsize'] = 14
 
@@ -244,22 +251,27 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
     plt.rcParams['xtick.color'] = almost_black
 
     # change the text colors also to the almost black
-    plt.rcParams['text.color'] = almost_black
+    plt.rcParams['text.color']  = almost_black
 
     # Change the default axis colors from black to a slightly lighter black,
     # and a little thinner (0.5 instead of 1)
-    plt.rcParams['axes.edgecolor'] = almost_black
+    plt.rcParams['axes.edgecolor']  = almost_black
     plt.rcParams['axes.labelcolor'] = almost_black
 
-    ax1  = fig.add_subplot(511)
-    ax2  = fig.add_subplot(512)
-    ax3  = fig.add_subplot(513)
-    ax4  = fig.add_subplot(514)
-    ax5  = fig.add_subplot(515)
+    # set the box type of sequence number
+    props = dict(boxstyle="round", facecolor='white', alpha=0.0, ec='white')
 
-    x      = date
-    colors = cm.tab20(np.linspace(0,1,len(case_labels)))
-    ax6 = ax1.twinx()
+    # choose colormap
+    colors = cm.Set2(np.arange(0,len(case_labels)))
+
+    ax1  = fig.add_subplot(511)
+    ax2  = fig.add_subplot(512,sharex=ax1)
+    ax3  = fig.add_subplot(513,sharex=ax2)
+    ax4  = fig.add_subplot(514,sharex=ax3)
+    ax5  = fig.add_subplot(515,sharex=ax4)
+
+    x    = date
+    #ax6  = ax1.twinx()
 
     if time_scale == "daily":
         width  = 0.6
@@ -267,77 +279,101 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
         width  = 1/48
 
     ax1.plot(x, Tair,   c="black", lw=1.5, ls="-", label="Air Temperature")#.rolling(window=30).mean()
-    if time_scale == "daily":
-        ax1.set_ylabel('Max Air Temperature (°C)')
-        ax1.set_ylim(20, 45)
-    elif time_scale == "hourly":
-        ax1.set_ylabel('Air Temperature (°C)')
-        ax1.set_ylim(10, 45)
-
-    ax6.set_ylabel('Rainfall (mm d$^{-1}$)')
-    ax6.bar(x, Rainf,  width, color='royalblue', alpha = 0.5, label='Rainfall')
-    if time_scale == "daily":
-        ax6.set_ylim(0., 30.)
-    elif time_scale == "hourly":
-        ax6.set_ylim(0, 20)
 
     for case_num in np.arange(len(case_labels)):
         print(case_num)
         ax2.plot(x, EF[case_num, :],  c=colors[case_num], lw=1.5, ls="-", label=case_labels[case_num])#.rolling(window=30).mean()
         ax3.plot(x, Qle[case_num, :], c=colors[case_num], lw=1.5, ls="-", label=case_labels[case_num])#.rolling(window=30).mean()
         ax4.plot(x, Qh[case_num, :],  c=colors[case_num], lw=1.5, ls="-", label=case_labels[case_num]) #, label=case_labels)#.rolling(window=30).mean()
-        ax5.plot(x, SM_15m[case_num, :]*1500.,  c=colors[case_num], lw=1.5, ls="-", label=case_labels[case_num])#.rolling(window=30).mean()
-        #ax4.plot(x, SM_all[case_num, :],  c=colors[case_num], lw=1.5, ls="-", label=case_labels[case_num])#.rolling(window=30).mean()
+        ax5.plot(x, SM_15m[case_num, :],  c=colors[case_num], lw=1.5, ls="-", label=case_labels[case_num]) #*1500.#.rolling(window=30).mean()
+
+    if time_scale == "daily":
+        ax1.set_ylabel('Max Air Temperature (°C)')
+        ax1.set_ylim(20, 45)
+    elif time_scale == "hourly":
+        ax1.set_ylabel('Tair (°C)')
+        ax1.set_ylim(10, 41)
 
     plt.setp(ax1.get_xticklabels(), visible=False)
     ax1.set_xlim(date[0],date[-1])
+    ax1.axhline(y=35.,c=almost_black, ls="--")
+    #ax1.spines['top'].set_visible(False)
+    #ax1.spines['right'].set_visible(False)
+    #ax1.spines['bottom'].set_visible(False)
+    ax1.get_xaxis().set_visible(False)
+    ax1.text(0.02, 0.95, '(a)', transform=ax1.transAxes, fontsize=14, verticalalignment='top', bbox=props)
 
     plt.setp(ax2.get_xticklabels(), visible=False)
-    ax2.set_ylabel("Evaporative Fraction (-)")
+    ax2.set_ylabel("EF")
     ax2.axis('tight')
     ax2.set_xlim(date[0],date[-1])
     if time_scale == "daily":
         ax2.set_ylim(0.,1.8)
-    #elif time_scale == "hourly":
-        #ax2.set_ylim(0,3.)
+    elif time_scale == "hourly":
+        ax2.set_ylim(0,1.1)
+    #ax2.spines['top'].set_visible(False)
+    #ax2.spines['right'].set_visible(False)
+    #ax2.spines['bottom'].set_visible(False)
+    #ax2.get_xaxis().set_visible(False)
+    ax2.text(0.02, 0.95, '(b)', transform=ax2.transAxes, fontsize=14, verticalalignment='top', bbox=props)
 
     plt.setp(ax3.get_xticklabels(), visible=False)
-    ax3.set_ylabel('Latent Heat (W m$^{-2}$)')
+    ax3.set_ylabel('LH (W m$^{-2}$)')
     ax3.axis('tight')
     ax3.set_xlim(date[0],date[-1])
     if time_scale == "daily":
         ax3.set_ylim(-50.,220)
+    elif time_scale == "hourly":
+        ax3.set_ylim(-30.,495.)
+    #ax3.spines['top'].set_visible(False)
+    #ax3.spines['right'].set_visible(False)
+    #ax3.spines['bottom'].set_visible(False)
+    #ax3.get_xaxis().set_visible(False)
+    ax3.text(0.02, 0.95, '(c)', transform=ax3.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+    ax3.legend( loc='best', frameon=False)
 
     plt.setp(ax4.get_xticklabels(), visible=False)
-    ax4.set_ylabel('Sensible Heat (W m$^{-2}$)')
+    ax4.set_ylabel('SH (W m$^{-2}$)')
     ax4.axis('tight')
     ax4.set_xlim(date[0],date[-1])
     if time_scale == "daily":
         ax4.set_ylim(-50.,220)
+    elif time_scale == "hourly":
+        ax4.set_ylim(-30.,495.)
+    #ax4.spines['top'].set_visible(False)
+    #ax4.spines['right'].set_visible(False)
+    #ax4.spines['bottom'].set_visible(False)
+    #ax4.get_xaxis().set_visible(False)
+    ax4.text(0.02, 0.95, '(d)', transform=ax4.transAxes, fontsize=14, verticalalignment='top', bbox=props)
 
     plt.setp(ax5.get_xticklabels(), visible=True)
-    ax5.set_ylabel("Soil water in top 1.5m (mm)") #(m$^{3}$ m$^{-3}$)")
+    ax5.set_ylabel("VWC in 1.5m (m$^{3}$ m$^{-3}$)") #(m$^{3}$ m$^{-3}$)")
     ax5.axis('tight')
     #ax5.legend()
     ax5.set_xlim(date[0],date[-1])
     if time_scale == "daily":
-        #ax5.set_ylim(0.18,0.32)
+        ax5.set_ylim(0.18,0.32)
         plt.suptitle('Heatwave in %s ~ %s ' % (str(date[2]), str(date[-3])))
-    #elif time_scale == "hourly":
-        #ax5.set_ylim(0.15,0.35)
-        #plt.suptitle('Heatwave in %s ~ %s ' % (str(date[2]), str(date[-3])))
-    ax5.legend()
+    elif time_scale == "hourly":
+        ax5.set_ylim(0.10,0.31)
+    #ax5.spines['top'].set_visible(False)
+    #ax5.spines['right'].set_visible(False)
+    ax5.text(0.02, 0.95, '(e)', transform=ax5.transAxes, fontsize=14, verticalalignment='top', bbox=props)
 
-    '''
-    plt.setp(ax4.get_xticklabels(), visible=True)
-    ax4.set_ylabel("VWC (m$^{3}$ m$^{-3}$)")
-    ax4.axis('tight')
-    #ax4.set_ylim(0.,0.4)
-    ax4.legend()
-    '''
+    # ax6.set_ylabel('P (mm d$^{-1}$)')
+    # ax6.bar(x, Rainf,  width, color='royalblue', alpha = 0.5, label='Rainfall')
+    # if time_scale == "daily":
+    #     ax6.set_ylim(0., 30.)
+    # elif time_scale == "hourly":
+    #     ax6.set_ylim(0, 10.)
+    # ax6.spines['top'].set_visible(False)
+    # ax6.spines['right'].set_visible(False)
+    # ax6.spines['bottom'].set_visible(False)
+    # ax6.get_xaxis().set_visible(False)
+
     fig.savefig("../plots/EucFACE_Heatwave_%s" % str(i) , bbox_inches='tight', pad_inches=0.02)
 
-def plot_EF_SM_HW(fcables, ring, layers, case_labels, time_scale):
+def plot_EF_SM_HW(fcables, case_labels, layers, ring, time_scale):
 
     # =========== Calc HW events ==========
     # save all cases and all heatwave events
@@ -552,7 +588,7 @@ def boxplot_Qle_Qh_EF_HW(fcables, case_labels, time_scale):
 
     plt.setp(ax1.get_xticklabels(), visible=False)
     #ax1.set_xlim(date[0],date[-1])
-    ax1.set_ylabel('Latent Heat (W m$^{-2}$)')
+    ax1.set_ylabel('LH (W m$^{-2}$)')
     ax1.axis('tight')
     #ax1.set_xlim(date[0],date[-1])
     ax1.set_ylim(-50.,600.)
@@ -561,7 +597,7 @@ def boxplot_Qle_Qh_EF_HW(fcables, case_labels, time_scale):
 
     plt.setp(ax2.get_xticklabels(), visible=False)
     #ax2.set_xlim(date[0],date[-1])
-    ax2.set_ylabel('Sensible Heat (W m$^{-2}$)')
+    ax2.set_ylabel('SH (W m$^{-2}$)')
     ax2.axis('tight')
     #ax2.set_xlim(date[0],date[-1])
     ax2.set_ylim(-120.,400.)
@@ -570,7 +606,7 @@ def boxplot_Qle_Qh_EF_HW(fcables, case_labels, time_scale):
 
     plt.setp(ax3.get_xticklabels(), visible=True)
     #ax3.set_xlim(date[0],date[-1])
-    ax3.set_ylabel("Evaporative Fraction (-)")
+    ax3.set_ylabel("EF")
     ax3.axis('tight')
     #ax3.set_xlim(date[0],date[-1])
     ax3.set_ylim(-0.3,1.6)
@@ -589,7 +625,7 @@ def group_boxplot_Qle_Qh_EF_HW(fcables, case_labels):
     day_hw   = len(find_all_Heatwave_days(fcables[0]))
     print("day_hw %f" % day_hw)
     print(find_all_Heatwave_days(fcables[0]))
-    
+
     Tair, Qle_tmp, Qh_tmp, EF_tmp = get_day_time_Qle_Qh_EF(fcables[0])
     day_all = len(Qle_tmp)
 
@@ -667,16 +703,18 @@ def group_boxplot_Qle_Qh_EF_HW(fcables, case_labels):
 
         s  =  e
 
-    fig = plt.figure(figsize=[13,15])
+    # ======================= Plot setting ============================
+    fig = plt.figure(figsize=[7,11])
+    fig.subplots_adjust(hspace=0.05)
+    fig.subplots_adjust(wspace=0.0)
 
-    fig.subplots_adjust(hspace=0.1)
-    fig.subplots_adjust(wspace=0.05)
-    plt.rcParams['text.usetex'] = False
-    plt.rcParams['font.family'] = "sans-serif"
-    plt.rcParams['font.sans-serif'] = "Helvetica"
+    plt.rcParams['text.usetex']     = False
+    plt.rcParams['font.family']     = "sans-serif"
+    plt.rcParams['font.serif']      = "Helvetica"
+    plt.rcParams['axes.linewidth']  = 1.5
     plt.rcParams['axes.labelsize']  = 14
     plt.rcParams['font.size']       = 14
-    plt.rcParams['legend.fontsize'] = 14
+    plt.rcParams['legend.fontsize'] = 12
     plt.rcParams['xtick.labelsize'] = 14
     plt.rcParams['ytick.labelsize'] = 14
 
@@ -686,97 +724,66 @@ def group_boxplot_Qle_Qh_EF_HW(fcables, case_labels):
     plt.rcParams['xtick.color'] = almost_black
 
     # change the text colors also to the almost black
-    plt.rcParams['text.color'] = almost_black
+    plt.rcParams['text.color']  = almost_black
 
     # Change the default axis colors from black to a slightly lighter black,
     # and a little thinner (0.5 instead of 1)
-    plt.rcParams['axes.edgecolor'] = almost_black
+    plt.rcParams['axes.edgecolor']  = almost_black
     plt.rcParams['axes.labelcolor'] = almost_black
 
+    # set the box type of sequence number
+    props = dict(boxstyle="round", facecolor='white', alpha=0.0, ec='white')
+
     ax1  = fig.add_subplot(311)
-    ax2  = fig.add_subplot(312)
-    ax3  = fig.add_subplot(313)
+    ax2  = fig.add_subplot(312,sharex=ax1)
+    ax3  = fig.add_subplot(313,sharex=ax2)
 
-    flierprops = dict(marker='o', markersize=3, markerfacecolor="black")
+    sns.boxplot(x="exp", y="Qle", hue="day", data=hw, palette="Set2",
+                order=case_labels,  width=0.7, hue_order=['heatwave','summer'],
+                ax=ax1, showfliers=False, color=almost_black)
+    sns.boxplot(x="exp", y="Qh", hue="day", data=hw, palette="Set2",
+                order=case_labels,  width=0.7, hue_order=['heatwave','summer'],
+                ax=ax2, showfliers=False, color=almost_black)
+    sns.boxplot(x="exp", y="EF", hue="day", data=hw, palette="Set2",
+                order=case_labels,  width=0.7, hue_order=['heatwave','summer'],
+                ax=ax3, showfliers=False, color=almost_black)
 
-    sns.boxplot(x="exp", y="Qle", hue="day", data=hw, palette="Set3",
-                     order=case_labels, flierprops=flierprops, width=0.6,
-                     hue_order=['heatwave','summer'], ax=ax1)# ['heatwave','all']
-
-    sns.boxplot(x="exp", y="Qh", hue="day", data=hw, palette="Set3",
-                     order=case_labels, flierprops=flierprops, width=0.6,
-                     hue_order=['heatwave','summer'], ax=ax2)# ['heatwave','all']
-
-    sns.boxplot(x="exp", y="EF", hue="day", data=hw, palette="Set3",
-                     order=case_labels, flierprops=flierprops, width=0.6,
-                     hue_order=['heatwave','summer'], ax=ax3)# ['heatwave','all']
-
-    ax1.set_ylabel('Latent Heat (W m$^{-2}$)')
+    ax1.set_ylabel('LH (W m$^{-2}$)')
     ax1.axis('tight')
     #ax1.set_xlim(date[0],date[-1])
-    ax1.set_ylim(-50.,600.)
-    ax1.axhline(y=np.median(Qle_hw[:,0]) , ls="--")
-    ax1.axhline(y=np.median(Qle_all[:,0]), ls="-.")
+    ax1.spines['top'].set_visible(False)
+    ax1.spines['right'].set_visible(False)
+    ax1.spines['bottom'].set_visible(False)
+    ax1.set_ylim(-50.,550.)
+    ax1.legend(loc='best', frameon=False)
+    #ax1.axhline(y=np.median(Qle_hw[:,0]) ,color=almost_black, ls="--")
+    ax1.axhline(y=np.mean(Qle_hw[:,0]) ,color=almost_black, ls="--")
+    ax1.text(0.02, 0.95, '(a)', transform=ax1.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+    ax1.get_xaxis().set_visible(False)
 
-    ax2.set_ylabel('Sensible Heat (W m$^{-2}$)')
+    ax2.set_ylabel('SH (W m$^{-2}$)')
     ax2.axis('tight')
+    ax2.legend().set_visible(False)
+    ax2.spines['top'].set_visible(False)
+    ax2.spines['right'].set_visible(False)
+    ax2.spines['bottom'].set_visible(False)
     #ax2.set_xlim(date[0],date[-1])
     ax2.set_ylim(-120.,400.)
-    ax2.axhline(y=np.median(Qh_hw[:,0]) , ls="--")
-    ax2.axhline(y=np.median(Qh_all[:,0]), ls="-.")
+    #ax2.axhline(y=np.median(Qh_hw[:,0]) , color=almost_black, ls="--")
+    ax2.axhline(y=np.mean(Qh_hw[:,0]) , color=almost_black, ls="--")
+    ax2.text(0.02, 0.95, '(b)', transform=ax2.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+    ax2.get_xaxis().set_visible(False)
 
-    ax3.set_ylabel("Evaporative Fraction (-)")
+    ax3.set_ylabel("EF")
     ax3.axis('tight')
+    ax3.spines['top'].set_visible(False)
+    ax3.spines['right'].set_visible(False)
+    ax3.legend().set_visible(False)
     #ax3.set_xlim(date[0],date[-1])
     ax3.set_ylim(-0.3,1.6)
     #plt.legend()
-    ax3.axhline(y=np.median(EF_hw[:,0]) , ls="--")
-    ax3.axhline(y=np.median(EF_all[:,0]), ls="-.")
+    #ax3.axhline(y=np.median(EF_hw[:,0]) ,color=almost_black, ls="--")
+    ax3.axhline(y=np.mean(EF_hw[:,0]) ,color=almost_black, ls="--")
+    ax3.text(0.02, 0.95, '(c)', transform=ax3.transAxes, fontsize=14, verticalalignment='top', bbox=props)
 
     fig.savefig("../plots/EucFACE_Qle_Qh_EF_summer_group_boxplot" , bbox_inches='tight', pad_inches=0.02)
-
-if __name__ == "__main__":
-
-    ring   = "amb"
-    case_1 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_6"
-    fcbl_1 ="%s/EucFACE_%s_out.nc" % (case_1, ring)
-
-    case_2 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_6_litter"
-    fcbl_2 ="%s/EucFACE_%s_out.nc" % (case_2, ring)
-
-    case_3 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_SM_6_litter"
-    fcbl_3 ="%s/EucFACE_%s_out.nc" % (case_3, ring)
-
-    case_4 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_31uni_litter"
-    fcbl_4 ="%s/EucFACE_%s_out.nc" % (case_4, ring)
-
-    case_5 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_litter"
-    fcbl_5 ="%s/EucFACE_%s_out.nc" % (case_5, ring)
-
-    case_6 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x1-x1_litter"
-    fcbl_6 ="%s/EucFACE_%s_out.nc" % (case_6, ring)
-
-    case_7 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter"
-    fcbl_7 ="%s/EucFACE_%s_out.nc" % (case_7, ring)
-
-    case_8 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_Hvrd"
-    fcbl_8 ="%s/EucFACE_%s_out.nc" % (case_8, ring)
-
-    case_9 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_hie-exp"
-    fcbl_9 ="%s/EucFACE_%s_out.nc" % (case_9, ring)
-
-    case_10 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_hie-watpot"
-    fcbl_10 ="%s/EucFACE_%s_out.nc" % (case_10, ring)
-
-    case_11 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_LAIx08_31uni_litter_LAIx08"
-    fcbl_11 ="%s/EucFACE_%s_out.nc" % (case_11, ring)
-
-    case_12 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_LAIx12_31uni_litter_LAIx12"
-    fcbl_12 ="%s/EucFACE_%s_out.nc" % (case_12, ring)
-
-    fcables     = [fcbl_1, fcbl_2, fcbl_5,   fcbl_6,    fcbl_7, fcbl_8,  fcbl_9]#,  fcbl_11, fcbl_12]
-    case_labels = ["Ctl",  "Lit",  "Hi-Res", "Opt-top", "Opt",  "β-hvrd","β-exp"]#, "Hi-Res-LAI-20", "Hi-Res-LAI+20"]
-    time_scale  = "all_days"
-
-    #boxplot_Qle_Qh_EF_HW(fcables, case_labels, time_scale)
-    group_boxplot_Qle_Qh_EF_HW(fcables, case_labels)
