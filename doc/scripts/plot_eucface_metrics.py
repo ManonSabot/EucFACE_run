@@ -24,34 +24,43 @@ from matplotlib import ticker
 import datetime as dt
 import netCDF4 as nc
 from scipy.interpolate import griddata
+from scipy.interpolate import interp1d
 import scipy.stats as stats
 from sklearn.metrics import mean_squared_error
 from plot_eucface_get_var import *
 
 def calc_metrics(fcable, case_name, ring, layer):
 
+    plt.rc('font', family='Helvetica')
+
     subs_Esoil = read_obs_esoil(ring)
-    print(subs_Esoil)
+    print(len(subs_Esoil))
     subs_Trans = read_obs_trans(ring)
-    print(subs_Trans)
+    print(len(subs_Trans))
     subs_tdr   = read_obs_swc_tdr(ring)
-    print(subs_tdr)
+    print(len(subs_tdr))
     subs_neo   = read_obs_neo_top_mid_bot(ring)
-    print(subs_neo)
+    print(len(subs_neo))
     subs_cable = read_ET_SM_top_mid_bot(fcable, ring, layer)
-    print(subs_cable)
+    print(len(subs_cable))
 
     # unify dates
-    Esoil_obs   = subs_Esoil['obs'].loc[np.all([subs_Esoil.index.isin(subs_Trans.index),subs_Esoil.index.isin(subs_cable.index)],axis=0)]
-    Trans_obs   = subs_Trans['obs'].loc[np.all([subs_Trans.index.isin(subs_Esoil.index),subs_Trans.index.isin(subs_cable.index)],axis=0)]
-    Esoil_cable = subs_cable["ESoil"].loc[np.all([subs_cable.index.isin(subs_Esoil.index),subs_cable.index.isin(subs_Trans.index)],axis=0)]
-    Trans_cable = subs_cable["TVeg"].loc[np.all([subs_cable.index.isin(subs_Esoil.index),subs_cable.index.isin(subs_Trans.index)],axis=0)]
+    Esoil_obs   = subs_Esoil['obs'].loc[subs_Esoil.index.isin(subs_cable.index)]
+    Esoil_cable = subs_cable["ESoil"].loc[subs_cable.index.isin(subs_Esoil.index)]
+    Trans_obs   = subs_Trans['obs'].loc[subs_Trans.index.isin(subs_cable.index)]
+    Trans_cable = subs_cable["TVeg"].loc[subs_cable.index.isin(subs_Trans.index)]
 
-    mask           = np.any([np.isnan(Esoil_obs), np.isnan(Trans_obs)],axis=0)
-    Esoil_obs      = Esoil_obs[mask == False]
-    Trans_obs      = Trans_obs[mask == False]
-    Esoil_cable    = Esoil_cable[mask == False]
-    Trans_cable    = Trans_cable[mask == False]
+    #mask           = np.any([np.isnan(Esoil_obs), ],axis=0)
+
+    Esoil_cable    = Esoil_cable[np.isnan(Esoil_obs) == False]
+    Trans_cable    = Trans_cable[np.isnan(Trans_obs) == False]
+    Esoil_obs      = Esoil_obs[np.isnan(Esoil_obs) == False]
+    Trans_obs      = Trans_obs[np.isnan(Trans_obs) == False]
+
+    print(np.any(np.isnan(Esoil_obs)))
+    print(np.any(np.isnan(Trans_obs)))
+    print(np.any(np.isnan(Esoil_cable)))
+    print(np.any(np.isnan(Trans_cable)))
 
     SM_25cm_obs   = subs_tdr["obs"].loc[subs_tdr.index.isin(subs_cable.index)]
     SM_25cm_cable = subs_cable["SM_25cm"].loc[subs_cable.index.isin(subs_tdr.index)]
@@ -108,8 +117,8 @@ def calc_metrics(fcable, case_name, ring, layer):
     Trans_r   = stats.pearsonr(Trans_obs, Trans_cable)[0]
     Trans_MSE = mean_squared_error(Trans_obs, Trans_cable)
 
-    Esoil_Trans_r   = stats.pearsonr(Esoil_obs/Trans_obs,Esoil_cable/Trans_cable)[0]
-    Esoil_Trans_MSE = mean_squared_error(Esoil_obs/Trans_obs,Esoil_cable/Trans_cable)
+    #Esoil_Trans_r   = stats.pearsonr(Esoil_obs/Trans_obs,Esoil_cable/Trans_cable)[0]
+    #Esoil_Trans_MSE = mean_squared_error(Esoil_obs/Trans_obs,Esoil_cable/Trans_cable)
     SM_25cm_r       = stats.pearsonr(SM_25cm_obs.values, SM_25cm_cable.values)[0]
     SM_25cm_MSE     = mean_squared_error(SM_25cm_obs, SM_25cm_cable)
     SM_15m_r        = stats.pearsonr(SM_15m_obs, SM_15m_cable)[0]
@@ -124,9 +133,9 @@ def calc_metrics(fcable, case_name, ring, layer):
     SM_bot_MSE      = mean_squared_error(SM_bot_obs, SM_bot_cable)
     WA_all_r        = stats.pearsonr(WA_all_obs, WA_all_cable)[0]
     WA_all_MSE      = mean_squared_error(WA_all_obs, WA_all_cable)
-
-    return Esoil_r,   Trans_r,   Esoil_Trans_r,   SM_25cm_r,  SM_15m_r,   SM_all_r,   SM_bot_r,  WA_all_r, \
-           Esoil_MSE, Trans_MSE, Esoil_Trans_MSE, SM_25cm_MSE,SM_15m_MSE, SM_all_MSE, SM_bot_MSE,WA_all_MSE;
+    # Esoil_Trans_r,  Esoil_Trans_MSE,
+    return Esoil_r,   Trans_r,      SM_25cm_r,   SM_15m_r,   SM_all_r,   SM_bot_r,   WA_all_r, \
+           Esoil_MSE, Trans_MSE,  SM_25cm_MSE, SM_15m_MSE, SM_all_MSE, SM_bot_MSE, WA_all_MSE;
 
 def plotting(metrics,ring):
 
@@ -134,6 +143,7 @@ def plotting(metrics,ring):
     fig.subplots_adjust(hspace=0.1)
     fig.subplots_adjust(wspace=0.05)
     plt.rcParams['text.usetex'] = False
+    #plt.rc('font', family='Helvetica')
     plt.rcParams['font.family'] = "sans-serif"
     plt.rcParams['font.sans-serif'] = "Helvetica"
     plt.rcParams['axes.labelsize'] = 14
@@ -342,6 +352,32 @@ def plot_r_rmse(metrics,ring):
     fig.savefig("EucFACE_metrics_%s.png" % (ring), bbox_inches='tight', pad_inches=0.1)
     np.savetxt("EucFACE_metrics_%s.csv" % (ring), metrics, delimiter=",")
 
+def stat_obs(fcables, ring):
+
+    '''
+    statistics of ET observation
+    '''
+
+    # ===== Obs   =====
+    subs_Esoil = read_obs_esoil(ring)
+    subs_Trans = read_obs_trans(ring)
+
+    print("=== observation ===")
+    print(len(subs_Esoil[subs_Esoil.index < 732]['obs']))
+    print(len(subs_Trans[subs_Trans.index < 732]['obs']))
+    print(np.nanmean( subs_Esoil[subs_Esoil.index < 732]['obs'].values) )
+    print(np.nanmean( subs_Trans[subs_Trans.index < 732]['obs'].values) )
+
+    # ===== CABLE =====
+    for fcable in fcables:
+        TVeg       = read_cable_var(fcable, 'TVeg')
+        ESoil      = read_cable_var(fcable, 'ESoil')
+
+        print("=== %s ===" % fcable.split("/")[-2])
+        print(np.nanmean( ESoil['cable'][:365].values) )
+        print(np.nanmean( TVeg['cable'][:365].values) )
+
+
 if __name__ == "__main__":
 
     cases_6 = [
@@ -356,7 +392,7 @@ if __name__ == "__main__":
               ]
 
     rings  = ["amb"]#["R1","R2","R3","R4","R5","R6","amb","ele"]
-    metrics= np.zeros((len(cases_6)+len(cases_31),16))
+    metrics= np.zeros((len(cases_6)+len(cases_31),14))
     annual = np.zeros((len(cases_6)+len(cases_31),20))
     for ring in rings:
         layer =  "6"
@@ -377,8 +413,8 @@ if __name__ == "__main__":
         #print(metrics)
         plotting(metrics,ring)
         #metrics.to_csv("EucFACE_amb_%slayers_%s_gw_on_or_on.csv" %(layers, case_name))
-        np.savetxt("EucFACE_metrics_%s.csv" % (ring), metrics, delimiter=",")
-        np.savetxt("EucFACE_annual_%s.csv" % (ring), annual, delimiter=",")
+        np.savetxt("./csv/EucFACE_metrics_%s.csv" % (ring), metrics, delimiter=",")
+        np.savetxt("./csv/EucFACE_annual_%s.csv" % (ring), annual, delimiter=",")
 
 
     '''
@@ -399,3 +435,15 @@ if __name__ == "__main__":
     plot_r_rmse(metrics,ring)
     np.savetxt("EucFACE_annual_%s.csv" % (ring), annual, delimiter=",")
     '''
+
+    '''
+    for statistics of ET observation
+    '''
+    # fcables = [ "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_6/EucFACE_amb_out.nc",
+    #             "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_6_litter/EucFACE_amb_out.nc",
+    #             "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_litter/EucFACE_amb_out.nc",
+    #             "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter/EucFACE_amb_out.nc",
+    #             "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter_Hvrd/EucFACE_amb_out.nc",
+    #             "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter_hie-exp/EucFACE_amb_out.nc"]
+    #
+    # stat_obs(fcables, 'amb')

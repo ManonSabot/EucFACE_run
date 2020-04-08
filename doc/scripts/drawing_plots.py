@@ -77,54 +77,54 @@ if __name__ == "__main__":
     # plot_profile_tdr_ET(fcbl_8, ring, contour,"31uni")
 
 
-    # fpath1 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_6"
-    # fpath2 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_6_litter"
-    # fpath3 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_litter"
-    # fpath4 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter"
-    # fpath5 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter_Hvrd"
-    # fpath6 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter_hie-exp"
-    #
-    # case_name1 = "met_LAI_6"
-    # case_name2 = "met_LAI_6_litter"
-    # case_name3 = "met_LAI_vrt_swilt-watr-ssat_SM_31uni_litter"
-    # case_name4 = "met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter"
-    # case_name5 = "met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter_Hvrd"
-    # case_name6 = "met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter_hie-exp"
-    #
-    # plot_profile_tdr_ET_error(fpath1, case_name1, ring, contour, '6')
-    # plot_profile_tdr_ET_error(fpath2, case_name2, ring, contour, '6')
-    # plot_profile_tdr_ET_error(fpath3, case_name3, ring, contour, '31uni')
-    # plot_profile_tdr_ET_error(fpath4, case_name4, ring, contour, '31uni')
-    # plot_profile_tdr_ET_error(fpath5, case_name5, ring, contour, '31uni')
-    # plot_profile_tdr_ET_error(fpath6, case_name6, ring, contour, '31uni')
+    fpath1 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_6"
+    fpath2 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_6_litter"
+    fpath3 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_litter"
+    fpath4 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter"
+    fpath5 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter_Hvrd"
+    fpath6 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter_hie-exp"
+
+    case_name1 = "met_LAI_6"
+    case_name2 = "met_LAI_6_litter"
+    case_name3 = "met_LAI_vrt_swilt-watr-ssat_SM_31uni_litter"
+    case_name4 = "met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter"
+    case_name5 = "met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter_Hvrd"
+    case_name6 = "met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter_hie-exp"
+
+    plot_profile_tdr_ET_error(fpath1, case_name1, ring, contour, '6')
+    plot_profile_tdr_ET_error(fpath2, case_name2, ring, contour, '6')
+    plot_profile_tdr_ET_error(fpath3, case_name3, ring, contour, '31uni')
+    plot_profile_tdr_ET_error(fpath4, case_name4, ring, contour, '31uni')
+    plot_profile_tdr_ET_error(fpath5, case_name5, ring, contour, '31uni')
+    plot_profile_tdr_ET_error(fpath6, case_name6, ring, contour, '31uni')
 
     '''
     Fwsoil plot
     '''
-    #plot_fwsoil_boxplot_SM( fcables, case_labels, layers, ring)
-    #plot_Fwsoil_days_bar(fcables, case_labels)
+    plot_fwsoil_boxplot_SM( fcables, case_labels, layers, ring)
+    plot_Fwsoil_days_bar(fcables, case_labels)
 
     '''
     drought plot
     '''
-    #plot_Rain_Fwsoil_Trans_Esoil_EF_SM( fcables, case_labels, layers, ring)
+    plot_Rain_Fwsoil_Trans_Esoil_EF_SM( fcables, case_labels, layers, ring)
 
     '''
     Heatwave plots
     '''
     group_boxplot_Qle_Qh_EF_HW(fcables, case_labels)
-    #plot_EF_SM_HW(fcables, case_labels, layers, ring, time_scale)
+    plot_EF_SM_HW(fcables, case_labels, layers, ring, time_scale)
 
     '''
     Water Balance
     '''
     #calc_waterbal(fcbl_1, '6')
 
-    # fcsv = ["/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/csv/EucFACE_amb_met_LAI_6.csv",
-    #         "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/csv/EucFACE_amb_met_LAI_6_litter.csv",
-    #         "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/csv/EucFACE_amb_met_LAI_vrt_swilt-watr-ssat_SM_31uni_litter.csv",
-    #         "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/csv/EucFACE_amb_met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter.csv",
-    #         "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/csv/EucFACE_amb_met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter_Hvrd.csv",
-    #         "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/csv/EucFACE_amb_met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter_hie-exp.csv"]
-    #
-    # plot_waterbal_no_total_Evap(fcsv, case_labels)
+    fcsv = ["/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/csv/EucFACE_amb_met_LAI_6.csv",
+            "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/csv/EucFACE_amb_met_LAI_6_litter.csv",
+            "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/csv/EucFACE_amb_met_LAI_vrt_swilt-watr-ssat_SM_31uni_litter.csv",
+            "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/csv/EucFACE_amb_met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter.csv",
+            "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/csv/EucFACE_amb_met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter_Hvrd.csv",
+            "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/csv/EucFACE_amb_met_LAI_vrt_swilt-watr-ssat_SM_hydsx1_x10_31uni_litter_hie-exp.csv"]
+
+    plot_waterbal_no_total_Evap(fcsv, case_labels)

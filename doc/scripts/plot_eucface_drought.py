@@ -435,7 +435,8 @@ def plot_Fwsoil_boxplot(fcables, case_labels):
     ax.axis('tight')
     #ax1.set_xlim(date[0],date[-1])
     ax.set_ylim(0.,1.1)
-    ax.axhline(y=np.median(fw[np.all([fw.year=='drought',fw.exp=='Ctl'],axis=0)]['fwsoil'].values) , ls="--")
+    #ax.axhline(y=np.median(fw[np.all([fw.year=='drought',fw.exp=='Ctl'],axis=0)]['fwsoil'].values) , ls="--")
+    ax.axhline(y=np.mean(fw[np.all([fw.year=='drought',fw.exp=='Ctl'],axis=0)]['fwsoil'].values) , ls="--")
 
     plt.legend()#loc="upper right"
 
@@ -598,7 +599,9 @@ def plot_fwsoil_boxplot_SM( fcables, case_labels, layers, ring):
     ax1.axis('tight')
     #ax1.set_xlim(date[0],date[-1])
     ax1.set_ylim(0.,1.05)
-    ax1.axhline(y=np.median(fw[np.all([fw.year=='drought',fw.exp=='Ctl'],axis=0)]['fwsoil'].values),
+    #ax1.axhline(y=np.median(fw[np.all([fw.year=='drought',fw.exp=='Ctl'],axis=0)]['fwsoil'].values),
+    #            c=almost_black, ls="--")
+    ax1.axhline(y=np.mean(fw[np.all([fw.year=='drought',fw.exp=='Ctl'],axis=0)]['fwsoil'].values),
                 c=almost_black, ls="--")
     ax1.legend(loc='best', frameon=False)
     ax1.text(0.02, 0.95, '(a)', transform=ax1.transAxes, fontsize=14, verticalalignment='top', bbox=props)

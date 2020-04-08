@@ -1082,7 +1082,7 @@ def plot_profile_tdr_ET_error(fpath, case_name, ring, contour, layer):
     ax1.plot(x, TVeg['TVeg'].rolling(window=3).mean(),
         c="green", lw=1.0, ls="-", label="T CABLE") #.rolling(window=7).mean()
     ax1.plot(x, ESoil['ESoil'].rolling(window=3).mean(),
-        c="orange", lw=1.0, ls="-", label="E CABLE") #.rolling(window=7).mean()
+        c="orange", lw=1.0, ls="-", label="Es CABLE") #.rolling(window=7).mean()
 
     ax1.fill_between(x, TVeg['obs_min'].rolling(window=3).mean(),
         TVeg['obs_max'].rolling(window=3).mean(), color="blue", alpha=0.2)

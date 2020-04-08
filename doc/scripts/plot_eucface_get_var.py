@@ -168,6 +168,15 @@ def read_cable_SM(fcable, layer):
 
 def read_obs_esoil(ring):
 
+    '''
+    Using wuTP
+
+    wuTP: understrorey evapotranspiration in mm/day estimated from changes
+          in upper soil moisture
+    EfloorPred: understrorey evapotranspiration in mm/day estimated from
+          the nonlinear correlation with site potential evapotranspiration
+    '''
+
     fobs_Esoil = "/srv/ccrc/data25/z5218916/data/Eucface_data/FACE_PACKAGE_HYDROMET_GIMENO_20120430-20141115/data/Gimeno_wb_EucFACE_underET.csv"
 
     est_esoil = pd.read_csv(fobs_Esoil, usecols = ['Ring','Date','wuTP'])
