@@ -454,6 +454,7 @@ def read_obs_neo_top_mid_bot(ring):
     return neo_data
 
 def read_ET_SM_top_mid_bot(fcable, ring, layer):
+
     """
     Read CABLE ET and oil moisture for top mid bot blocks used in metrics calculation
     """
@@ -528,6 +529,12 @@ def read_ET_SM_top_mid_bot(fcable, ring, layer):
     cable_data['dates'] = Time
     cable_data = cable_data.set_index('dates')
     cable_data = cable_data.resample("D").agg('mean')
+    
+    # from mm / half-hour to mm/day
+    cable_data['TVeg']  = cable_data['TVeg']*48
+    cable_data['ESoil'] = cable_data['ESoil']*48
+    cable_data['Evap']  = cable_data['Evap']*48
+
     cable_data.index = cable_data.index - pd.datetime(2011,12,31)
     cable_data.index = cable_data.index.days
     cable_data = cable_data.sort_values(by=['dates'])

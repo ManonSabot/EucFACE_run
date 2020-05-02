@@ -191,6 +191,129 @@ def plot_Fwsoil(fcbl_def, fcbl_fw_def, fcbl_fw_hie, ring):
 
     fig.savefig("../plots/EucFACE_fwsoil_comp_%s" % ring, bbox_inches='tight', pad_inches=0.1)
 
+def plot_check_ET(fcables, case_labels, ring):
+
+    '''
+    Check ET
+    '''
+
+    # ======================= PLOTTING  ==========================
+    fig = plt.figure(figsize=[9,7])
+
+    fig.subplots_adjust(hspace=0.15)
+    fig.subplots_adjust(wspace=0.05)
+
+    plt.rcParams['text.usetex']     = False
+    plt.rcParams['font.family']     = "sans-serif"
+    plt.rcParams['font.serif']      = "Helvetica"
+    plt.rcParams['axes.linewidth']  = 1.5
+    plt.rcParams['axes.labelsize']  = 14
+    plt.rcParams['font.size']       = 14
+    plt.rcParams['legend.fontsize'] = 12
+    plt.rcParams['xtick.labelsize'] = 14
+    plt.rcParams['ytick.labelsize'] = 14
+
+    almost_black = '#262626'
+    # change the tick colors also to the almost black
+    plt.rcParams['ytick.color'] = almost_black
+    plt.rcParams['xtick.color'] = almost_black
+
+    # change the text colors also to the almost black
+    plt.rcParams['text.color']  = almost_black
+
+    # Change the default axis colors from black to a slightly lighter black,
+    # and a little thinner (0.5 instead of 1)
+    plt.rcParams['axes.edgecolor']  = almost_black
+    plt.rcParams['axes.labelcolor'] = almost_black
+
+    props = dict(boxstyle="round", facecolor='white', alpha=0.0, ec='white')
+
+    ax1 = fig.add_subplot(211)
+    ax2 = fig.add_subplot(212)
+
+    case_sum = len(fcables)
+    colors   = cm.tab20(np.linspace(0,1,case_sum))
+
+    # set x-axis values
+    cleaner_dates1 = ["2013","2014","2015","2016","2017","2018","2019"]
+    xtickslocs1    = [   367,   732,  1097,  1462,  1828,  2193, 2558 ]
+
+    # ========================= ET FLUX  ============================
+    # ===== Obs   =====
+    subs_Esoil = read_obs_esoil(ring)
+    subs_Trans = read_obs_trans(ring)
+
+    ax1.scatter(subs_Trans.index, subs_Trans['obs'].rolling(window=3).mean(), marker='o', c='',edgecolors='red', s = 2., label="Obs")
+    ax2.scatter(subs_Esoil.index, subs_Esoil['obs'].rolling(window=3).mean(), marker='o', c='',edgecolors='red', s = 2., label="Obs")
+    # .rolling(window=3).mean()
+
+    # ===== CABLE =====
+    for i in np.arange(case_sum):
+        cable = nc.Dataset(fcables[i], 'r')
+        Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
+
+        TVeg = pd.DataFrame(cable.variables['TVeg'][:,0,0],columns=['TVeg'])
+        TVeg = TVeg*1800.
+        TVeg['dates'] = Time
+        TVeg = TVeg.set_index('dates')
+        TVeg = TVeg.resample("D").agg('sum')
+        TVeg.index = TVeg.index - pd.datetime(2011,12,31)
+        TVeg.index = TVeg.index.days
+
+        ESoil = pd.DataFrame(cable.variables['ESoil'][:,0,0],columns=['ESoil'])
+        ESoil = ESoil*1800.
+        ESoil['dates'] = Time
+        ESoil = ESoil.set_index('dates')
+        ESoil = ESoil.resample("D").agg('sum')
+        ESoil.index = ESoil.index - pd.datetime(2011,12,31)
+        ESoil.index = ESoil.index.days
+
+        x = TVeg.index
+
+        #ax1.plot(x, TVeg['TVeg'].rolling(window=3).mean(),   c=colors[i], lw=1.0, ls="-", label=case_labels[i]) #
+        #ax2.plot(x, ESoil['ESoil'].rolling(window=3).mean(), c=colors[i], lw=1.0, ls="-", label=case_labels[i]) #.rolling(window=7).mean()
+
+        print(len(subs_Trans))
+        print(len(TVeg[TVeg.index.isin(subs_Trans.index)]['TVeg']))
+        print(len(x))
+        print(len(TVeg['TVeg']))
+
+        ax1.scatter(subs_Trans.index, TVeg[TVeg.index.isin(subs_Trans.index)]['TVeg'].rolling(window=3).mean(),
+                    marker='o', c='', edgecolors=colors[i], s = 2., label=case_labels[i])
+
+        ax2.scatter(subs_Esoil.index, ESoil[ESoil.index.isin(subs_Esoil.index)]['ESoil'].rolling(window=3).mean(),
+                    marker='o', c='', edgecolors=colors[i], s = 2., label=case_labels[i])
+
+        subs_Esoil['obs'].fillna(0., inplace=True)
+
+        print(ESoil[np.all([ESoil.index.isin(subs_Esoil.index),np.isnan(subs_Esoil.values) == False],axis=0)]['ESoil'])
+        print(subs_Esoil[np.isnan(subs_Esoil.values) == False]['obs'])
+        print(stats.pearsonr(subs_Esoil[np.isnan(subs_Esoil.values) == False]['obs'],
+              ESoil[np.all([ESoil.index.isin(subs_Esoil.index),np.isnan(subs_Esoil.values) == False],axis=0)]['ESoil']))
+
+    ax1.text(0.02, 0.95, '(a)', transform=ax1.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+    ax2.text(0.02, 0.95, '(b)', transform=ax2.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+
+    # this order of the setting can affect plot x & y axis
+    plt.setp(ax1.get_xticklabels(), visible=True)
+    ax1.set(xticks=xtickslocs1, xticklabels=cleaner_dates1) ####
+    ax1.set_ylabel("T (mm d$^{-1}$)")
+    ax1.axis('tight')
+    ax1.set_ylim(0.,3.5)
+    ax1.set_xlim(367,1097)
+    ax1.legend(loc='best', frameon=False)
+
+    # this order of the setting can affect plot x & y axis
+    plt.setp(ax2.get_xticklabels(), visible=True)
+    ax2.set(xticks=xtickslocs1, xticklabels=cleaner_dates1) ####
+    ax2.set_ylabel("Es (mm d$^{-1}$)")
+    ax2.axis('tight')
+    ax2.set_ylim(0.,4.5)
+    ax2.set_xlim(367,1097)
+    ax2.legend(loc='best', frameon=False)
+
+    fig.savefig("../plots/EucFACE_Check_ET_%s.png" % ring, bbox_inches='tight', pad_inches=0.1)
+
 def plot_ET(fcables, ring, case_labels):
 
     '''

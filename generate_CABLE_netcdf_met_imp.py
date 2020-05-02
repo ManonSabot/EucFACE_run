@@ -1065,6 +1065,7 @@ def interpolate_raw_lai(lai_fname, ring, method):
     lai['R6'] = df_lai[df_lai['Ring'].values == 'R6']['LAI'].values
     lai['Date'] = df_lai[df_lai['Ring'].values == 'R6']['days_201311'].values
 
+
     # for interpolation, add a row of 2019-12-31
     insertRow = pd.DataFrame([[1.4672, 1.5551, 1.3979, 1.3515, 1.7840, 1.5353, 2555]],
                 columns = ['R1','R2','R3','R4','R5','R6',"Date"])
@@ -1079,6 +1080,11 @@ def interpolate_raw_lai(lai_fname, ring, method):
         func2 = interp1d(lai['Date'].values, lai['R3'].values, kind = "cubic")
         func3 = interp1d(lai['Date'].values, lai['R6'].values, kind = "cubic")
         LAI_daily = (func1(daily)+func2(daily)+func3(daily))/3.
+        print("=============")
+        print(np.mean(func1(daily)))
+        print(np.mean(func2(daily)))
+        print(np.mean(func3(daily)))
+        print(np.mean(LAI_daily))
     elif ring == "ele":
         func1 = interp1d(lai['Date'].values, lai['R1'].values, kind = "cubic")
         func2 = interp1d(lai['Date'].values, lai['R4'].values, kind = "cubic")
@@ -1150,7 +1156,8 @@ if __name__ == "__main__":
     tdr_constrain = True
     new_LAI       = True
 
-    for ring in ["R1","R2","R3","R4","R5","R6","amb", "ele"]:
+    #for ring in ["R1","R2","R3","R4","R5","R6","amb", "ele"]:
+    for ring in ["amb"]:
         out_fname = "EucFACE_met_%s.nc" % (ring)
         main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname, PTF, soil_frac,\
              layer_num, neo_constrain, tdr_constrain, ring, new_LAI)

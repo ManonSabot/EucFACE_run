@@ -224,6 +224,105 @@ def find_Heatwave_hourly(fcable, ring, layer):
 
     return HW
 
+def find_Heatwave_hourly_beta(fcable, ring, layer):
+
+    cable = nc.Dataset(fcable, 'r')
+    Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
+
+    # Air temperature
+    Tair = pd.DataFrame(cable.variables['Tair'][:,0,0]-273.15,columns=['Tair'])
+    Tair['dates'] = Time
+    Tair = Tair.set_index('dates')
+
+    Tair_daily = Tair.resample("D").agg('max')
+
+    # Precipitation
+    Rainf = pd.DataFrame(cable.variables['Rainf'][:,0,0]*1800.,columns=['Rainf'])
+    Rainf['dates'] = Time
+    Rainf = Rainf.set_index('dates')
+
+    Qle          = pd.DataFrame(cable.variables['Qle'][:,0,0],columns=['cable'])
+    Qle['dates'] = Time
+    Qle          = Qle.set_index('dates')
+
+    Qh           = pd.DataFrame(cable.variables['Qh'][:,0,0],columns=['cable'])
+    Qh['dates']  = Time
+    Qh           = Qh.set_index('dates')
+
+    Rnet         = Qle + Qh
+
+    #print(Rnet)
+
+    EF          = pd.DataFrame(cable.variables['Fwsoil'][:,0,0],columns=['EF'])
+    EF['dates'] = Time
+
+    SM = read_SM_top_mid_bot_hourly(fcable, ring, layer)
+
+    #print(SM)
+
+    # exclude rainday and the after two days of rain
+    day = np.zeros((len(Tair_daily)), dtype=bool)
+
+    for i in np.arange(0,len(Tair_daily)):
+        if (Tair_daily.values[i] >= 35.): # and Rainf.values[i] == 0.):
+            day[i]   = True
+
+    # calculate heatwave event
+    HW = [] # create empty list
+
+    i = 0
+
+    #while i < len(Tair_daily)-2:
+    while i < len(Tair_daily)-1:
+        HW_event = []
+
+        if (np.all([day[i:i+3]])):
+
+            #day_start = Tair_daily.index[i-2]
+            day_start = Tair_daily.index[i-1]
+            i = i + 3
+
+            while day[i]:
+
+                i += 1
+
+            else:
+                #if i+2 < len(Tair_daily.index):
+                #    day_end = Tair_daily.index[i+2] # the third day after heatwave
+                #elif i+1 < len(Tair_daily.index):
+                if i+1 < len(Tair_daily.index):
+                    day_end = Tair_daily.index[i+1]
+                else:
+                    day_end = Tair_daily.index[i]
+
+                Tair_event  = Tair[np.all([Tair.index >= day_start,  Tair.index < day_end],axis=0)]
+                Rainf_event = Rainf[np.all([Tair.index >= day_start, Tair.index < day_end],axis=0)]
+                Qle_event   = Qle[np.all([Tair.index >= day_start,   Tair.index < day_end],axis=0)]
+                Qh_event    = Qh[np.all([Tair.index >= day_start,    Tair.index < day_end],axis=0)]
+                EF_event    = EF[np.all([Tair.index >= day_start,    Tair.index < day_end],axis=0)]
+                SM_event    = SM[np.all([Tair.index >= day_start,    Tair.index < day_end],axis=0)]
+
+                for hour_num in np.arange(len(Tair_event)):
+                    hour_in_event = ( Tair_event.index[hour_num],
+                                      Tair_event['Tair'].values[hour_num],
+                                      Rainf_event['Rainf'].values[hour_num],
+                                      Qle_event['cable'].values[hour_num],
+                                      Qh_event['cable'].values[hour_num],
+                                      EF_event['EF'].values[hour_num],
+                                      SM_event['SM_top'].values[hour_num],
+                                      SM_event['SM_mid'].values[hour_num],
+                                      SM_event['SM_bot'].values[hour_num],
+                                      SM_event['SM_all'].values[hour_num],
+                                      SM_event['SM_15m'].values[hour_num] )
+                    HW_event.append(hour_in_event)
+
+            HW.append(HW_event)
+        else:
+            i += 1
+    #print(HW[0])
+
+    return HW
+
 def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh, EF, SM_top, SM_mid, SM_bot, SM_all, SM_15m):
 
     # ======================= Plot setting ============================
@@ -263,6 +362,7 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
 
     # choose colormap
     colors = cm.Set2(np.arange(0,len(case_labels)))
+    ls     = ['-','--','-','--','-','--']
 
     ax1  = fig.add_subplot(511)
     ax2  = fig.add_subplot(512,sharex=ax1)
@@ -282,17 +382,17 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
 
     for case_num in np.arange(len(case_labels)):
         print(case_num)
-        ax2.plot(x, EF[case_num, :],  c=colors[case_num], lw=1.5, ls="-", label=case_labels[case_num])#.rolling(window=30).mean()
-        ax3.plot(x, Qle[case_num, :], c=colors[case_num], lw=1.5, ls="-", label=case_labels[case_num])#.rolling(window=30).mean()
-        ax4.plot(x, Qh[case_num, :],  c=colors[case_num], lw=1.5, ls="-", label=case_labels[case_num]) #, label=case_labels)#.rolling(window=30).mean()
-        ax5.plot(x, SM_15m[case_num, :],  c=colors[case_num], lw=1.5, ls="-", label=case_labels[case_num]) #*1500.#.rolling(window=30).mean()
+        ax2.plot(x, EF[case_num, :],  c=colors[case_num], lw=1.5, ls=ls[case_num], label=case_labels[case_num])#.rolling(window=30).mean()
+        ax3.plot(x, Qle[case_num, :], c=colors[case_num], lw=1.5, ls=ls[case_num], label=case_labels[case_num])#.rolling(window=30).mean()
+        ax4.plot(x, Qh[case_num, :],  c=colors[case_num], lw=1.5, ls=ls[case_num], label=case_labels[case_num]) #, label=case_labels)#.rolling(window=30).mean()
+        ax5.plot(x, SM_15m[case_num, :], c=colors[case_num], lw=1.5, ls=ls[case_num], label=case_labels[case_num]) #*1500.#.rolling(window=30).mean()
 
     if time_scale == "daily":
         ax1.set_ylabel('Max Air Temperature (°C)')
         ax1.set_ylim(20, 45)
     elif time_scale == "hourly":
-        ax1.set_ylabel('Tair (°C)')
-        ax1.set_ylim(10, 41)
+        ax1.set_ylabel('$Tair$ (°C)')
+        ax1.set_ylim(10, 45)
 
     plt.setp(ax1.get_xticklabels(), visible=False)
     ax1.set_xlim(date[0],date[-1])
@@ -304,7 +404,7 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
     ax1.text(0.02, 0.95, '(a)', transform=ax1.transAxes, fontsize=14, verticalalignment='top', bbox=props)
 
     plt.setp(ax2.get_xticklabels(), visible=False)
-    ax2.set_ylabel("EF")
+    ax2.set_ylabel("$EF$")
     ax2.axis('tight')
     ax2.set_xlim(date[0],date[-1])
     if time_scale == "daily":
@@ -318,13 +418,13 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
     ax2.text(0.02, 0.95, '(b)', transform=ax2.transAxes, fontsize=14, verticalalignment='top', bbox=props)
 
     plt.setp(ax3.get_xticklabels(), visible=False)
-    ax3.set_ylabel('LH (W m$^{-2}$)')
+    ax3.set_ylabel('$Q_{E}$ (W m$^{-2}$)')
     ax3.axis('tight')
     ax3.set_xlim(date[0],date[-1])
     if time_scale == "daily":
         ax3.set_ylim(-50.,220)
     elif time_scale == "hourly":
-        ax3.set_ylim(-30.,495.)
+        ax3.set_ylim(-40.,395.)
     #ax3.spines['top'].set_visible(False)
     #ax3.spines['right'].set_visible(False)
     #ax3.spines['bottom'].set_visible(False)
@@ -333,13 +433,13 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
     ax3.legend( loc='best', frameon=False)
 
     plt.setp(ax4.get_xticklabels(), visible=False)
-    ax4.set_ylabel('SH (W m$^{-2}$)')
+    ax4.set_ylabel('$Q_{H}$ (W m$^{-2}$)')
     ax4.axis('tight')
     ax4.set_xlim(date[0],date[-1])
     if time_scale == "daily":
         ax4.set_ylim(-50.,220)
     elif time_scale == "hourly":
-        ax4.set_ylim(-30.,495.)
+        ax4.set_ylim(-40.,395.)
     #ax4.spines['top'].set_visible(False)
     #ax4.spines['right'].set_visible(False)
     #ax4.spines['bottom'].set_visible(False)
@@ -347,7 +447,7 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
     ax4.text(0.02, 0.95, '(d)', transform=ax4.transAxes, fontsize=14, verticalalignment='top', bbox=props)
 
     plt.setp(ax5.get_xticklabels(), visible=True)
-    ax5.set_ylabel("VWC in 1.5m (m$^{3}$ m$^{-3}$)") #(m$^{3}$ m$^{-3}$)")
+    ax5.set_ylabel("$θ$ in 1.5m (m$^{3}$ m$^{-3}$)") #(m$^{3}$ m$^{-3}$)")
     ax5.axis('tight')
     #ax5.legend()
     ax5.set_xlim(date[0],date[-1])
@@ -355,7 +455,7 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
         ax5.set_ylim(0.18,0.32)
         plt.suptitle('Heatwave in %s ~ %s ' % (str(date[2]), str(date[-3])))
     elif time_scale == "hourly":
-        ax5.set_ylim(0.10,0.31)
+        ax5.set_ylim(0.08,0.31)
     #ax5.spines['top'].set_visible(False)
     #ax5.spines['right'].set_visible(False)
     ax5.text(0.02, 0.95, '(e)', transform=ax5.transAxes, fontsize=14, verticalalignment='top', bbox=props)
@@ -588,7 +688,7 @@ def boxplot_Qle_Qh_EF_HW(fcables, case_labels, time_scale):
 
     plt.setp(ax1.get_xticklabels(), visible=False)
     #ax1.set_xlim(date[0],date[-1])
-    ax1.set_ylabel('LH (W m$^{-2}$)')
+    ax1.set_ylabel('Q$_{E}$ (W m$^{-2}$)')
     ax1.axis('tight')
     #ax1.set_xlim(date[0],date[-1])
     ax1.set_ylim(-50.,600.)
@@ -597,7 +697,7 @@ def boxplot_Qle_Qh_EF_HW(fcables, case_labels, time_scale):
 
     plt.setp(ax2.get_xticklabels(), visible=False)
     #ax2.set_xlim(date[0],date[-1])
-    ax2.set_ylabel('SH (W m$^{-2}$)')
+    ax2.set_ylabel('Q$_{H}$ (W m$^{-2}$)')
     ax2.axis('tight')
     #ax2.set_xlim(date[0],date[-1])
     ax2.set_ylim(-120.,400.)
@@ -748,7 +848,7 @@ def group_boxplot_Qle_Qh_EF_HW(fcables, case_labels):
                 order=case_labels,  width=0.7, hue_order=['heatwave','summer'],
                 ax=ax3, showfliers=False, color=almost_black)
 
-    ax1.set_ylabel('LH (W m$^{-2}$)')
+    ax1.set_ylabel('Q$_{E}$ (W m$^{-2}$)')
     ax1.axis('tight')
     #ax1.set_xlim(date[0],date[-1])
     ax1.spines['top'].set_visible(False)
@@ -761,7 +861,7 @@ def group_boxplot_Qle_Qh_EF_HW(fcables, case_labels):
     ax1.text(0.02, 0.95, '(a)', transform=ax1.transAxes, fontsize=14, verticalalignment='top', bbox=props)
     ax1.get_xaxis().set_visible(False)
 
-    ax2.set_ylabel('SH (W m$^{-2}$)')
+    ax2.set_ylabel('Q$_{H}$ (W m$^{-2}$)')
     ax2.axis('tight')
     ax2.legend().set_visible(False)
     ax2.spines['top'].set_visible(False)
@@ -787,3 +887,407 @@ def group_boxplot_Qle_Qh_EF_HW(fcables, case_labels):
     ax3.text(0.02, 0.95, '(c)', transform=ax3.transAxes, fontsize=14, verticalalignment='top', bbox=props)
 
     fig.savefig("../plots/EucFACE_Qle_Qh_EF_summer_group_boxplot" , bbox_inches='tight', pad_inches=0.02)
+
+def plot_case_study_HW_event(fcables, fcables_re, case_labels, ring, layers):
+
+    # ======================= Plot setting ============================
+    #fig = plt.figure(figsize=[13,17.5])
+    fig = plt.figure(figsize=[13,7])
+    fig.subplots_adjust(hspace=0.0)
+    fig.subplots_adjust(wspace=0.1)
+
+    plt.rcParams['text.usetex']     = False
+    plt.rcParams['font.family']     = "sans-serif"
+    plt.rcParams['font.serif']      = "Helvetica"
+    plt.rcParams['axes.linewidth']  = 1.5
+    plt.rcParams['axes.labelsize']  = 14
+    plt.rcParams['font.size']       = 14
+    plt.rcParams['legend.fontsize'] = 12
+    plt.rcParams['xtick.labelsize'] = 14
+    plt.rcParams['ytick.labelsize'] = 14
+
+    almost_black = '#262626'
+    # change the tick colors also to the almost black
+    plt.rcParams['ytick.color'] = almost_black
+    plt.rcParams['xtick.color'] = almost_black
+
+    # change the text colors also to the almost black
+    plt.rcParams['text.color']  = almost_black
+
+    # Change the default axis colors from black to a slightly lighter black,
+    # and a little thinner (0.5 instead of 1)
+    plt.rcParams['axes.edgecolor']  = almost_black
+    plt.rcParams['axes.labelcolor'] = almost_black
+
+    # set the box type of sequence number
+    props = dict(boxstyle="round", facecolor='white', alpha=0.0, ec='white')
+
+    # choose colormap
+    #colors = cm.Set2(np.arange(0,len(case_labels)))
+    colors = cm.Set2(np.arange(0,6))
+    ls     = ['-','--','-','--','-','--']
+
+    #ax1  = fig.add_subplot(511)
+    #ax2  = fig.add_subplot(512,sharex=ax1)
+    #ax3  = fig.add_subplot(513,sharex=ax2)
+    #ax4  = fig.add_subplot(514,sharex=ax3)
+    #ax5  = fig.add_subplot(515,sharex=ax4)
+    ax3  = fig.add_subplot(211)
+    ax4  = fig.add_subplot(212,sharex=ax3)
+    # ========================= Read data ============================
+    HW_all   = []
+    case_sum = len(fcables)
+
+    for case_num in np.arange(case_sum):
+        HW = find_Heatwave_hourly(fcables[case_num], ring, layers[case_num])
+        HW_all.append(HW)
+
+    # read heatwave event 6 2018-1-19 - 2018-1-22
+    event_num = 6
+    day_sum = len(HW_all[0][event_num])
+    Qle    = np.zeros([case_sum,day_sum])
+    Qh     = np.zeros([case_sum,day_sum])
+    EF     = np.zeros([case_sum,day_sum])
+    SM_15m = np.zeros([case_sum,day_sum])
+
+    # loop days in one event
+    for day_num in np.arange(day_sum):
+        for case_num in np.arange(case_sum):
+            Qle[case_num,day_num]     =  HW_all[case_num][event_num][day_num][3]
+            Qh[case_num,day_num]      =  HW_all[case_num][event_num][day_num][4]
+            EF[case_num,day_num]      =  HW_all[case_num][event_num][day_num][5]
+            SM_15m[case_num,day_num]  =  HW_all[case_num][event_num][day_num][10]
+
+    # ======================= Read restart simulation ============================
+    time_steps = 48*6
+    case_sum   = len(fcables_re)
+    Tair_re    = np.zeros([case_sum,time_steps])
+    Rainf_re   = np.zeros([case_sum,time_steps])
+    Qle_re     = np.zeros([case_sum,time_steps])
+    Qh_re      = np.zeros([case_sum,time_steps])
+    Rnet_re    = np.zeros([case_sum,time_steps])
+    EF_re      = np.zeros([case_sum,time_steps])
+    SM_15m_re  = np.zeros([case_sum,time_steps])
+
+    for case_num in np.arange(case_sum):
+
+        cable = nc.Dataset(fcables_re[case_num], 'r')
+        Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
+
+        Tair_re[case_num,:]  = cable.variables['Tair'][:,0,0]-273.15
+        Rainf_re[case_num,:] = cable.variables['Rainf'][:,0,0]*1800.
+        Qle_re[case_num,:]   = cable.variables['Qle'][:,0,0]
+        Qh_re[case_num,:]    = cable.variables['Qh'][:,0,0]
+        Rnet_re[case_num,:]  = Qle_re[case_num,:] + Qh_re[case_num,:]
+
+        EF_pd          = pd.DataFrame(Qle_re[case_num,:]/Rnet_re[case_num,:], columns=['EF'])
+        EF_pd['dates'] = Time
+        EF_pd          = EF_pd.set_index('dates')
+        EF_re[case_num,:] = np.where(np.all([EF_pd.index.hour >= 9., EF_pd.index.hour <= 16.,
+                         EF_pd['EF'].values <= 5. ],axis=0 ),
+                         EF_pd['EF'].values, float('nan'))
+        SM_15m_re[case_num,:] = cable.variables['SoilMoist'][:,0,0,0]*0.15
+        for i in np.arange(1,10):
+            SM_15m_re[case_num,:]  = SM_15m_re[case_num,:] + cable.variables['SoilMoist'][:,i,0,0]*0.15
+        SM_15m_re[case_num,:]  = SM_15m_re[case_num,:]/1.5
+
+    # ========================== Plotting ================================
+    x    = np.arange(0,time_steps)
+
+    width  = 1/48
+
+    #ax1.plot(x, Tair_re[0, :],   c="black", lw=1.5, ls="-", label="Air Temperature")#.rolling(window=30).mean()
+
+    for case_num in np.arange(len(case_labels)):
+        print(case_num)
+        #ax2.plot(x, EF[case_num, :],  c=colors[case_num+2], lw=1.5, ls='-', label=case_labels[case_num])#.rolling(window=30).mean()
+        ax3.plot(x, Qle[case_num, :], c=colors[case_num+2], lw=1.5, ls='-', label=case_labels[case_num])#.rolling(window=30).mean()
+        ax4.plot(x, Qh[case_num, :],  c=colors[case_num+2], lw=1.5, ls='-', label=case_labels[case_num]) #, label=case_labels)#.rolling(window=30).mean()
+        #ax5.plot(x, SM_15m[case_num, :], c=colors[case_num+2], lw=1.5, ls='-', label=case_labels[case_num]) #*1500.#.rolling(window=30).mean()
+
+        #if case_num == 0:
+        #ax2.plot(x, EF_re[case_num, :],  c=colors[case_num+2], lw=1.5, ls='--')#.rolling(window=30).mean()
+        if case_num > 0:
+            ax3.plot(x, Qle_re[case_num, :], c=colors[case_num+2], lw=1.5, ls='--')#.rolling(window=30).mean()
+            ax4.plot(x, Qh_re[case_num, :],  c=colors[case_num+2], lw=1.5, ls='--') #, label=case_labels)#.rolling(window=30).mean()
+            #ax5.plot(x, SM_15m_re[case_num, :], c=colors[case_num+2], lw=1.5, ls='--') #*1500.#.rolling(window=30).mean()
+
+    cleaner_dates = ["2018-1-18","2018-1-19","2018-1-20","2018-1-21","2018-1-22","2018-1-23","2018-1-24"]
+    xtickslocs    = [0,48,96,144,192,240,288]
+
+    # ax1.set_ylabel('Tair (°C)')
+    # ax1.set_ylim(10, 41)
+    #
+    # plt.setp(ax1.get_xticklabels(), visible=False)
+    # ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+    # ax1.set_xlim(0,288)
+    # ax1.axhline(y=35.,c=almost_black, ls="--")
+    # #ax1.spines['top'].set_visible(False)
+    # #ax1.spines['right'].set_visible(False)
+    # #ax1.spines['bottom'].set_visible(False)
+    # ax1.get_xaxis().set_visible(False)
+    # ax1.text(0.02, 0.95, '(a)', transform=ax1.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+    #
+    # plt.setp(ax2.get_xticklabels(), visible=False)
+    # ax2.set_ylabel("EF")
+    # ax2.axis('tight')
+    # ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+    # ax2.set_xlim(0,288)
+    # ax2.set_ylim(0,1.1)
+    # #ax2.spines['top'].set_visible(False)
+    # #ax2.spines['right'].set_visible(False)
+    # #ax2.spines['bottom'].set_visible(False)
+    # #ax2.get_xaxis().set_visible(False)
+    # ax2.text(0.02, 0.95, '(b)', transform=ax2.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+
+    plt.setp(ax3.get_xticklabels(), visible=False)
+    ax3.set_ylabel('$Q_{E}$ (W m$^{-2}$)')
+    ax3.axis('tight')
+    ax3.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+    ax3.set_xlim(0,288)
+    ax3.set_ylim(-40.,395.)
+    #ax3.spines['top'].set_visible(False)
+    #ax3.spines['right'].set_visible(False)
+    #ax3.spines['bottom'].set_visible(False)
+    #ax3.get_xaxis().set_visible(False)
+    #ax3.text(0.02, 0.95, '(c)', transform=ax3.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+    ax3.text(0.02, 0.95, '(a)', transform=ax3.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+    ax3.legend( loc='best', frameon=False)
+
+    plt.setp(ax4.get_xticklabels(), visible=True)
+    ax4.set_ylabel('$Q_{H}$ (W m$^{-2}$)')
+    ax4.axis('tight')
+    ax4.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+    ax4.set_xlim(0,288)
+    ax4.set_ylim(-40.,395.)
+    # #ax4.spines['top'].set_visible(False)
+    # #ax4.spines['right'].set_visible(False)
+    # #ax4.spines['bottom'].set_visible(False)
+    # #ax4.get_xaxis().set_visible(False)
+    # ax4.text(0.02, 0.95, '(d)', transform=ax4.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+    ax4.text(0.02, 0.95, '(b)', transform=ax4.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+
+    # plt.setp(ax5.get_xticklabels(), visible=True)
+    # ax5.set_ylabel("VWC in 1.5m (m$^{3}$ m$^{-3}$)") #(m$^{3}$ m$^{-3}$)")
+    # ax5.axis('tight')
+    # #ax5.legend()
+    # ax5.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+    # ax5.set_xlim(0,288)
+    # ax5.set_ylim(0.10,0.31)
+    # #ax5.spines['top'].set_visible(False)
+    # #ax5.spines['right'].set_visible(False)
+    # ax5.text(0.02, 0.95, '(e)', transform=ax5.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+
+    # ax6.set_ylabel('P (mm d$^{-1}$)')
+    # ax6.bar(x, Rainf,  width, color='royalblue', alpha = 0.5, label='Rainfall')
+    # if time_scale == "daily":
+    #     ax6.set_ylim(0., 30.)
+    # elif time_scale == "hourly":
+    #     ax6.set_ylim(0, 10.)
+    # ax6.spines['top'].set_visible(False)
+    # ax6.spines['right'].set_visible(False)
+    # ax6.spines['bottom'].set_visible(False)
+    # ax6.get_xaxis().set_visible(False)
+
+    fig.savefig("../plots/EucFACE_Heatwave_2018-1-18-23_LH-SH" , bbox_inches='tight', pad_inches=0.02)
+
+def plot_case_study_HW_event_beta(fcables, fcables_re, case_labels, ring, layers):
+
+    # ======================= Plot setting ============================
+    #fig = plt.figure(figsize=[13,17.5])
+    fig = plt.figure(figsize=[13,14])
+    fig.subplots_adjust(hspace=0.0)
+    fig.subplots_adjust(wspace=0.1)
+
+    plt.rcParams['text.usetex']     = False
+    plt.rcParams['font.family']     = "sans-serif"
+    plt.rcParams['font.serif']      = "Helvetica"
+    plt.rcParams['axes.linewidth']  = 1.5
+    plt.rcParams['axes.labelsize']  = 14
+    plt.rcParams['font.size']       = 14
+    plt.rcParams['legend.fontsize'] = 12
+    plt.rcParams['xtick.labelsize'] = 14
+    plt.rcParams['ytick.labelsize'] = 14
+
+    almost_black = '#262626'
+    # change the tick colors also to the almost black
+    plt.rcParams['ytick.color'] = almost_black
+    plt.rcParams['xtick.color'] = almost_black
+
+    # change the text colors also to the almost black
+    plt.rcParams['text.color']  = almost_black
+
+    # Change the default axis colors from black to a slightly lighter black,
+    # and a little thinner (0.5 instead of 1)
+    plt.rcParams['axes.edgecolor']  = almost_black
+    plt.rcParams['axes.labelcolor'] = almost_black
+
+    # set the box type of sequence number
+    props = dict(boxstyle="round", facecolor='white', alpha=0.0, ec='white')
+
+    # choose colormap
+    #colors = cm.Set2(np.arange(0,len(case_labels)))
+    colors = cm.Set2(np.arange(0,6))
+    ls     = ['-','--','-','--','-','--']
+
+    #ax1  = fig.add_subplot(511)
+    #ax2  = fig.add_subplot(512,sharex=ax1)
+    #ax3  = fig.add_subplot(513,sharex=ax2)
+    #ax4  = fig.add_subplot(514,sharex=ax3)
+    #ax5  = fig.add_subplot(515,sharex=ax4)
+    ax2  = fig.add_subplot(411)
+    ax3  = fig.add_subplot(412,sharex=ax2)
+    ax4  = fig.add_subplot(413,sharex=ax3)
+    ax5  = fig.add_subplot(414,sharex=ax4)
+    # ========================= Read data ============================
+    HW_all   = []
+    case_sum = len(fcables)
+
+    for case_num in np.arange(case_sum):
+        HW = find_Heatwave_hourly_beta(fcables[case_num], ring, layers[case_num])
+        HW_all.append(HW)
+
+    # read heatwave event 6 2018-1-19 - 2018-1-22
+    event_num = 6
+    day_sum = len(HW_all[0][event_num])
+    Qle    = np.zeros([case_sum,day_sum])
+    Qh     = np.zeros([case_sum,day_sum])
+    EF     = np.zeros([case_sum,day_sum])
+    SM_15m = np.zeros([case_sum,day_sum])
+
+    # loop days in one event
+    for day_num in np.arange(day_sum):
+        for case_num in np.arange(case_sum):
+            Qle[case_num,day_num]     =  HW_all[case_num][event_num][day_num][3]
+            Qh[case_num,day_num]      =  HW_all[case_num][event_num][day_num][4]
+            EF[case_num,day_num]      =  HW_all[case_num][event_num][day_num][5]
+            SM_15m[case_num,day_num]  =  HW_all[case_num][event_num][day_num][10]
+
+    # ======================= Read restart simulation ============================
+    time_steps = 48*6
+    case_sum   = len(fcables_re)
+    Tair_re    = np.zeros([case_sum,time_steps])
+    Rainf_re   = np.zeros([case_sum,time_steps])
+    Qle_re     = np.zeros([case_sum,time_steps])
+    Qh_re      = np.zeros([case_sum,time_steps])
+    Rnet_re    = np.zeros([case_sum,time_steps])
+    EF_re      = np.zeros([case_sum,time_steps])
+    SM_15m_re  = np.zeros([case_sum,time_steps])
+
+    for case_num in np.arange(case_sum):
+
+        cable = nc.Dataset(fcables_re[case_num], 'r')
+        Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
+
+        Tair_re[case_num,:]  = cable.variables['Tair'][:,0,0]-273.15
+        Rainf_re[case_num,:] = cable.variables['Rainf'][:,0,0]*1800.
+        Qle_re[case_num,:]   = cable.variables['Qle'][:,0,0]
+        Qh_re[case_num,:]    = cable.variables['Qh'][:,0,0]
+        Rnet_re[case_num,:]  = Qle_re[case_num,:] + Qh_re[case_num,:]
+
+        EF_re[case_num,:] = cable.variables['Fwsoil'][:,0,0]
+        SM_15m_re[case_num,:] = cable.variables['SoilMoist'][:,0,0,0]*0.15
+        for i in np.arange(1,10):
+            SM_15m_re[case_num,:]  = SM_15m_re[case_num,:] + cable.variables['SoilMoist'][:,i,0,0]*0.15
+        SM_15m_re[case_num,:]  = SM_15m_re[case_num,:]/1.5
+
+    # ========================== Plotting ================================
+    x    = np.arange(0,time_steps)
+
+    width  = 1/48
+
+    #ax1.plot(x, Tair_re[0, :],   c="black", lw=1.5, ls="-", label="Air Temperature")#.rolling(window=30).mean()
+
+    for case_num in np.arange(len(case_labels)):
+        print(case_num)
+        ax2.plot(x, EF[case_num, :],  c=colors[case_num+2], lw=1.5, ls='-', label=case_labels[case_num])#.rolling(window=30).mean()
+        ax3.plot(x, Qle[case_num, :], c=colors[case_num+2], lw=1.5, ls='-', label=case_labels[case_num])#.rolling(window=30).mean()
+        ax4.plot(x, Qh[case_num, :],  c=colors[case_num+2], lw=1.5, ls='-', label=case_labels[case_num]) #, label=case_labels)#.rolling(window=30).mean()
+        ax5.plot(x, SM_15m[case_num, :], c=colors[case_num+2], lw=1.5, ls='-', label=case_labels[case_num]) #*1500.#.rolling(window=30).mean()
+
+        #if case_num == 0:
+        #
+        #if case_num > 0:
+        ax2.plot(x, EF_re[case_num, :],  c=colors[case_num+2], lw=1.5, ls='--')#.rolling(window=30).mean()
+        ax3.plot(x, Qle_re[case_num, :], c=colors[case_num+2], lw=1.5, ls='--')#.rolling(window=30).mean()
+        ax4.plot(x, Qh_re[case_num, :],  c=colors[case_num+2], lw=1.5, ls='--') #, label=case_labels)#.rolling(window=30).mean()
+        ax5.plot(x, SM_15m_re[case_num, :], c=colors[case_num+2], lw=1.5, ls='--') #*1500.#.rolling(window=30).mean()
+
+    cleaner_dates = ["2018-1-18","2018-1-19","2018-1-20","2018-1-21","2018-1-22","2018-1-23","2018-1-24"]
+    xtickslocs    = [0,48,96,144,192,240,288]
+
+    # ax1.set_ylabel('Tair (°C)')
+    # ax1.set_ylim(10, 41)
+    #
+    # plt.setp(ax1.get_xticklabels(), visible=False)
+    # ax1.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+    # ax1.set_xlim(0,288)
+    # ax1.axhline(y=35.,c=almost_black, ls="--")
+    # #ax1.spines['top'].set_visible(False)
+    # #ax1.spines['right'].set_visible(False)
+    # #ax1.spines['bottom'].set_visible(False)
+    # ax1.get_xaxis().set_visible(False)
+    # ax1.text(0.02, 0.95, '(a)', transform=ax1.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+    #
+    plt.setp(ax2.get_xticklabels(), visible=False)
+    ax2.set_ylabel("$β$")
+    ax2.axis('tight')
+    ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+    ax2.set_xlim(0,48)
+    ax2.set_ylim(0,1.1)
+    #ax2.spines['top'].set_visible(False)
+    #ax2.spines['right'].set_visible(False)
+    #ax2.spines['bottom'].set_visible(False)
+    #ax2.get_xaxis().set_visible(False)
+    ax2.text(0.02, 0.95, '(a)', transform=ax2.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+
+    plt.setp(ax3.get_xticklabels(), visible=False)
+    ax3.set_ylabel('$Q_{E}$ (W m$^{-2}$)')
+    ax3.axis('tight')
+    ax3.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+    ax3.set_xlim(0,48)
+    ax3.set_ylim(-40.,395.)
+    #ax3.spines['top'].set_visible(False)
+    #ax3.spines['right'].set_visible(False)
+    #ax3.spines['bottom'].set_visible(False)
+    #ax3.get_xaxis().set_visible(False)
+    #ax3.text(0.02, 0.95, '(c)', transform=ax3.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+    ax3.text(0.02, 0.95, '(b)', transform=ax3.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+    ax3.legend( loc='best', frameon=False)
+
+    plt.setp(ax4.get_xticklabels(), visible=True)
+    ax4.set_ylabel('$Q_{H}$ (W m$^{-2}$)')
+    ax4.axis('tight')
+    ax4.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+    ax4.set_xlim(0,48)
+    ax4.set_ylim(-40.,395.)
+    # #ax4.spines['top'].set_visible(False)
+    # #ax4.spines['right'].set_visible(False)
+    # #ax4.spines['bottom'].set_visible(False)
+    # #ax4.get_xaxis().set_visible(False)
+    # ax4.text(0.02, 0.95, '(d)', transform=ax4.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+    ax4.text(0.02, 0.95, '(c)', transform=ax4.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+
+    plt.setp(ax5.get_xticklabels(), visible=True)
+    ax5.set_ylabel("VWC in 1.5m (m$^{3}$ m$^{-3}$)") #(m$^{3}$ m$^{-3}$)")
+    ax5.axis('tight')
+    #ax5.legend()
+    ax5.set(xticks=xtickslocs, xticklabels=cleaner_dates)
+    ax5.set_xlim(0,48)
+    ax5.set_ylim(0.10,0.31)
+    #ax5.spines['top'].set_visible(False)
+    #ax5.spines['right'].set_visible(False)
+    ax5.text(0.02, 0.95, '(d)', transform=ax5.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+
+    # ax6.set_ylabel('P (mm d$^{-1}$)')
+    # ax6.bar(x, Rainf,  width, color='royalblue', alpha = 0.5, label='Rainfall')
+    # if time_scale == "daily":
+    #     ax6.set_ylim(0., 30.)
+    # elif time_scale == "hourly":
+    #     ax6.set_ylim(0, 10.)
+    # ax6.spines['top'].set_visible(False)
+    # ax6.spines['right'].set_visible(False)
+    # ax6.spines['bottom'].set_visible(False)
+    # ax6.get_xaxis().set_visible(False)
+
+    fig.savefig("../plots/EucFACE_Heatwave_2018-1-18-23_LH-SH-beta" , bbox_inches='tight', pad_inches=0.02)
