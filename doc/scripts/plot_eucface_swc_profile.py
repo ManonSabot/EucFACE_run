@@ -1540,15 +1540,15 @@ def plot_profile_tdr_ET_error_rain(fpath, case_name, ring, contour, layer):
     if case_name == "met_LAI_6":
 
         if contour:
-            levels = np.arange(0.,52.,2.)
-            img = ax5.contourf(grid_data, cmap=cmap, origin="upper", levels=levels)
+            levels = np.arange(0.,0.52,0.02)
+            img = ax5.contourf(grid_data/100., cmap=cmap, origin="upper", levels=levels)
             Y_labels = np.flipud(Y)
         else:
-            img = ax5.imshow(grid_data, cmap=cmap, vmin=0, vmax=52, origin="upper", interpolation='nearest')
+            img = ax5.imshow(grid_data/100., cmap=cmap, vmin=0, vmax=0.52, origin="upper", interpolation='nearest')
             Y_labels = Y
 
         cbar = fig.colorbar(img, ax = ax5, orientation="vertical", pad=0.02, shrink=.6) #"horizontal"
-        cbar.set_label('Obs (%)')#('Volumetric soil water content (%)')
+        cbar.set_label('Obs (m$^{3}$ m$^{-3}$)')#('Volumetric soil water content (%)')
         tick_locator = ticker.MaxNLocator(nbins=5)
         cbar.locator = tick_locator
         cbar.update_ticks()
@@ -1565,15 +1565,15 @@ def plot_profile_tdr_ET_error_rain(fpath, case_name, ring, contour, layer):
         ax5.axis('tight')
 
     if contour:
-        levels = np.arange(0.,52.,2.)
-        img2 = ax3.contourf(grid_cable, cmap=cmap, origin="upper", levels=levels,interpolation='nearest')
+        levels = np.arange(0.,0.52,0.02)
+        img2 = ax3.contourf(grid_cable/100., cmap=cmap, origin="upper", levels=levels,interpolation='nearest')
         Y_labels2 = np.flipud(Y)
     else:
-        img2 = ax3.imshow(grid_cable, cmap=cmap, vmin=0, vmax=52, origin="upper", interpolation='nearest')
+        img2 = ax3.imshow(grid_cable/100., cmap=cmap, vmin=0., vmax=0.52, origin="upper", interpolation='nearest')
         Y_labels2 = Y
 
     cbar2 = fig.colorbar(img2, ax = ax3,  orientation="vertical", pad=0.02, shrink=.6)
-    cbar2.set_label('CABLE (%)')#('Volumetric soil water content (%)')
+    cbar2.set_label('CABLE (m$^{3}$ m$^{-3}$)')#('Volumetric soil water content (%)')
     tick_locator2 = ticker.MaxNLocator(nbins=5)
     cbar2.locator = tick_locator2
     cbar2.update_ticks()
@@ -1593,20 +1593,20 @@ def plot_profile_tdr_ET_error_rain(fpath, case_name, ring, contour, layer):
     cmap = plt.cm.BrBG
 
     if contour:
-        levels = np.arange(-30.,30.,2.)
-        img3 = ax4.contourf(difference, cmap=cmap, origin="upper", levels=levels)
+        levels = np.arange(-0.30,0.30,0.02)
+        img3 = ax4.contourf(difference/100., cmap=cmap, origin="upper", levels=levels)
         Y_labels3 = np.flipud(Y)
     else:
-        img3 = ax4.imshow(difference, cmap=cmap, vmin=-30, vmax=30, origin="upper", interpolation='nearest')
+        img3 = ax4.imshow(difference/100., cmap=cmap, vmin=-0.30, vmax=0.30, origin="upper", interpolation='nearest')
         Y_labels3 = Y
 
     cbar3 = fig.colorbar(img3, ax = ax4, orientation="vertical", pad=0.02, shrink=.6)
-    cbar3.set_label('CABLE - Obs (%)')
+    cbar3.set_label('CABLE - Obs (m$^{3}$ m$^{-3}$)')
     tick_locator3 = ticker.MaxNLocator(nbins=6)
     cbar3.locator = tick_locator3
     cbar3.update_ticks()
 
-    if case_name == "met_LAI_6":
+    if case_name == "met_LAI_6" or case_name == "met_LAI_non-site-param_6":
         ax4.text(0.02, 0.95, '(e)', transform=ax4.transAxes, fontsize=14, verticalalignment='top', bbox=props)
     else:
         ax4.text(0.02, 0.95, '(d)', transform=ax4.transAxes, fontsize=14, verticalalignment='top', bbox=props)
