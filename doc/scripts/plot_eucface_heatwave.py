@@ -362,7 +362,7 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
 
     # choose colormap
     colors = cm.Set2(np.arange(0,len(case_labels)))
-    ls     = ['-','--','-','--','-','--','-','--']
+    ls     = ['-','--',':','-','--',':','-','--']
 
     ax1  = fig.add_subplot(511)
     ax2  = fig.add_subplot(512,sharex=ax1)

@@ -1010,7 +1010,6 @@ def plot_Rain_Fwsoil_Trans_Esoil_SH_SM( fcables, case_labels, layers, ring):
     ax2.axis('tight')
     ax2.set_ylim(0.,1.18)
     #ax2.set_xlim(367,2739)#,1098)
-    ax2.legend(numpoints=1, ncol=3, loc='best', frameon=False) #'upper right'
     ax2.set_xlim(day_start,day_end)
     ax2.text(0.02, 0.95, '(b)', transform=ax2.transAxes, fontsize=14, verticalalignment='top', bbox=props)
 
@@ -1018,6 +1017,7 @@ def plot_Rain_Fwsoil_Trans_Esoil_SH_SM( fcables, case_labels, layers, ring):
     ax3.set(xticks=xtickslocs, xticklabels=cleaner_dates)
     ax3.set_ylabel("$E_{tr}$ (mm mon$^{-1}$)")
     ax3.axis('tight')
+    ax3.legend(numpoints=1, ncol=4, loc='best', frameon=False) #'upper right'
     ax3.set_ylim(0.,70.)
     ax3.set_xlim(day_start,day_end)
     ax3.text(0.02, 0.95, '(c)', transform=ax3.transAxes, fontsize=14, verticalalignment='top', bbox=props)
