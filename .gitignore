@@ -20,6 +20,7 @@ doc/*.o
 doc/*.pdf
 doc/*.png
 doc/*.jpg
+doc/LAI_uncorrected/*
 doc/csv/*
 doc/scripts/csv/*
 doc/scripts/*nc
