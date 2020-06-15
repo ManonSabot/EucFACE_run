@@ -49,20 +49,22 @@ LAND_highres = cfeature.NaturalEarthFeature('physical', 'land', '50m',
 ax.add_feature(LAND_highres, zorder=0,
                edgecolor='#fff9e6', facecolor='#fff9e6')
 
-# fname = "/Users/mdekauwe/Dropbox/ne_10m_admin_1_states_provinces_lines/ne_10m_admin_1_states_provinces_lines.shp"
-# shape_feature = ShapelyFeature(Reader(fname).geometries(),
-#                                ccrs.PlateCarree(), edgecolor='black')
-# ax.add_feature(shape_feature, facecolor='none', edgecolor='black', lw=0.5)
+fname = "/Users/mdekauwe/Dropbox/ne_10m_admin_1_states_provinces_lines/ne_10m_admin_1_states_provinces_lines.shp"
+shape_feature = ShapelyFeature(Reader(fname).geometries(),
+                               ccrs.PlateCarree(), edgecolor='black')
+ax.add_feature(shape_feature, facecolor='none', edgecolor='black', lw=0.5)
 ax.set_xlim(140.7, 154)
 ax.set_ylim(-39.2, -28.1)
-#
-# ax.text(146, -32, 'New South Wales', horizontalalignment='center',
-#         transform=ccrs.PlateCarree(), fontsize=14)
-# ax.text(145, -36.8, 'Victoria', horizontalalignment='center',
-#         transform=ccrs.PlateCarree(), fontsize=14)
+
+
+
+ax.text(146, -32, 'New South Wales', horizontalalignment='center',
+        transform=ccrs.PlateCarree(), fontsize=14)
+ax.text(145, -36.8, 'Victoria', horizontalalignment='center',
+        transform=ccrs.PlateCarree(), fontsize=14)
 
 ax.plot(151.2093, -33.8688, 'ko', markersize=4, transform=ccrs.PlateCarree())
-ax.text(152.5, -33.868, 'Sydney', horizontalalignment='right',
+ax.text(151.1, -33.868, 'Sydney', horizontalalignment='right',
         transform=ccrs.PlateCarree(), fontsize=10)
 
 
@@ -73,10 +75,6 @@ ax.text(148.900, -35.0809, 'Canberra', horizontalalignment='center',
 ax.plot(144.9631, -37.8136, 'ko', markersize=4, transform=ccrs.PlateCarree())
 ax.text(144.85, -37.8136, 'Melbourne', horizontalalignment='right',
         transform=ccrs.PlateCarree(), fontsize=10)
-
-# Add EucFACE as a star
-ax.plot(150.738, -33.62, '*', markersize=20, c= "blue", markeredgecolor = 'black', alpha = 0.5,
-        transform=ccrs.PlateCarree())
 
 gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
                   linewidth=0.5, color='black', alpha=0.5,
@@ -92,7 +90,7 @@ gl.yformatter = LATITUDE_FORMATTER
 gl.xlocator = mticker.FixedLocator([141, 145,  149, 153])
 gl.ylocator = mticker.FixedLocator([-29, -32, -35, -38])
 
-fdir = "./plots"
+fdir = "/Users/mdekauwe/Dropbox/Drought_risk_paper/figures/figs"
 fig.savefig(os.path.join(fdir, "aus_map.png"), dpi=300, bbox_inches='tight',
             pad_inches=0.1)
-#plt.show()
+plt.show()

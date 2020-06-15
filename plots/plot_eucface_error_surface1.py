@@ -186,7 +186,7 @@ def calc_3d(ref_vars, ring, layer):
     #y = np.linspace(2.,7.,11)
 
     #case_name   = "30cm-deep_ssat_swilt_hyds"
-    case_name   = "30cm-deep_Ksat_Opt"
+    case_name   = "30cm-deep_hyds_only"
     contour     = False
 
     var_names   = ["hyds","hyds"]
@@ -195,10 +195,10 @@ def calc_3d(ref_vars, ring, layer):
     # x           = np.linspace(-2.,5.,15)
     # y           = np.linspace(-2.,5.,15)
 
-    var_values1 = ["-4","-3","-2","-1","0","1","2","3","4"]
-    var_values2 = ["-4","-3","-2","-1","0","1","2","3","4"]
-    x           = [-4.,-3.,-2.,-1.,0.,1.,2.,3.,4.]
-    y           = [-4.,-3.,-2.,-1.,0.,1.,2.,3.,4.]
+    var_values1 = ["-2","-15","-1","-05","0","05","1","15","2","25","3"]
+    var_values2 = ["-3","-2","-1","-05","0","05","1","2","3","4"]
+    x           = [-2.,-1.5,-1.,-0.5,0.,0.5,1.,1.5,2.,2.5,3.]
+    y           = [-3.,-2.,-1.,-0.5,0.,0.5,1.,2.,3.,4.]
 
     for ref_var in ref_vars:
         rmse = np.zeros((len(var_values1), len(var_values2)))
@@ -208,8 +208,11 @@ def calc_3d(ref_vars, ring, layer):
         min_j    = -1
         for i in np.arange(len(var_values1)):
             for j in np.arange(len(var_values2)):
-                output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_31uni_hyds-30cm-deep/Opt/outputs/met_LAI-08_vrt_swilt-watr-ssat_31uni_hyds^%s-%s_teuc_sres_watr/EucFACE_amb_out.nc"\
+                #output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_31uni_hyds-30cm-deep/ssat_swilt_hyds/outputs/met_LAI_vrt_swilt-watr-ssat_31uni_hyds^%s-%s_litter_gw-ssat-bom/EucFACE_amb_out.nc"\
+                output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_31uni_hyds-30cm-deep/hyds_only/outputs/met_LAI_vrt_31uni_hyds^%s-%s_litter_gw-ssat-bom/EucFACE_amb_out.nc"\
                                 % (var_values1[i],var_values2[j])
+                #output_file = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_sen_31uni_bch-hyds-30cm/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^%s-%s_litter/EucFACE_amb_out.nc"\
+                #               % (var_values1[i], var_values2[j])
 
                 cable_var, obs_var = get_var_value(ref_var, output_file, layer, ring)
                 print(ref_var)

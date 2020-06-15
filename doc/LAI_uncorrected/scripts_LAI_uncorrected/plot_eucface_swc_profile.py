@@ -8,15 +8,12 @@ include functions:
     plot_profile
     plot_profile_3
     plot_profile_tdr_ET
-    plot_profile_tdr_ET_error
-    plot_profile_tdr_ET_error_rain
-    plot_profile_ET_error_rain
     plot_dry_down
 
 """
 
 __author__ = "MU Mengyuan"
-__version__ = "2020-06-14"
+__version__ = "2020-03-10"
 
 import os
 import sys
@@ -256,9 +253,9 @@ def plot_profile(fcable, case_name, ring, contour, layer):
     ax3.set_ylabel("Depth (cm)")
     ax3.axis('tight')
     if contour == True:
-        fig.savefig("./plots/EucFACE_SW_obsved_dates_contour_%s_%s.png" % (os.path.basename(fcable).split("/")[-2], ring), bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("../plots/EucFACE_SW_obsved_dates_contour_%s_%s.png" % (os.path.basename(fcable).split("/")[-2], ring), bbox_inches='tight', pad_inches=0.1)
     else:
-        fig.savefig("./plots/EucFACE_SW_obsved_dates_%s_%s.png" % (os.path.basename(fcable).split("/")[-2], ring), bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("../plots/EucFACE_SW_obsved_dates_%s_%s.png" % (os.path.basename(fcable).split("/")[-2], ring), bbox_inches='tight', pad_inches=0.1)
 
 def plot_profile_3(fctl, fbest, ring, contour):
 
@@ -527,9 +524,9 @@ def plot_profile_3(fctl, fbest, ring, contour):
     ax3.axis('tight')
 
     if contour == True:
-        fig.savefig("./plots/EucFACE_SW_obsved_dates_contour_obs-ctl-best.png" , bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("../plots/EucFACE_SW_obsved_dates_contour_obs-ctl-best.png" , bbox_inches='tight', pad_inches=0.1)
     else:
-        fig.savefig("./plots/EucFACE_SW_obsved_dates_obs-ctl-best.png" , bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("../plots/EucFACE_SW_obsved_dates_obs-ctl-best.png" , bbox_inches='tight', pad_inches=0.1)
 
 def plot_profile_tdr_ET(fcable, ring, contour, layer):
 
@@ -835,9 +832,9 @@ def plot_profile_tdr_ET(fcable, ring, contour, layer):
     #fig.align_labels()
 
     if contour == True:
-        fig.savefig("./plots/EucFACE_SW_obsved_dates_ET_contour_%s_%s.png" % (fcable.split("/")[-2], ring), bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("../plots/EucFACE_SW_obsved_dates_ET_contour_%s_%s.png" % (fcable.split("/")[-2], ring), bbox_inches='tight', pad_inches=0.1)
     else:
-        fig.savefig("./plots/EucFACE_SW_obsved_dates_ET_%s_%s.png" % (fcable.split("/")[-2], ring), bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("../plots/EucFACE_SW_obsved_dates_ET_%s_%s.png" % (fcable.split("/")[-2], ring), bbox_inches='tight', pad_inches=0.1)
 
 def plot_profile_tdr_ET_error(fpath, case_name, ring, contour, layer):
 
@@ -1215,11 +1212,11 @@ def plot_profile_tdr_ET_error(fpath, case_name, ring, contour, layer):
     #fig.align_labels()
 
     if contour == True:
-        fig.savefig("./plots/EucFACE_SW_obsved_dates_ET_contour_error_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("../plots/EucFACE_SW_obsved_dates_ET_contour_error_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
     else:
-        fig.savefig("./plots/EucFACE_SW_obsved_dates_ET_error_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("../plots/EucFACE_SW_obsved_dates_ET_error_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
 
-def plot_profile_tdr_ET_error_rain(CTL, fpath, case_name, ring, contour, layer):
+def plot_profile_tdr_ET_error_rain(fpath, case_name, ring, contour, layer):
 
     """
     plot simulation status and fluxes
@@ -1409,7 +1406,7 @@ def plot_profile_tdr_ET_error_rain(CTL, fpath, case_name, ring, contour, layer):
 
     # ======================= PLOTTING  ==========================
 
-    if case_name == CTL:
+    if case_name == "met_LAI_6":
         fig = plt.figure(figsize=[9,17.5])
     else:
         fig = plt.figure(figsize=[9,14])
@@ -1445,7 +1442,7 @@ def plot_profile_tdr_ET_error_rain(CTL, fpath, case_name, ring, contour, layer):
 
     props = dict(boxstyle="round", facecolor='white', alpha=0.0, ec='white')
 
-    if case_name == CTL:
+    if case_name == "met_LAI_6":
         ax1 = fig.add_subplot(511)
         ax2 = fig.add_subplot(512)
         ax5 = fig.add_subplot(513)
@@ -1485,7 +1482,7 @@ def plot_profile_tdr_ET_error_rain(CTL, fpath, case_name, ring, contour, layer):
         marker='o', c='',edgecolors='red', s = 2., label="$E_{s}$ (Obs)")
     ax1.text(0.02, 0.95, '(a)', transform=ax1.transAxes, fontsize=14, verticalalignment='top', bbox=props)
 
-    if case_name == CTL:
+    if case_name == "met_LAI_6":
 
         # this order of the setting can affect plot x & y axis
         plt.setp(ax1.get_xticklabels(), visible=True)
@@ -1493,7 +1490,7 @@ def plot_profile_tdr_ET_error_rain(CTL, fpath, case_name, ring, contour, layer):
         ax1.set_ylabel("$E_{tr}$, $E_{s}$ (mm d$^{-1}$)")
         ax1.axis('tight')
         ax1.set_ylim(0.,6.)
-        ax1.set_xlim(367,1097)#2923)
+        ax1.set_xlim(367,1097)
         ax1.legend(loc='upper right', ncol=2, labelspacing=0.2, columnspacing=0.2, frameon=False)
         #ax1.update_ticks()
 
@@ -1501,7 +1498,7 @@ def plot_profile_tdr_ET_error_rain(CTL, fpath, case_name, ring, contour, layer):
         ax6.set_ylabel('$P$ (mm d$^{-1}$)')
         ax6.bar(x, -Rainf['Rainf'],  1., color='gray', alpha = 0.5, label='Rainfall') # 'royalblue'
         ax6.set_ylim(-220.,0)
-        ax6.set_xlim(367,1097)#2923)
+        ax6.set_xlim(367,1097)
         y_ticks      = [-200,-150,-100,-50,0.]
         y_ticklabels = ['200','150','100','50','0']
         ax6.set_yticks(y_ticks)
@@ -1514,7 +1511,7 @@ def plot_profile_tdr_ET_error_rain(CTL, fpath, case_name, ring, contour, layer):
         ax1.set_ylabel("$E_{tr}$, $E_{s}$ (mm d$^{-1}$)")
         ax1.axis('tight')
         ax1.set_ylim(0.,4.)
-        ax1.set_xlim(367,1097)#2923)
+        ax1.set_xlim(367,1097)
         ax1.legend(loc='upper right', ncol=2,labelspacing=0.2, columnspacing=0.2, frameon=False)
         #ax1.update_ticks()
 
@@ -1540,7 +1537,7 @@ def plot_profile_tdr_ET_error_rain(CTL, fpath, case_name, ring, contour, layer):
     yticks         = [360,260,160,60]
     yticklabels    = ["100","200","300","400"]
 
-    if case_name == CTL:
+    if case_name == "met_LAI_6":
 
         if contour:
             levels = np.arange(0.,0.52,0.02)
@@ -1580,7 +1577,7 @@ def plot_profile_tdr_ET_error_rain(CTL, fpath, case_name, ring, contour, layer):
     tick_locator2 = ticker.MaxNLocator(nbins=5)
     cbar2.locator = tick_locator2
     cbar2.update_ticks()
-    if case_name == CTL:
+    if case_name == "met_LAI_6":
         ax3.text(0.02, 0.95, '(d)', transform=ax3.transAxes, fontsize=14, verticalalignment='top', bbox=props)
     else:
         ax3.text(0.02, 0.95, '(c)', transform=ax3.transAxes, fontsize=14, verticalalignment='top', bbox=props)
@@ -1609,7 +1606,7 @@ def plot_profile_tdr_ET_error_rain(CTL, fpath, case_name, ring, contour, layer):
     cbar3.locator = tick_locator3
     cbar3.update_ticks()
 
-    if case_name == CTL:
+    if case_name == "met_LAI_6" or case_name == "met_LAI_non-site-param_6":
         ax4.text(0.02, 0.95, '(e)', transform=ax4.transAxes, fontsize=14, verticalalignment='top', bbox=props)
     else:
         ax4.text(0.02, 0.95, '(d)', transform=ax4.transAxes, fontsize=14, verticalalignment='top', bbox=props)
@@ -1626,9 +1623,9 @@ def plot_profile_tdr_ET_error_rain(CTL, fpath, case_name, ring, contour, layer):
     #fig.align_labels()
 
     if contour == True:
-        fig.savefig("./plots/EucFACE_SW_obsved_dates_ET_contour_error_rain_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("../plots/EucFACE_SW_obsved_dates_ET_contour_error_rain_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
     else:
-        fig.savefig("./plots/EucFACE_SW_obsved_dates_ET_error_rain_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("../plots/EucFACE_SW_obsved_dates_ET_error_rain_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
 
 def plot_profile_ET_error_rain(fpath, case_name, ring, contour, layer):
 
@@ -2067,9 +2064,9 @@ def plot_profile_ET_error_rain(fpath, case_name, ring, contour, layer):
     #fig.align_labels()
 
     if contour == True:
-        fig.savefig("./plots/EucFACE_SW_obsved_dates_ET_contour_error_rain_no-tdr_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("../plots/EucFACE_SW_obsved_dates_ET_contour_error_rain_no-tdr_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
     else:
-        fig.savefig("./plots/EucFACE_SW_obsved_dates_ET_error_rain_no-tdr_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
+        fig.savefig("../plots/EucFACE_SW_obsved_dates_ET_error_rain_no-tdr_%s_%s.png" % (case_name, ring), bbox_inches='tight', pad_inches=0.1)
 
 def plot_dry_down(fcable, case_name, ring, layer):
 

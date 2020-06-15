@@ -362,7 +362,7 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
 
     # choose colormap
     colors = cm.tab20(np.arange(0,len(case_labels)))
-    ls     = ['-','--','-','--','-','--','-','--','-','--']
+    ls     = ['-','--','-','--','-','--','-','--','-','--','-','--']
 
 
     # only plot event number 6
@@ -480,7 +480,7 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
         # ax6.spines['bottom'].set_visible(False)
         # ax6.get_xaxis().set_visible(False)
 
-        fig.savefig("./plots/EucFACE_Heatwave_%s" % str(i) , bbox_inches='tight', pad_inches=0.02)
+        fig.savefig("../plots/EucFACE_Heatwave_%s" % str(i) , bbox_inches='tight', pad_inches=0.02)
 
 def plot_EF_SM_HW(fcables, case_labels, layers, ring, time_scale):
 
@@ -724,9 +724,9 @@ def boxplot_Qle_Qh_EF_HW(fcables, case_labels, time_scale):
     ax3.set_xticklabels(case_labels)
 
     if time_scale == "hw_days":
-        fig.savefig("./plots/EucFACE_Qle_Qh_EF_HW" , bbox_inches='tight', pad_inches=0.02)
+        fig.savefig("../plots/EucFACE_Qle_Qh_EF_HW" , bbox_inches='tight', pad_inches=0.02)
     elif time_scale == "all_days":
-        fig.savefig("./plots/EucFACE_Qle_Qh_EF_all" , bbox_inches='tight', pad_inches=0.02)
+        fig.savefig("../plots/EucFACE_Qle_Qh_EF_all" , bbox_inches='tight', pad_inches=0.02)
 
 def group_boxplot_Qle_Qh_EF_HW(fcables, case_labels):
 
@@ -895,7 +895,7 @@ def group_boxplot_Qle_Qh_EF_HW(fcables, case_labels):
     ax3.axhline(y=np.mean(EF_hw[:,0]) ,color=almost_black, ls="--")
     ax3.text(0.02, 0.95, '(c)', transform=ax3.transAxes, fontsize=14, verticalalignment='top', bbox=props)
 
-    fig.savefig("./plots/EucFACE_Qle_Qh_EF_summer_group_boxplot" , bbox_inches='tight', pad_inches=0.02)
+    fig.savefig("../plots/EucFACE_Qle_Qh_EF_summer_group_boxplot" , bbox_inches='tight', pad_inches=0.02)
 
 def plot_case_study_HW_event(fcables, fcables_re, case_labels, ring, layers):
 
@@ -934,7 +934,7 @@ def plot_case_study_HW_event(fcables, fcables_re, case_labels, ring, layers):
     # choose colormap
     #colors = cm.Set2(np.arange(0,len(case_labels)))
     colors = cm.tab20(np.arange(0,8))
-    ls     = ['-','--','-','--','-','--','-','--','-','--','-','--']
+    ls     = ['-','--','-','--','-','--','-','--','-','--']
 
     #ax1  = fig.add_subplot(511)
     #ax2  = fig.add_subplot(512,sharex=ax1)
@@ -1113,7 +1113,7 @@ def plot_case_study_HW_event(fcables, fcables_re, case_labels, ring, layers):
     # ax6.spines['bottom'].set_visible(False)
     # ax6.get_xaxis().set_visible(False)
 
-    fig.savefig("./plots/EucFACE_Heatwave_2018-1-18-23_LH-SH" , bbox_inches='tight', pad_inches=0.02)
+    fig.savefig("../plots/EucFACE_Heatwave_2018-1-18-23_LH-SH" , bbox_inches='tight', pad_inches=0.02)
 
 def plot_case_study_HW_event_beta(fcables, fcables_re, case_labels, ring, layers):
 
@@ -1314,4 +1314,4 @@ def plot_case_study_HW_event_beta(fcables, fcables_re, case_labels, ring, layers
     # ax6.spines['bottom'].set_visible(False)
     # ax6.get_xaxis().set_visible(False)
 
-    fig.savefig("./plots/EucFACE_Heatwave_2018-1-18-23_LH-SH-beta" , bbox_inches='tight', pad_inches=0.02)
+    fig.savefig("../plots/EucFACE_Heatwave_2018-1-18-23_LH-SH-beta" , bbox_inches='tight', pad_inches=0.02)

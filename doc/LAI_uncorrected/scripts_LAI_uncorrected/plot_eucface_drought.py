@@ -187,7 +187,7 @@ def plot_EF_SM(fstd, fhvrd, fexp, fwatpot, ring, layer):
     ax5.set_xlim(day_start,2739)
     ax5.legend()
 
-    fig.savefig("./plots/EucFACE_EF_SM" , bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("../plots/EucFACE_EF_SM" , bbox_inches='tight', pad_inches=0.1)
 
 def plot_Fwsoil_Trans(fcables, ring, case_labels):
 
@@ -254,7 +254,7 @@ def plot_Fwsoil_Trans(fcables, ring, case_labels):
     ax2.set_ylim(0.,3.)
     ax2.set_xlim(367,978)#(367,1098)
     ax2.legend()
-    fig.savefig("./plots/EucFACE_Fwsoil_Trans-Martin" , bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("../plots/EucFACE_Fwsoil_Trans-Martin" , bbox_inches='tight', pad_inches=0.1)
 
 def plot_Rain_Fwsoil_Trans(fstd, fhvrd, fexp, fwatpot, ring):
 
@@ -347,7 +347,7 @@ def plot_Rain_Fwsoil_Trans(fstd, fhvrd, fexp, fwatpot, ring):
     #ax3.set_xlim(367,2739)#,1098)
     ax3.set_xlim(day_start,2739)
     ax3.legend()
-    fig.savefig("./plots/EucFACE_Rain_Fwsoil_Trans" , bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("../plots/EucFACE_Rain_Fwsoil_Trans" , bbox_inches='tight', pad_inches=0.1)
 
 def plot_Fwsoil_boxplot(fcables, case_labels):
 
@@ -440,7 +440,7 @@ def plot_Fwsoil_boxplot(fcables, case_labels):
 
     plt.legend()#loc="upper right"
 
-    fig.savefig("./plots/EucFACE_Fwsoil_boxplot" , bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("../plots/EucFACE_Fwsoil_boxplot" , bbox_inches='tight', pad_inches=0.1)
 
 def plot_fwsoil_SM( fcables, layers, case_labels, ring):
 
@@ -491,7 +491,7 @@ def plot_fwsoil_SM( fcables, layers, case_labels, ring):
     ax.set_xlabel("volumetric water content in top 1.5 m (m3/m3)")
     ax.legend(numpoints=1, loc='lower right')
 
-    fig.savefig("./plots/EucFACE_fwsoil_vs_SM_%s.png" % ring , bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("../plots/EucFACE_fwsoil_vs_SM_%s.png" % ring , bbox_inches='tight', pad_inches=0.1)
 
 def plot_Rain_Fwsoil_Trans_Esoil_EF_SM( fcables, case_labels, layers, ring):
 
@@ -643,7 +643,7 @@ def plot_Rain_Fwsoil_Trans_Esoil_EF_SM( fcables, case_labels, layers, ring):
     ax5.set_xlim(day_start,day_end)
     ax5.text(0.02, 0.95, '(e)', transform=ax5.transAxes, fontsize=14, verticalalignment='top', bbox=props)
 
-    fig.savefig("./plots/EucFACE_Rain_Fwsoil_Trans_EF_SM" , bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("../plots/EucFACE_Rain_Fwsoil_Trans_EF_SM" , bbox_inches='tight', pad_inches=0.1)
 
 def plot_fwsoil_boxplot_SM( fcables, case_labels, layers, ring):
 
@@ -787,7 +787,7 @@ def plot_fwsoil_boxplot_SM( fcables, case_labels, layers, ring):
     ax2.text(0.02, 0.95, '(b)', transform=ax2.transAxes, fontsize=14, verticalalignment='top', bbox=props)
     #plt.setp(ax2.get_yticklabels(), visible=False)
 
-    fig.savefig("./plots/EucFACE_Fwsoil_boxplot_SM" , bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("../plots/EucFACE_Fwsoil_boxplot_SM" , bbox_inches='tight', pad_inches=0.1)
 
 def plot_Fwsoil_days_bar(fcables, case_labels):
     """
@@ -897,7 +897,7 @@ def plot_Fwsoil_days_bar(fcables, case_labels):
     ax2.set_xlim(-0.1,7)
     ax2.text(0.02, 0.95, '(b)', transform=ax2.transAxes, fontsize=14, verticalalignment='top', bbox=props)
 
-    fig.savefig("./plots/EucFACE_Fwsoil_days" , bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("../plots/EucFACE_Fwsoil_days" , bbox_inches='tight', pad_inches=0.1)
 
 def plot_Rain_Fwsoil_Trans_Esoil_SH_SM( fcables, case_labels, layers, ring):
 
@@ -1050,7 +1050,7 @@ def plot_Rain_Fwsoil_Trans_Esoil_SH_SM( fcables, case_labels, layers, ring):
     ax5.set_xlim(day_start,day_end)
     ax5.text(0.02, 0.95, '(e)', transform=ax5.transAxes, fontsize=14, verticalalignment='top', bbox=props)
 
-    fig.savefig("./plots/EucFACE_Rain_Fwsoil_Trans_SH_SM" , bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("../plots/EucFACE_Rain_Fwsoil_Trans_SH_SM" , bbox_inches='tight', pad_inches=0.1)
 
 def plot_fwsoil_boxplot_SM_days_bar( fcables, case_labels, layers, ring):
 
@@ -1243,4 +1243,4 @@ def plot_fwsoil_boxplot_SM_days_bar( fcables, case_labels, layers, ring):
     ax3.legend( loc='best', ncol=2, frameon=False) #'upper right'
     ax3.text(0.02, 0.95, '(c)', transform=ax3.transAxes, fontsize=14, verticalalignment='top', bbox=props)
 
-    fig.savefig("./plots/EucFACE_Fwsoil_boxplot_SM_days" , bbox_inches='tight', pad_inches=0.1)
+    fig.savefig("../plots/EucFACE_Fwsoil_boxplot_SM_days" , bbox_inches='tight', pad_inches=0.1)

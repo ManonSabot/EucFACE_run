@@ -94,7 +94,7 @@ def plot_waterbal(fcables, case_labels):
     ax.set_xticklabels(labels)
     ax.legend()
 
-    fig.savefig('./plots/water_balance_2013_obs-ctl-std-exp', bbox_inches='tight',pad_inches=0.1)
+    fig.savefig('../plots/water_balance_2013_obs-ctl-std-exp', bbox_inches='tight',pad_inches=0.1)
 
 def plot_waterbal_no_total_Evap(fcables, case_labels):
 
@@ -184,7 +184,7 @@ def plot_waterbal_no_total_Evap(fcables, case_labels):
     ax.set_xticklabels(labels)
     ax.legend( loc='best', frameon=False)
 
-    fig.savefig('./plots/water_balance_Aut2013-Sum2014', bbox_inches='tight',pad_inches=0.1)
+    fig.savefig('../plots/water_balance_Aut2013-Sum2014', bbox_inches='tight',pad_inches=0.1)
 
 def plot_waterbal_no_total_Evap_imbalance(path, case_names, case_labels):
 
@@ -304,7 +304,7 @@ def plot_waterbal_no_total_Evap_imbalance(path, case_names, case_labels):
     ax.set_xticklabels(labels)
     ax.legend( loc='best', ncol=2, frameon=False)
 
-    fig.savefig('./plots/water_balance_Aut2013-Sum2014_imb', bbox_inches='tight',pad_inches=0.1)
+    fig.savefig('../plots/water_balance_Aut2013-Sum2014_imb', bbox_inches='tight',pad_inches=0.1)
 
 def plot_waterbal_no_total_Evap_error_imbalance(path, case_names, case_labels):
 
@@ -486,7 +486,7 @@ def plot_waterbal_no_total_Evap_error_imbalance(path, case_names, case_labels):
     ax.set_xticklabels(labels)
     ax.legend( loc='best', ncol=2, frameon=False)
 
-    fig.savefig('./plots/water_balance_Aut2013-Sum2014_imb', bbox_inches='tight',pad_inches=0.1)
+    fig.savefig('../plots/water_balance_Aut2013-Sum2014_imb', bbox_inches='tight',pad_inches=0.1)
 
 def calc_waterbal_year(fcbl, layer):
 

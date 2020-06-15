@@ -259,7 +259,7 @@ def read_obs_swc_tdr(ring):
 
     print("carry on read_obs_swc_tdr")
 
-    fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
+    fobs = "/srv/ccrc/data25/z5218916/data/Eucface_data/swc_average_above_the_depth/swc_tdr.csv"
     tdr = pd.read_csv(fobs, usecols = ['Ring','Date','swc.tdr'])
     tdr['Date'] = pd.to_datetime(tdr['Date'],format="%Y-%m-%d",infer_datetime_format=False)
     tdr['Date'] = tdr['Date'] - pd.datetime(2011,12,31)
@@ -289,7 +289,7 @@ def read_obs_swc_neo(ring):
     """
 
     print("carry on read_obs_swc_neo")
-    fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
+    fobs = "/srv/ccrc/data25/z5218916/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
     neo = pd.read_csv(fobs, usecols = ['Ring','Depth','Date','VWC'])
 
     neo['Date'] = pd.to_datetime(neo['Date'],format="%d/%m/%y",infer_datetime_format=False)
@@ -334,7 +334,7 @@ def read_obs_neo_top_mid_bot(ring):
     """
     Read neo soil moisture for top mid and bot soil blocks used for metrics calculation
     """
-    fobs_neo = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
+    fobs_neo = "/srv/ccrc/data25/z5218916/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
     neo = pd.read_csv(fobs_neo, usecols = ['Ring','Depth','Date','VWC'])
     neo['Date'] = pd.to_datetime(neo['Date'],format="%d/%m/%y",infer_datetime_format=False)
     neo['Date'] = neo['Date'] - pd.datetime(2011,12,31)

@@ -36,7 +36,6 @@ def main(restart_fname):
 
 if __name__ == "__main__":
 
-    #restart_fname = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_31layers/restart_files/met_LAI_vrt_swilt-watr-ssat_SM_31uni_2013-2018-1-17_litter_Hvrd/EucFACE_amb_restart.nc"
-    restart_fname = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_31layers/restart_files/met_LAI_vrt_SM_31uni_2013-2018-1-17_litter_Hvrd/EucFACE_amb_restart.nc"
+    restart_fname = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_31layers/run_heatwave_prescribe_soilmoist/restart_files/met_LAI_vrt_31uni_2013-2018-1-17_litter_gw-ssat-bom_Hvrd/EucFACE_amb_restart.nc"
 
     main(restart_fname)

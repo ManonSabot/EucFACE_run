@@ -92,7 +92,7 @@ gl.yformatter = LATITUDE_FORMATTER
 gl.xlocator = mticker.FixedLocator([141, 145,  149, 153])
 gl.ylocator = mticker.FixedLocator([-29, -32, -35, -38])
 
-fdir = "./plots"
+fdir = "../plots"
 fig.savefig(os.path.join(fdir, "aus_map.png"), dpi=300, bbox_inches='tight',
             pad_inches=0.1)
 #plt.show()
