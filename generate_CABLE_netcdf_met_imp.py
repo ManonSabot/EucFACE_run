@@ -30,6 +30,7 @@ modifications:
 7. can choose neutron or/and tdr VWC observation to constrain
    wilting point and VWC at saturation
 8. tdr represents 25cm instead of 50cm
+9. use Belinda's corrected LAI
 '''
 
 __author__    = "Martin De Kauwe"
@@ -47,7 +48,8 @@ from scipy.interpolate import griddata
 from scipy.signal import savgol_filter
 
 def main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname,
-         PTF, soil_frac, layer_num, neo_constrain, tdr_constrain, ring, new_LAI):
+         PTF, soil_frac, layer_num, neo_constrain, tdr_constrain, ring, LAI_file,
+         ssat_all):
 
     '''
     SWdown = (/0.0,1360.0/),            & ! W/m^2
@@ -181,9 +183,9 @@ def main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname,
     LAI = f.createVariable('LAI', 'f4', ('time', 'y', 'x'))
     LAI.setncatts({'long_name': u"Leaf Area Index",})
 
-    vcmax = f.createVariable('vcmax', 'f4', ('y', 'x'))
-    ejmax = f.createVariable('ejmax', 'f4', ('y', 'x'))
-    g1 = f.createVariable('g1', 'f4', ('y', 'x'))
+    # vcmax = f.createVariable('vcmax', 'f4', ('y', 'x'))
+    # ejmax = f.createVariable('ejmax', 'f4', ('y', 'x'))
+    # g1 = f.createVariable('g1', 'f4', ('y', 'x'))
     hc = f.createVariable('hc', 'f4', ('y', 'x'))
 
     elevation = f.createVariable('elevation', 'f4', ('y', 'x',))
@@ -330,10 +332,10 @@ def main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname,
     watr.long_name = "residual water content of the soil"
     watr.missing_value = -9999.0
 
-    SoilMoist = f.createVariable('SoilMoist', 'f4', ('soil_depth', 'y', 'x',))
-    SoilMoist.units = "m3 m-3"
-    SoilMoist.long_name = "soil moisture (water+ice)"
-    SoilMoist.missing_value = -9999.0
+    # SoilMoist = f.createVariable('SoilMoist', 'f4', ('soil_depth', 'y', 'x',))
+    # SoilMoist.units = "m3 m-3"
+    # SoilMoist.long_name = "soil moisture (water+ice)"
+    # SoilMoist.missing_value = -9999.0
 
     """
     Parameters based on param_vec:
@@ -377,21 +379,24 @@ def main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname,
     LWdown[:,0,0] = lw.reshape(n_timesteps, ndim, ndim)
     if ring in ["amb","R2","R3","R6"]:
         CO2[:,0,0] = df["Ca.A"].values.reshape(n_timesteps, ndim, ndim, ndim)
-        vcmax[:] = 86.1425919e-6
-        ejmax[:] = 138.4595736e-6
+        # vcmax[:] = 86.1425919e-6
+        # ejmax[:] = 138.4595736e-6
     elif ring in ["ele","R1","R4","R5"]:
         CO2[:,0,0] = df["Ca.E"].values.reshape(n_timesteps, ndim, ndim, ndim)
-        vcmax[:] = 81.70591263e-6
-        ejmax[:] = 135.8062907e-6
+        # vcmax[:] = 81.70591263e-6
+        # ejmax[:] = 135.8062907e-6
     elevation[:] = 23.0 # Ellsworth 2017, NCC
-    if new_LAI:
+
+    if LAI_file == "eucLAI.csv":
+        LAI[:,0,0] = interpolate_lai(lai_fname, ring)
+    elif LAI_file == 'eucLAI1319.csv':
         method     = "savgol_filter" #'average' #"savgol_filter"
         LAI[:,0,0] = interpolate_raw_lai(lai_fname, ring, method)
-    else:
-        LAI[:,0,0] = interpolate_lai(lai_fname, ring)
+    elif LAI_file == 'smooth_LAI_Mengyuan.csv':
+        LAI[:,0,0] = interpolate_lai_corrected(lai_fname, ring)
 
     #df.lai.values.reshape(n_timesteps, ndim, ndim)
-    g1[:] = 3.8
+    # g1[:] = 3.8 # 4.02
     hc[:] = 20.
     za[:] = 20.0 + 2.0 # ???
 
@@ -488,12 +493,12 @@ def main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname,
     sfc_vec[:,0,0]    = np.zeros(nsoil)
     css_vec[:,0,0]    = np.zeros(nsoil)
     cnsd_vec[:,0,0]   = np.zeros(nsoil)
-    SoilMoist[:,0,0]  = np.zeros(nsoil)
+    #SoilMoist[:,0,0]  = np.zeros(nsoil)
 
     bulk_density      = np.zeros(nsoil)
     sand_vec[:,0,0],silt_vec[:,0,0],clay_vec[:,0,0] = calc_soil_frac(stx_fname, ring, nsoil, boundary, soil_frac)
     rhosoil_vec[:,0,0],bulk_density = estimate_rhosoil_vec(swc_fname, nsoil, ring, soil_frac, boundary)
-    SoilMoist[:,0,0]  = init_soil_moisture(swc_fname, nsoil, ring, soil_frac, boundary)
+    #SoilMoist[:,0,0]  = init_soil_moisture(swc_fname, nsoil, ring, soil_frac, boundary)
 
 
     psi_tmp  = 2550000.0 # water potential at wilting point for iveg=2 in CABLE
@@ -581,10 +586,12 @@ def main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname,
     print("all are good")
 
     if neo_constrain:
-        #swilt_vec[:,0,0],watr[:],ssat_vec[:,0,0]  = \
-        #    neo_swilt_ssat(swc_fname, nsoil, ring, layer_num, swilt_vec[:,0,0], watr[:], ssat_vec[:,0,0], soil_frac, boundary)
-        swilt_vec[:,0,0],watr[:] = \
-            neo_swilt_ssat(swc_fname, nsoil, ring, layer_num, swilt_vec[:,0,0], watr[:], ssat_vec[:,0,0], soil_frac, boundary)
+        if ssat_all:
+            swilt_vec[:,0,0],watr[:],ssat_vec[:,0,0]  = \
+                neo_swilt_ssat_all(swc_fname, nsoil, ring, layer_num, swilt_vec[:,0,0], watr[:], ssat_vec[:,0,0], soil_frac, boundary)
+        else:
+            swilt_vec[:,0,0],watr[:] = \
+                neo_swilt_ssat(swc_fname, nsoil, ring, layer_num, swilt_vec[:,0,0], watr[:], ssat_vec[:,0,0], soil_frac, boundary)
     if tdr_constrain:
         swilt_vec[:,0,0],ssat_vec[:,0,0] = tdr_constrain_top_25cm(tdr_fname, ring, layer_num, swilt_vec[:,0,0],ssat_vec[:,0,0])
 
@@ -902,6 +909,127 @@ def neo_swilt_ssat(swc_fname, nsoil, ring, layer_num, swilt_input, watr_input, s
     #return swilt_output, watr_output, ssat_output;
     return swilt_output, watr_output;
 
+def neo_swilt_ssat_all(swc_fname, nsoil, ring, layer_num, swilt_input, watr_input, ssat_input, soil_frac, boundary):
+
+    neo = pd.read_csv(swc_fname, usecols = ['Ring','Depth','VWC'])
+    neo = neo.sort_values(by=['Depth'])
+
+    if ring == 'amb':
+        subset = neo[neo['Ring'].isin(['R2','R3','R6'])]
+    elif ring == 'ele':
+        subset = neo[neo['Ring'].isin(['R1','R4','R5'])]
+    else:
+        subset = neo[neo['Ring'].isin([ring])]
+    subset['VWC'] = subset['VWC'].clip(lower=0.)
+    subset['VWC'] = subset['VWC'].replace(0., float('nan'))
+
+    neo_min = np.zeros(12)
+    neo_min[0] = subset[subset['Depth'] == 25]['VWC'].nsmallest(5).mean()/100.
+    neo_min[1] = subset[subset['Depth'] == 50]['VWC'].nsmallest(5).mean()/100.
+    neo_min[2] = subset[subset['Depth'] == 75]['VWC'].nsmallest(5).mean()/100.
+    neo_min[3] = subset[subset['Depth'] == 100]['VWC'].nsmallest(5).mean()/100.
+    neo_min[4] = subset[subset['Depth'] == 125]['VWC'].nsmallest(5).mean()/100.
+    neo_min[5] = subset[subset['Depth'] == 150]['VWC'].nsmallest(5).mean()/100.
+    neo_min[6] = subset[subset['Depth'] == 200]['VWC'].nsmallest(5).mean()/100.
+    neo_min[7] = subset[subset['Depth'] == 250]['VWC'].nsmallest(5).mean()/100.
+    neo_min[8] = subset[subset['Depth'] == 300]['VWC'].nsmallest(5).mean()/100.
+    neo_min[9] = subset[subset['Depth'] == 350]['VWC'].nsmallest(5).mean()/100.
+    neo_min[10] = subset[subset['Depth'] == 400]['VWC'].nsmallest(5).mean()/100.
+    neo_min[11] = subset[subset['Depth'] == 450]['VWC'].nsmallest(5).mean()/100.
+    print(neo_min)
+    neo_index = [ 25.,  50.,  75., 100., 125., 150., 200., 250.,\
+                     300., 350., 400., 450. ]
+    f = interp1d(neo_index, neo_min, kind = soil_frac, \
+             fill_value=(neo_min[0],neo_min[-1]), bounds_error=False) # fill_value='extrapolate'
+
+    grid_value = np.arange(0.5,465,1)
+    swilt_neo  = f(grid_value)
+
+    swilt_output = np.zeros(nsoil)
+    watr_output  = np.zeros(nsoil)
+
+    for j in np.arange(0,nsoil,1):
+        if (j == 0 and grid_value[0] > boundary[1]):
+            swilt_output[0] = min(swilt_neo[0],swilt_input[0])
+            if swilt_output[0] <= watr_input[0]:
+                watr_output[0] = swilt_output[0]
+                swilt_output[0]= watr_output[0]+0.0001
+            else:
+                watr_output[0] = watr_input[0]
+        else:
+            counter = 0.
+            for i in np.arange(0,len(grid_value),1):
+                if ((grid_value[i] >= boundary[j]) and (grid_value[i] <= boundary[j+1])):
+                    swilt_output[j] = swilt_output[j] + swilt_neo[i]
+                    counter += 1.
+            swilt_output[j] = swilt_output[j]/counter
+            swilt_output[j] = min(swilt_output[j],swilt_input[j])
+            if swilt_output[j] <= watr_input[j]:
+                watr_output[j] = swilt_output[j]
+                swilt_output[j]= watr_output[j]+0.0001
+            else:
+                watr_output[j] = watr_input[j]
+
+    neo_max = np.zeros(12)
+    neo_max[0] = subset[subset['Depth'] == 25]['VWC'].nlargest(1)/100.
+    neo_max[1] = subset[subset['Depth'] == 50]['VWC'].nlargest(1)/100.
+    neo_max[2] = subset[subset['Depth'] == 75]['VWC'].nlargest(1)/100.
+    neo_max[3] = subset[subset['Depth'] == 100]['VWC'].nlargest(1)/100.
+    neo_max[4] = subset[subset['Depth'] == 125]['VWC'].nlargest(1)/100.
+    neo_max[5] = subset[subset['Depth'] == 150]['VWC'].nlargest(1)/100.
+    neo_max[6] = subset[subset['Depth'] == 200]['VWC'].nlargest(1)/100.
+    neo_max[7] = subset[subset['Depth'] == 250]['VWC'].nlargest(1)/100.
+    neo_max[8] = subset[subset['Depth'] == 300]['VWC'].nlargest(1)/100.
+    neo_max[9] = subset[subset['Depth'] == 350]['VWC'].nlargest(1)/100.
+    neo_max[10] = subset[subset['Depth'] == 400]['VWC'].nlargest(1)/100.
+    neo_max[11] = subset[subset['Depth'] == 450]['VWC'].nlargest(1)/100.
+    print(neo_max)
+
+    g = interp1d(neo_index, neo_max, kind = soil_frac, \
+             fill_value=(neo_max[0],neo_max[11]), bounds_error=False) # fill_value='extrapolate'
+    ssat_neo = g(grid_value)
+
+    ssat_output  = np.zeros(nsoil)
+
+    for j in np.arange(0,nsoil,1):
+        if (j == 0 and grid_value[0] > boundary[1]):
+            ssat_output[0] = ssat_neo[0]
+        else:
+            counter = 0.
+            for i in np.arange(0,len(grid_value),1):
+                if ((grid_value[i] >= boundary[j]) and (grid_value[i] <= boundary[j+1])):
+                    ssat_output[j] = ssat_output[j] + ssat_neo[i]
+                    counter += 1.
+            ssat_output[j] = ssat_output[j]/counter
+
+    print(ssat_neo)
+    print(ssat_output)
+
+    # assumption: neo_max cannot capture ssat when depth > 1m
+    if layer_num == "6":
+        layer_num_1m = 3 # [0-23.4cm]
+    elif layer_num == "31uni":
+        layer_num_1m = 2 # [0-30cm]
+
+    # Don't change ssat in top 30cm, since tdr data will be used to adjust top 30cm
+    ssat_output[0:layer_num_1m] = ssat_input[0:layer_num_1m]
+
+    print(ssat_output)
+    print(ssat_input)
+
+    for j in np.arange(0,nsoil,1):
+        print("j = %f" % j)
+        print(abs(ssat_input[j]))
+        print(abs(ssat_output[j]))
+        print(abs(ssat_input[j]-ssat_output[j]))
+        if (abs(ssat_input[j]-ssat_output[j]) > 0.03):
+            print("*********************************")
+            print("the difference between calculated and observated ssats in the %s layer is larger than 0.03" % str(j))
+            print("the calculated is %s and the observated is %s" % ( str(ssat_input[j]), str(ssat_output[j])))
+            print("*********************************")
+
+    return swilt_output, watr_output, ssat_output;
+
 def tdr_constrain_top_25cm(tdr_fname, ring, layer_num, swilt_input, ssat_input):
 
     tdr = pd.read_csv(tdr_fname, usecols = ['Ring','swc.tdr'])
@@ -996,6 +1124,7 @@ def estimate_lwdown(tairK, rh):
 
 def interpolate_lai(lai_fname, ring):
     """
+    For LAI file: /srv/ccrc/data25/z5218916/data/Eucface_data/met_July2019/eucLAI.csv
     the raw data is daily LAI from 2012-10-26 to 2018-04-27, to fill the gap between
     2018-04-28 to 2019-06-30, firstly calculating the 366-days LAI cycle,
     secondly, connect the phenological LAI at 27th April to observated LAI at
@@ -1049,6 +1178,7 @@ def interpolate_lai(lai_fname, ring):
 def interpolate_raw_lai(lai_fname, ring, method):
 
     """
+    For LAI file: /srv/ccrc/data25/z5218916/data/Eucface_data/met_2013-2019/eucLAI1319.csv
     the raw LAI data is from 2012-10-26 to 2019-12-29. It will be interpolated
     and smoothed into half-hour data from 2013-1-1 to 2019-12-31
     """
@@ -1064,7 +1194,6 @@ def interpolate_raw_lai(lai_fname, ring, method):
     lai['R5'] = df_lai[df_lai['Ring'].values == 'R5']['LAI'].values
     lai['R6'] = df_lai[df_lai['Ring'].values == 'R6']['LAI'].values
     lai['Date'] = df_lai[df_lai['Ring'].values == 'R6']['days_201311'].values
-
 
     # for interpolation, add a row of 2019-12-31
     insertRow = pd.DataFrame([[1.4672, 1.5551, 1.3979, 1.3515, 1.7840, 1.5353, 2555]],
@@ -1128,6 +1257,38 @@ def interpolate_raw_lai(lai_fname, ring, method):
 
     return LAI_half_hour
 
+def interpolate_lai_corrected(lai_fname, ring):
+
+    """
+    For LAI file: /srv/ccrc/data25/z5218916/data/Eucface_data/LAI_2013-2019/smooth_LAI_Mengyuan.csv
+    This file is the corrected, gap-filled and smoonthed (loess smoother) LAI values
+    for the ambient rings through 2012-10-26 to 2019-12-31.
+    """
+
+    df_lai = pd.read_csv(lai_fname, usecols = ['Ring','Date','LAI']) # daily data
+    print(df_lai)
+    if ring == "amb":
+        subset = df_lai[df_lai['Ring'].isin(['R2','R3','R6'])]
+    elif ring == "R2":
+        subset = df_lai[df_lai['Ring'].isin(['R2'])] # select out the ring
+    elif ring == "R3":
+        subset = df_lai[df_lai['Ring'].isin(['R3'])] # select out the ring
+    elif ring == "R6":
+        subset = df_lai[df_lai['Ring'].isin(['R6'])] # select out the ring
+
+    subset = subset.groupby(by=["Date"])['LAI'].mean()
+    subset.index = pd.to_datetime(subset.index,format="%Y-%m-%d",infer_datetime_format=False)
+    print(subset)
+
+    seconds = 2556.*24.*60.*60.
+    day_second       = np.arange(0.,seconds,60*60*24.)
+    half_hour_second = np.arange(0.,seconds,1800.)
+
+    LAI_half_hour = np.interp(half_hour_second, day_second, subset[subset.index > pd.datetime(2012,12,31)].values)
+    print(LAI_half_hour)
+
+    return LAI_half_hour
+
 def thickness_weighted_average(var, nsoil, zse_vec):
     VAR     = 0.0
     for i in np.arange(0,nsoil,1):
@@ -1139,7 +1300,7 @@ def thickness_weighted_average(var, nsoil, zse_vec):
 if __name__ == "__main__":
 
     met_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/met_2013-2019/eucFACEmet1319_gap_filled.csv"
-    lai_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/met_2013-2019/eucLAI1319.csv"
+    lai_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/met_2013-2019/smooth_LAI_Mengyuan.csv"
     swc_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
     tdr_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/SM_2013-2019/eucSM1319_gap_filled.csv"
     stx_fname = "/srv/ccrc/data25/z5218916/data/Eucface_data/soil_texture/FACE_P0018_RA_SOILTEXT_L2_20120501.csv"
@@ -1154,10 +1315,16 @@ if __name__ == "__main__":
     layer_num     = "31uni"
     neo_constrain = True
     tdr_constrain = True
-    new_LAI       = True
+    ssat_all      = True # adjust ssat for all columns
+    LAI_file      = lai_fname.split("/")[-1]
+                    #"eucLAI.csv":
+                    #'eucLAI1319.csv':
+                    #'smooth_LAI_Mengyuan.csv':
+
+    print(LAI_file)
 
     #for ring in ["R1","R2","R3","R4","R5","R6","amb", "ele"]:
-    for ring in ["amb"]:
+    for ring in ["R2","R3","R6","amb"]:
         out_fname = "EucFACE_met_%s.nc" % (ring)
         main(met_fname, lai_fname, swc_fname, tdr_fname, stx_fname, out_fname, PTF, soil_frac,\
-             layer_num, neo_constrain, tdr_constrain, ring, new_LAI)
+             layer_num, neo_constrain, tdr_constrain, ring, LAI_file, ssat_all)
