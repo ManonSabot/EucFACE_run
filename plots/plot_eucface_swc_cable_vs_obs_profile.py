@@ -658,11 +658,17 @@ def plot_dry_down(fcable, case_name, ring, layer):
 
 
 
-'''
+
 if __name__ == "__main__":
 
     contour = False
     #  True for contour
     #  False for raster
     layer =  "31uni"
-'''
+    ring = "amb"
+    cases = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_31uni_hyds-30cm-deep/Opt/outputs",\
+                      "met_LAI-08_vrt_swilt-watr-ssat_31uni_hyds^*-*_teuc_sres_watr/EucFACE_amb_out.nc"))
+
+    for case in cases:	
+        case_name = case.split("/")[-2]
+        plot_profile(case, case_name, ring, contour, layer)

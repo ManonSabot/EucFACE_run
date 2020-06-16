@@ -29,25 +29,24 @@ from plot_eucface_swc_cable_vs_obs_profile import *
 
 if __name__ == "__main__":
 
-    layer = "6" #"6" #"31uni"
+    layer = "31uni"
 
 
-    cases = [
-             "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_6",\
-             "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_6_litter",\
-             "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_SM_6_litter"
-              ] 
     # cases = [
-    #           "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_litter",\
-    #           "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x1-x1_litter",\
-    #           "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter",\
-    #           "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_hie-exp",\
-    #           "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_Hvrd",\
-    #           "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_hie-watpot"\
+    #          "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_6",\
+    #          "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_6_litter",\
+    #          "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_SM_6_litter"
     #           ]
-    #cases = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_31uni_hyds-30cm/outputs",\
-    #                  "met_LAI_vrt_swilt-watr-ssat_SM_31uni_hyds^*_litter"))
-
+    # # cases = [
+    # #           "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_litter",\
+    # #           "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x1-x1_litter",\
+    # #           "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter",\
+    # #           "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_hie-exp",\
+    # #           "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_Hvrd",\
+    # #           "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI_vrt_swilt-watr-ssat_SM_31uni_hydsx10-x100-x100_litter_hie-watpot"\
+    # #           ]
+    cases = glob.glob(os.path.join("/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run_opt_31uni_hyds-30cm-deep/Opt/outputs",\
+                      "met_LAI-08_vrt_swilt-watr-ssat_31uni_hyds^*-*_teuc_sres_watr"))
     contour = False
 
     rings = ["amb"]#"R1","R2","R3","R4","R5","R6",,"ele"
@@ -55,11 +54,11 @@ if __name__ == "__main__":
     for case_name in cases:
         for ring in rings:
             fcable ="%s/EucFACE_%s_out.nc" % (case_name, ring)
-            plot_profile_ET(fcable, case_name, ring, contour, layer)
-            # plot_profile(fcable, case_name, ring, contour, layer)
-            # #plot_neo(fcable, case_name, ring, layer)
+            #plot_profile_ET(fcable, case_name, ring, contour, layer)
+            plot_profile(fcable, case_name, ring, contour, layer)
+            plot_neo(fcable, case_name, ring, layer)
             # #plot_tdr(fcable, case_name, ring, layer)
-            # plot_tdr_ET(fcable, case_name, ring, layer)
+            plot_tdr_ET(fcable, case_name, ring, layer)
             # #plot_dry_down(fcable, case_name, ring, layer)
 
 

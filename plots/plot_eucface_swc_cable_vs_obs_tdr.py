@@ -23,7 +23,7 @@ import netCDF4 as nc
 from scipy.interpolate import griddata
 import scipy.stats as stats
 from sklearn.metrics import mean_squared_error
-from cable_get_var import *
+from cable_get_var_imp import *
 
 def plot_tdr(fcable, case_name, ring, layer):
 
