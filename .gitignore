@@ -15,6 +15,7 @@ outputs/*
 restart_files/*
 doc/plots/*
 doc/scripts/__pycache__/*
+doc/scripts_old/*
 doc/*.nc
 doc/*.o
 doc/*.pdf

@@ -529,7 +529,7 @@ def read_ET_SM_top_mid_bot(fcable, ring, layer):
     cable_data['dates'] = Time
     cable_data = cable_data.set_index('dates')
     cable_data = cable_data.resample("D").agg('mean')
-    
+
     # from mm / half-hour to mm/day
     cable_data['TVeg']  = cable_data['TVeg']*48
     cable_data['ESoil'] = cable_data['ESoil']*48

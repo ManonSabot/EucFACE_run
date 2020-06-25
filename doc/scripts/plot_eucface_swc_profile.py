@@ -262,7 +262,7 @@ def plot_profile(fcable, case_name, ring, contour, layer):
 
 def plot_profile_3(fctl, fbest, ring, contour):
 
-    fobs = "/srv/ccrc/data25/z5218916/cable/EucFACE/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
+    fobs = "/srv/ccrc/data25/z5218916/data/Eucface_data/swc_at_depth/FACE_P0018_RA_NEUTRON_20120430-20190510_L1.csv"
     neo = pd.read_csv(fobs, usecols = ['Ring','Depth','Date','VWC'])
     # usecols : read specific columns from CSV
 
@@ -849,6 +849,7 @@ def plot_profile_tdr_ET_error(fpath, case_name, ring, contour, layer):
 
     # ===== CABLE =====
     cable = nc.Dataset("%s/EucFACE_amb_out.nc" % fpath, 'r')
+
     Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
 
     TVeg = pd.DataFrame(cable.variables['TVeg'][:,0,0],columns=['TVeg'])
@@ -1229,15 +1230,19 @@ def plot_profile_tdr_ET_error_rain(CTL, fpath, case_name, ring, contour, layer):
 
     # ===== CABLE =====
     cable = nc.Dataset("%s/EucFACE_amb_out.nc" % fpath, 'r')
-    Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
-
+    Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units,
+            calendar="standard")
+    print(Time)
     Rainf = pd.DataFrame(cable.variables['Rainf'][:,0,0],columns=['Rainf'])
     Rainf = Rainf*1800.
     Rainf['dates'] = Time
+    # Rainf['dates'] = pd.to_datetime(Rainf['dates'])
+    print(Rainf)
     Rainf = Rainf.set_index('dates')
     Rainf = Rainf.resample("D").agg('sum')
     Rainf.index = Rainf.index - pd.datetime(2011,12,31)
     Rainf.index = Rainf.index.days
+
 
     TVeg = pd.DataFrame(cable.variables['TVeg'][:,0,0],columns=['TVeg'])
     TVeg = TVeg*1800.
@@ -1492,7 +1497,7 @@ def plot_profile_tdr_ET_error_rain(CTL, fpath, case_name, ring, contour, layer):
         ax1.set(xticks=xtickslocs1, xticklabels=cleaner_dates1) ####
         ax1.set_ylabel("$E_{tr}$, $E_{s}$ (mm d$^{-1}$)")
         ax1.axis('tight')
-        ax1.set_ylim(0.,6.)
+        ax1.set_ylim(0.,7.)
         ax1.set_xlim(367,1097)#2923)
         ax1.legend(loc='upper right', ncol=2, labelspacing=0.2, columnspacing=0.2, frameon=False)
         #ax1.update_ticks()
@@ -1604,7 +1609,7 @@ def plot_profile_tdr_ET_error_rain(CTL, fpath, case_name, ring, contour, layer):
         Y_labels3 = Y
 
     cbar3 = fig.colorbar(img3, ax = ax4, orientation="vertical", pad=0.02, shrink=.6)
-    cbar3.set_label('$θ$(CABLE) - $θ$(Obs) (m$^{3}$ m$^{-3}$)')
+    cbar3.set_label('$θ$ (CABLE − Obs) (m$^{3}$ m$^{-3}$)')
     tick_locator3 = ticker.MaxNLocator(nbins=6)
     cbar3.locator = tick_locator3
     cbar3.update_ticks()
@@ -1640,8 +1645,9 @@ def plot_profile_ET_error_rain(fpath, case_name, ring, contour, layer):
 
     # ===== CABLE =====
     cable = nc.Dataset("%s/EucFACE_amb_out.nc" % fpath, 'r')
-    Time  = nc.num2date(cable.variables['time'][:],cable.variables['time'].units)
-
+    Time  = nc.num2date(cable.variables['time'][:],units=cable.variables['time'].units,
+            calendar="standard")
+    print(Time)
     Rainf = pd.DataFrame(cable.variables['Rainf'][:,0,0],columns=['Rainf'])
     Rainf = Rainf*1800.
     Rainf['dates'] = Time
@@ -1941,7 +1947,7 @@ def plot_profile_ET_error_rain(fpath, case_name, ring, contour, layer):
     ax1.set(xticks=xtickslocs1, xticklabels=cleaner_dates1) ####
     ax1.set_ylabel("$E_{s}$ (mm d$^{-1}$)")
     ax1.axis('tight')
-    ax1.set_ylim(0.,2.)
+    ax1.set_ylim(0.,4.)
     ax1.set_xlim(367,1097)
     ax1.legend(loc='upper right', ncol=2,labelspacing=0.2, columnspacing=0.2, frameon=False)
     #ax1.update_ticks()
@@ -1952,7 +1958,7 @@ def plot_profile_ET_error_rain(fpath, case_name, ring, contour, layer):
     ax2.set(xticks=xtickslocs1, xticklabels=cleaner_dates1) ####
     ax2.set_ylabel("$E_{tr}$ (mm d$^{-1}$)")
     ax2.axis('tight')
-    ax2.set_ylim(0.,3.5)
+    ax2.set_ylim(0.,4.)
     ax2.set_xlim(367,1097)
     ax2.legend(loc='upper right', ncol=2,labelspacing=0.2, columnspacing=0.2, frameon=False)
     #ax2.update_ticks()
@@ -2043,7 +2049,7 @@ def plot_profile_ET_error_rain(fpath, case_name, ring, contour, layer):
         Y_labels3 = Y
 
     cbar3 = fig.colorbar(img3, ax = ax4, orientation="vertical", pad=0.02, shrink=.6)
-    cbar3.set_label('$θ$(CABLE) - $θ$(Obs) (m$^{3}$ m$^{-3}$)')
+    cbar3.set_label('$θ$ (CABLE − Obs) (m$^{3}$ m$^{-3}$)')
     tick_locator3 = ticker.MaxNLocator(nbins=6)
     cbar3.locator = tick_locator3
     cbar3.update_ticks()

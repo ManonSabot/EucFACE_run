@@ -27,7 +27,7 @@ from sklearn.metrics import mean_squared_error
 def plot_2d(x, xaxis, rmse, r):
 
     # _____________ Make plot _____________
-    fig = plt.figure(figsize=(7,5))
+    fig = plt.figure(figsize=(7.2,4.5))
     fig.subplots_adjust(hspace=0.3)
     fig.subplots_adjust(wspace=0.2)
 
@@ -67,8 +67,8 @@ def plot_2d(x, xaxis, rmse, r):
     # ax1.plot(x, r[2,:], c=colors[2], lw=1.5, ls="-",   label="$E_{tr}$", alpha=1.)
     # ax1.plot(x, r[3,:], c=colors[3], lw=1.5, ls="-",   label="$E_{s}$", alpha=1.)
 
-    ax2.plot(x, rmse[0,:], c=colors[0], lw=1.5, ls="-", label="$θ_{top 25cm}$", alpha=1.)
-    ax2.plot(x, rmse[1,:], c=colors[1], lw=1.5, ls="-", label="$θ_{all}$", alpha=1.)
+    ax2.plot(x, rmse[1,:], c=colors[0], lw=1.5, ls="-", label="$θ_{all}$", alpha=1.)
+    ax2.plot(x, rmse[0,:], c=colors[1], lw=1.5, ls="-", label="$θ_{top}$", alpha=1.)
 
     ax3  = ax2.twinx()
     ax3.plot(x, rmse[2,:], c=colors[2], lw=1.5, ls="-", label="$E_{tr}$", alpha=1.)
@@ -87,18 +87,18 @@ def plot_2d(x, xaxis, rmse, r):
     ax2.set_ylim(0.,0.2)
     #ax2.set_xlim(day_start,day_end)
     ax2.axvline(x=1 , ls="--")
-    ax2.set_ylabel('RMSE (m$^{3}$ m$^{-3}$)')
+    ax2.set_ylabel('RMSE of $θ_{all}$, $θ_{top}$ (m$^{3}$ m$^{-3}$)')
     #ax2.text(0.02, 0.95, '(b)', transform=ax2.transAxes, fontsize=14, verticalalignment='top', bbox=props)
-    ax2.legend(loc='best', frameon=False)
+    ax2.legend(loc='upper center', frameon=False)
 
     ax3.set(xticks=x, xticklabels=xaxis)
     ax3.axis('tight')
     ax3.set_ylim(0.,1.)
     #ax2.set_xlim(day_start,day_end)
     #ax3.axvline(x=1 , ls="--")
-    ax3.set_ylabel('RMSE (mm d$^{-1}$)')
+    ax3.set_ylabel('RMSE of $E_{tr}$, $E_{s}$ (mm d$^{-1}$)')
     # ax3.text(0.02, 0.95, '(b)', transform=ax2.transAxes, fontsize=14, verticalalignment='top', bbox=props)
-    ax2.legend(loc='best', frameon=False)
+    ax3.legend(loc='upper right', frameon=False)
 
     fig.savefig("./plots/EucFACE_hyds-Opt" , bbox_inches='tight', pad_inches=0.1)
 

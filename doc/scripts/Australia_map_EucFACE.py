@@ -20,15 +20,15 @@ import matplotlib.ticker as mticker
 from cartopy.feature import ShapelyFeature
 from cartopy.io.shapereader import Reader
 
-fig = plt.figure(figsize=(9, 6))
+fig = plt.figure(figsize=(7, 5))
 plt.rcParams['font.family'] = "sans-serif"
 plt.rcParams['font.size'] = "14"
 plt.rcParams['font.sans-serif'] = "Helvetica"
 
 ax = plt.axes(projection=ccrs.PlateCarree())
-#ax.add_feature(cartopy.feature.LAND)
-#ax.add_feature(cartopy.feature.OCEAN)
-#ax.add_feature(cartopy.feature.COASTLINE, lw=0.5)
+ax.add_feature(cartopy.feature.LAND)
+ax.add_feature(cartopy.feature.OCEAN)
+ax.add_feature(cartopy.feature.COASTLINE, lw=0.5)
 
 ax.set_extent([-150, 60, -25, 60])
 
@@ -53,8 +53,8 @@ ax.add_feature(LAND_highres, zorder=0,
 # shape_feature = ShapelyFeature(Reader(fname).geometries(),
 #                                ccrs.PlateCarree(), edgecolor='black')
 # ax.add_feature(shape_feature, facecolor='none', edgecolor='black', lw=0.5)
-ax.set_xlim(140.7, 154)
-ax.set_ylim(-39.2, -28.1)
+ax.set_xlim(101, 169)
+ax.set_ylim(-49, -1)
 #
 # ax.text(146, -32, 'New South Wales', horizontalalignment='center',
 #         transform=ccrs.PlateCarree(), fontsize=14)
@@ -62,20 +62,25 @@ ax.set_ylim(-39.2, -28.1)
 #         transform=ccrs.PlateCarree(), fontsize=14)
 
 ax.plot(151.2093, -33.8688, 'ko', markersize=4, transform=ccrs.PlateCarree())
-ax.text(152.5, -33.868, 'Sydney', horizontalalignment='right',
-        transform=ccrs.PlateCarree(), fontsize=10)
+ax.text(155.2, -32, 'Sydney', horizontalalignment='right',
+        transform=ccrs.PlateCarree(), fontsize=14)
 
+ax.text(141, -26, 'Australia', horizontalalignment='right',
+        transform=ccrs.PlateCarree(), fontsize=20)
 
-ax.plot(149.1300, -35.2809, 'ko', markersize=4, transform=ccrs.PlateCarree())
-ax.text(148.900, -35.0809, 'Canberra', horizontalalignment='center',
-        transform=ccrs.PlateCarree(), fontsize=10)
-
-ax.plot(144.9631, -37.8136, 'ko', markersize=4, transform=ccrs.PlateCarree())
-ax.text(144.85, -37.8136, 'Melbourne', horizontalalignment='right',
-        transform=ccrs.PlateCarree(), fontsize=10)
+ax.text(110, -5, '(a)', horizontalalignment='right',
+        transform=ccrs.PlateCarree(), fontsize=16)
+#
+# ax.plot(149.1300, -35.2809, 'ko', markersize=4, transform=ccrs.PlateCarree())
+# ax.text(148.900, -35.0809, 'Canberra', horizontalalignment='center',
+#         transform=ccrs.PlateCarree(), fontsize=10)
+#
+# ax.plot(144.9631, -37.8136, 'ko', markersize=4, transform=ccrs.PlateCarree())
+# ax.text(144.85, -37.8136, 'Melbourne', horizontalalignment='right',
+#         transform=ccrs.PlateCarree(), fontsize=10)
 
 # Add EucFACE as a star
-ax.plot(150.738, -33.62, '*', markersize=20, c= "blue", markeredgecolor = 'black', alpha = 0.5,
+ax.plot(150.738, -33.62, '*', markersize=20, c= "red", markeredgecolor = 'red', alpha = 0.7,
         transform=ccrs.PlateCarree())
 
 gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
@@ -84,15 +89,15 @@ gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
 
 gl.xlabels_top = False
 gl.ylabels_right = False
-gl.xlines = False
-gl.ylines = False
+gl.xlines = True
+gl.ylines = True
 gl.xformatter = LONGITUDE_FORMATTER
 gl.yformatter = LATITUDE_FORMATTER
 
-gl.xlocator = mticker.FixedLocator([141, 145,  149, 153])
-gl.ylocator = mticker.FixedLocator([-29, -32, -35, -38])
+gl.xlocator = mticker.FixedLocator([100, 110, 120, 130, 140, 150, 160, 170])
+gl.ylocator = mticker.FixedLocator([0, -10, -20, -30, -40, -50])
 
 fdir = "./plots"
 fig.savefig(os.path.join(fdir, "aus_map.png"), dpi=300, bbox_inches='tight',
-            pad_inches=0.1)
+            pad_inches=0.1)#format='eps',
 #plt.show()

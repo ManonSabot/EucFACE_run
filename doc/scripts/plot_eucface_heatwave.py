@@ -390,6 +390,12 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
             ax3.plot(x, Qle[case_num, :], c=colors[case_num], lw=1.5, ls=ls[case_num], label=case_labels[case_num])#.rolling(window=30).mean()
             ax4.plot(x, Qh[case_num, :],  c=colors[case_num], lw=1.5, ls=ls[case_num], label=case_labels[case_num]) #, label=case_labels)#.rolling(window=30).mean()
             ax5.plot(x, SM_15m[case_num, :], c=colors[case_num], lw=1.5, ls=ls[case_num], label=case_labels[case_num]) #*1500.#.rolling(window=30).mean()
+            print("***********************")
+            print("preceding soil moisture of %s is %f" % (case_labels[case_num], SM_15m[case_num, 0]))
+            print("mean sensible heat flux of %s is %f" % (case_labels[case_num], Qh[case_num, :].mean()))
+            print("***********************")
+        for i in np.arange(48,97):
+            print("%f hour: Tair, Qh and Qle are %f %f %f" %((i-47)/2, Tair[i], Qh[6,i], Qle[6,i]))
 
         if time_scale == "daily":
             ax1.set_ylabel('Max Air Temperature (°C)')
@@ -445,7 +451,7 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
         if time_scale == "daily":
             ax3.set_ylim(-50.,220)
         elif time_scale == "hourly":
-            ax3.set_ylim(-40.,395.)
+            ax3.set_ylim(-40.,450.)
         #ax3.spines['top'].set_visible(False)
         #ax3.spines['right'].set_visible(False)
         #ax3.spines['bottom'].set_visible(False)
@@ -461,7 +467,7 @@ def plot_single_HW_event(time_scale, case_labels, i, date, Tair, Rainf, Qle, Qh,
         if time_scale == "daily":
             ax4.set_ylim(-50.,220)
         elif time_scale == "hourly":
-            ax4.set_ylim(-40.,395.)
+            ax4.set_ylim(-40.,450.)
         #ax4.spines['top'].set_visible(False)
         #ax4.spines['right'].set_visible(False)
         #ax4.spines['bottom'].set_visible(False)
@@ -1068,7 +1074,7 @@ def plot_case_study_HW_event(fcables, fcables_re, case_labels, ring, layers):
     ax3.set(xticks=xtickslocs, xticklabels=cleaner_dates)
     #ax3.set_xlim(0,288)
     ax3.set_xlim(0,240)
-    ax3.set_ylim(-40.,395.)
+    ax3.set_ylim(-40.,450.)
     #ax3.spines['top'].set_visible(False)
     #ax3.spines['right'].set_visible(False)
     #ax3.spines['bottom'].set_visible(False)
@@ -1083,7 +1089,7 @@ def plot_case_study_HW_event(fcables, fcables_re, case_labels, ring, layers):
     ax4.set(xticks=xtickslocs, xticklabels=cleaner_dates)
     #ax4.set_xlim(0,288)
     ax4.set_xlim(0,240)
-    ax4.set_ylim(-40.,395.)
+    ax4.set_ylim(-40.,450.)
     # #ax4.spines['top'].set_visible(False)
     # #ax4.spines['right'].set_visible(False)
     # #ax4.spines['bottom'].set_visible(False)
@@ -1151,7 +1157,7 @@ def plot_case_study_HW_event_beta(fcables, fcables_re, case_labels, ring, layers
 
     # choose colormap
     #colors = cm.Set2(np.arange(0,len(case_labels)))
-    colors = cm.Set2(np.arange(0,6))
+    colors = cm.tab20(np.arange(0,6))
     ls     = ['-','--','-','--','-','--']
 
     #ax1  = fig.add_subplot(511)
@@ -1218,7 +1224,7 @@ def plot_case_study_HW_event_beta(fcables, fcables_re, case_labels, ring, layers
     # ========================== Plotting ================================
     x    = np.arange(0,time_steps)
 
-    width  = 1/48
+    width  = 1/48*5
 
     #ax1.plot(x, Tair_re[0, :],   c="black", lw=1.5, ls="-", label="Air Temperature")#.rolling(window=30).mean()
 
@@ -1257,7 +1263,7 @@ def plot_case_study_HW_event_beta(fcables, fcables_re, case_labels, ring, layers
     ax2.set_ylabel("$β$")
     ax2.axis('tight')
     ax2.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax2.set_xlim(0,48)
+    ax2.set_xlim(0,48*5)
     ax2.set_ylim(0,1.1)
     #ax2.spines['top'].set_visible(False)
     #ax2.spines['right'].set_visible(False)
@@ -1269,7 +1275,7 @@ def plot_case_study_HW_event_beta(fcables, fcables_re, case_labels, ring, layers
     ax3.set_ylabel('$Q_{E}$ (W m$^{-2}$)')
     ax3.axis('tight')
     ax3.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax3.set_xlim(0,48)
+    ax3.set_xlim(0,48*5)
     ax3.set_ylim(-40.,395.)
     #ax3.spines['top'].set_visible(False)
     #ax3.spines['right'].set_visible(False)
@@ -1283,7 +1289,7 @@ def plot_case_study_HW_event_beta(fcables, fcables_re, case_labels, ring, layers
     ax4.set_ylabel('$Q_{H}$ (W m$^{-2}$)')
     ax4.axis('tight')
     ax4.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax4.set_xlim(0,48)
+    ax4.set_xlim(0,48*5)
     ax4.set_ylim(-40.,395.)
     # #ax4.spines['top'].set_visible(False)
     # #ax4.spines['right'].set_visible(False)
@@ -1297,7 +1303,7 @@ def plot_case_study_HW_event_beta(fcables, fcables_re, case_labels, ring, layers
     ax5.axis('tight')
     #ax5.legend()
     ax5.set(xticks=xtickslocs, xticklabels=cleaner_dates)
-    ax5.set_xlim(0,48)
+    ax5.set_xlim(0,48*5)
     ax5.set_ylim(0.10,0.31)
     #ax5.spines['top'].set_visible(False)
     #ax5.spines['right'].set_visible(False)
