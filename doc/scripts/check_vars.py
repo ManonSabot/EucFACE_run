@@ -38,7 +38,7 @@ plt.rcParams['xtick.labelsize'] = 14
 plt.rcParams['ytick.labelsize'] = 14
 ax1 = fig.add_subplot(111)
 
-fname1 = "/srv/ccrc/data25/z5218916/data/EucFACE_run/outputs/met_grass_6_sres_watr/EucFACE_amb_out.nc"
+fname1 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_grass_6_sres_watr/EucFACE_amb_out.nc"
 # fname2 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/met/met_LAI-08_6/EucFACE_met_R3.nc"
 # fname3 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/met/met_LAI-08_6/EucFACE_met_R6.nc"
 # fname4 = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/met/met_LAI-08_6/EucFACE_met_amb.nc"

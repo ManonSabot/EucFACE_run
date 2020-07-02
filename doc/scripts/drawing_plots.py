@@ -64,7 +64,7 @@ if __name__ == "__main__":
     # "β-exp" restart
     case_name14 = "met_LAI-08_vrt_swilt-watr-ssat_hyds10_31uni_2018-1-18-23_teuc_sres_watr_beta-exp"
 
-    pyth = "/srv/ccrc/data25/z5218916/cable"
+    pyth = "/srv/ccrc/data25/z5218916/cable/EucFACE"
 
     case_1 = "%s/EucFACE_run/outputs/%s" % (pyth, case_name1)
     fcbl_1 ="%s/EucFACE_%s_out.nc" % (case_1, ring)
@@ -162,31 +162,31 @@ if __name__ == "__main__":
     fpath8 = "%s/EucFACE_run/outputs/%s" % (pyth, case_name8)
     fpath9 = "%s/EucFACE_run/outputs/%s" % (pyth, case_name9)
     fpath10 = "%s/EucFACE_run/outputs/%s" % (pyth, case_name10)
+
     #
-    # #
-    # plot_profile_tdr_ET_error_rain(CTL, fpath1, case_name1, ring, contour, '6')
-    # plot_profile_tdr_ET_error_rain(CTL, fpath2, case_name2, ring, contour, '6')
-    # plot_profile_tdr_ET_error_rain(CTL, fpath3, case_name3, ring, contour, '6')
-    # plot_profile_tdr_ET_error_rain(CTL, fpath4, case_name4, ring, contour, '6')
-    # plot_profile_tdr_ET_error_rain(CTL, fpath5, case_name5, ring, contour, '31uni')
-    # plot_profile_tdr_ET_error_rain(CTL, fpath6, case_name6, ring, contour, '31uni')
-    # plot_profile_tdr_ET_error_rain(CTL, fpath7, case_name7, ring, contour, '31uni')
-    # plot_profile_tdr_ET_error_rain(CTL, fpath8, case_name8, ring, contour, '31uni')
-    # plot_profile_tdr_ET_error_rain(CTL, fpath9, case_name9, ring, contour, '31uni')
-    # plot_profile_tdr_ET_error_rain(CTL, fpath10, case_name10, ring, contour, '31uni')
-    #
-    # plot_profile_ET_error_rain(fpath3, case_name3, ring, contour, '6')
-    #
-    # '''
-    # Fwsoil plot
-    # '''
-    # # plot_fwsoil_boxplot_SM_days_bar( fcables, case_labels, layers, ring)
-    # plot_fwsoil_boxplot_SM( fcables, case_labels, layers, ring)
-    #
-    # '''
-    # Drought plot
-    # '''
-    # plot_Rain_Fwsoil_Trans_Esoil_SH_SM( fcables, case_labels, layers, ring)
+    plot_profile_tdr_ET_error_rain(CTL, fpath1, case_name1, ring, contour, '6')
+    plot_profile_tdr_ET_error_rain(CTL, fpath2, case_name2, ring, contour, '6')
+    plot_profile_tdr_ET_error_rain(CTL, fpath3, case_name3, ring, contour, '6')
+    plot_profile_tdr_ET_error_rain(CTL, fpath4, case_name4, ring, contour, '6')
+    plot_profile_tdr_ET_error_rain(CTL, fpath5, case_name5, ring, contour, '31uni')
+    plot_profile_tdr_ET_error_rain(CTL, fpath6, case_name6, ring, contour, '31uni')
+    plot_profile_tdr_ET_error_rain(CTL, fpath7, case_name7, ring, contour, '31uni')
+    plot_profile_tdr_ET_error_rain(CTL, fpath8, case_name8, ring, contour, '31uni')
+    plot_profile_tdr_ET_error_rain(CTL, fpath9, case_name9, ring, contour, '31uni')
+    plot_profile_tdr_ET_error_rain(CTL, fpath10, case_name10, ring, contour, '31uni')
+
+    plot_profile_ET_error_rain(fpath3, case_name3, ring, contour, '6')
+
+    '''
+    Fwsoil plot
+    '''
+    # plot_fwsoil_boxplot_SM_days_bar( fcables, case_labels, layers, ring)
+    plot_fwsoil_boxplot_SM( fcables, case_labels, layers, ring)
+
+    '''
+    Drought plot
+    '''
+    plot_Rain_Fwsoil_Trans_Esoil_SH_SM( fcables, case_labels, layers, ring)
 
     '''
     Heatwave plots
@@ -202,19 +202,22 @@ if __name__ == "__main__":
     case_labels2  = ["Hi-Res-2", "Opt", "β-Hvrd", "β-exp"]
     layers2       = ["31uni",  "31uni",  "31uni", "31uni"]
 
-    # plot_case_study_HW_event(fcables2, fcables_re, case_labels2, ring, layers2)
-    # plot_case_study_HW_event_beta(fcables2, fcables_re, case_labels2, ring, layers2)
-    # # '''
-    # # Water Balance
-    # # '''
-    # # # calc_waterbal(fcbl_1, '6', ring)
-    # # # calc_waterbal(fcbl_2, '6', ring)
-    # # # calc_waterbal(fcbl_3, '6', ring)
-    # # # calc_waterbal(fcbl_4, '31uni', ring)
-    # # # calc_waterbal(fcbl_5, '31uni', ring)
-    # # # calc_waterbal(fcbl_6, '31uni', ring)
-    # # # calc_waterbal(fcbl_7, '31uni', ring)
-    #
+    plot_case_study_HW_event(fcables2, fcables_re, case_labels2, ring, layers2)
+    plot_case_study_HW_event_beta(fcables2, fcables_re, case_labels2, ring, layers2)
+    '''
+    Water Balance
+    '''
+    calc_waterbal(fcbl_1, '6', ring)
+    calc_waterbal(fcbl_2, '6', ring)
+    calc_waterbal(fcbl_3, '6', ring)
+    calc_waterbal(fcbl_4, '6', ring)
+    calc_waterbal(fcbl_5, '31uni', ring)
+    calc_waterbal(fcbl_6, '31uni', ring)
+    calc_waterbal(fcbl_7, '31uni', ring)
+    calc_waterbal(fcbl_8, '31uni', ring)
+    calc_waterbal(fcbl_9, '31uni', ring)
+    calc_waterbal(fcbl_10, '31uni', ring)
+
     # # path = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/doc/scripts/csv/"
     # # case_names = [ "met_LAI_6",
     # #                "met_LAI_6_litter",

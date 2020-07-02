@@ -216,8 +216,8 @@ if __name__ == "__main__":
 
 
     ring    = "amb"
-    fcable  = "/srv/ccrc/data25/z5218916/data/EucFACE_run/outputs/met_LAI-08_vrt_swilt-watr-ssat_hyds10_31uni_teuc_sres_watr/EucFACE_amb_out.nc"
-    # fcable  = "/srv/ccrc/data25/z5218916/data/EucFACE_run/outputs/met_LAI-08_6convex07/EucFACE_amb_out.nc"
-    # fcable  = "/srv/ccrc/data25/z5218916/data/EucFACE_run/outputs/met_LAI-08_6convex07/EucFACE_amb_out.nc"
+    fcable  = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI-08_vrt_swilt-watr-ssat_hyds10_31uni_teuc_sres_watr/EucFACE_amb_out.nc"
+    # fcable  = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI-08_6convex07/EucFACE_amb_out.nc"
+    # fcable  = "/srv/ccrc/data25/z5218916/cable/EucFACE/EucFACE_run/outputs/met_LAI-08_6convex07/EucFACE_amb_out.nc"
 
     plot_vpd(fcable, ring)
